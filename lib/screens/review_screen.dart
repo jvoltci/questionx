@@ -64,6 +64,9 @@ class _ReviewCard extends StatelessWidget {
 
     bool isSkipped = ans.selectedOption == null;
     bool isCorrect = ans.isCorrect;
+
+    final int timeSpent = ans.timeSpent;
+
     Color statusColor = isSkipped
         ? Colors.grey
         : (isCorrect ? Colors.green : Colors.red);
@@ -97,20 +100,39 @@ class _ReviewCard extends StatelessWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  statusText,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
+              Row(
+                children: [
+                  Icon(Icons.timer_outlined, size: 14, color: Colors.white54),
+                  const SizedBox(width: 4),
+                  Text(
+                    "${timeSpent}s",
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 12),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Text(
+                      statusText,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

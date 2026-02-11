@@ -21,6 +21,9 @@ class QuizScreen extends ConsumerStatefulWidget {
 class _QuizScreenState extends ConsumerState<QuizScreen> {
   int _currentIndex = 0;
   Map<int, String> _userAnswers = {};
+
+  Map<int, int> _timeSpentPerQuestion = {};
+
   late Timer _timer;
   int _secondsElapsed = 0;
   bool _isSubmitting = false;
@@ -33,7 +36,14 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) setState(() => _secondsElapsed++);
+      if (mounted) {
+        setState(() {
+          _secondsElapsed++;
+
+          _timeSpentPerQuestion[_currentIndex] =
+              (_timeSpentPerQuestion[_currentIndex] ?? 0) + 1;
+        });
+      }
     });
   }
 
@@ -57,6 +67,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     for (int i = 0; i < widget.questions.length; i++) {
       final q = widget.questions[i];
       final userAnswer = _userAnswers[i];
+      final timeSpent = _timeSpentPerQuestion[i] ?? 0;
       bool isCorrect = false;
 
       if (userAnswer == null) {
@@ -79,6 +90,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           isCorrect: isCorrect,
           selectedOption: drift.Value(userAnswer),
           sessionId: 0,
+          timeSpent: drift.Value(timeSpent),
         ),
       );
     }

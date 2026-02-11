@@ -6,6 +6,7 @@ import 'package:path/path.dart' as p;
 
 part 'database.g.dart';
 
+@TableIndex(name: 'questions_index', columns: {#examName, #subject, #topic})
 class Questions extends Table {
   TextColumn get id => text()();
   TextColumn get examName => text()();
@@ -39,6 +40,7 @@ class SessionAnswers extends Table {
   TextColumn get questionId => text()();
   TextColumn get selectedOption => text().nullable()();
   BoolColumn get isCorrect => boolean()();
+  IntColumn get timeSpent => integer().withDefault(const Constant(0))();
 }
 
 class Mistakes extends Table {
@@ -54,7 +56,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -70,6 +72,18 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) {
         await m.createTable(mistakes);
+      }
+      if (from < 5) {
+        // Add timeSpent column
+        await m.addColumn(sessionAnswers, sessionAnswers.timeSpent);
+
+        // Add the Performance Index
+        await m.createIndex(
+          Index(
+            'questions_index',
+            "CREATE INDEX questions_index ON questions (exam_name, subject, topic)",
+          ),
+        );
       }
     },
   );

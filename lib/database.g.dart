@@ -1220,6 +1220,18 @@ class $SessionAnswersTable extends SessionAnswers
       'CHECK ("is_correct" IN (0, 1))',
     ),
   );
+  static const VerificationMeta _timeSpentMeta = const VerificationMeta(
+    'timeSpent',
+  );
+  @override
+  late final GeneratedColumn<int> timeSpent = GeneratedColumn<int>(
+    'time_spent',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -1227,6 +1239,7 @@ class $SessionAnswersTable extends SessionAnswers
     questionId,
     selectedOption,
     isCorrect,
+    timeSpent,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1276,6 +1289,12 @@ class $SessionAnswersTable extends SessionAnswers
     } else if (isInserting) {
       context.missing(_isCorrectMeta);
     }
+    if (data.containsKey('time_spent')) {
+      context.handle(
+        _timeSpentMeta,
+        timeSpent.isAcceptableOrUnknown(data['time_spent']!, _timeSpentMeta),
+      );
+    }
     return context;
   }
 
@@ -1305,6 +1324,10 @@ class $SessionAnswersTable extends SessionAnswers
         DriftSqlType.bool,
         data['${effectivePrefix}is_correct'],
       )!,
+      timeSpent: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}time_spent'],
+      )!,
     );
   }
 
@@ -1320,12 +1343,14 @@ class SessionAnswer extends DataClass implements Insertable<SessionAnswer> {
   final String questionId;
   final String? selectedOption;
   final bool isCorrect;
+  final int timeSpent;
   const SessionAnswer({
     required this.id,
     required this.sessionId,
     required this.questionId,
     this.selectedOption,
     required this.isCorrect,
+    required this.timeSpent,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1337,6 +1362,7 @@ class SessionAnswer extends DataClass implements Insertable<SessionAnswer> {
       map['selected_option'] = Variable<String>(selectedOption);
     }
     map['is_correct'] = Variable<bool>(isCorrect);
+    map['time_spent'] = Variable<int>(timeSpent);
     return map;
   }
 
@@ -1349,6 +1375,7 @@ class SessionAnswer extends DataClass implements Insertable<SessionAnswer> {
           ? const Value.absent()
           : Value(selectedOption),
       isCorrect: Value(isCorrect),
+      timeSpent: Value(timeSpent),
     );
   }
 
@@ -1363,6 +1390,7 @@ class SessionAnswer extends DataClass implements Insertable<SessionAnswer> {
       questionId: serializer.fromJson<String>(json['questionId']),
       selectedOption: serializer.fromJson<String?>(json['selectedOption']),
       isCorrect: serializer.fromJson<bool>(json['isCorrect']),
+      timeSpent: serializer.fromJson<int>(json['timeSpent']),
     );
   }
   @override
@@ -1374,6 +1402,7 @@ class SessionAnswer extends DataClass implements Insertable<SessionAnswer> {
       'questionId': serializer.toJson<String>(questionId),
       'selectedOption': serializer.toJson<String?>(selectedOption),
       'isCorrect': serializer.toJson<bool>(isCorrect),
+      'timeSpent': serializer.toJson<int>(timeSpent),
     };
   }
 
@@ -1383,6 +1412,7 @@ class SessionAnswer extends DataClass implements Insertable<SessionAnswer> {
     String? questionId,
     Value<String?> selectedOption = const Value.absent(),
     bool? isCorrect,
+    int? timeSpent,
   }) => SessionAnswer(
     id: id ?? this.id,
     sessionId: sessionId ?? this.sessionId,
@@ -1391,6 +1421,7 @@ class SessionAnswer extends DataClass implements Insertable<SessionAnswer> {
         ? selectedOption.value
         : this.selectedOption,
     isCorrect: isCorrect ?? this.isCorrect,
+    timeSpent: timeSpent ?? this.timeSpent,
   );
   SessionAnswer copyWithCompanion(SessionAnswersCompanion data) {
     return SessionAnswer(
@@ -1403,6 +1434,7 @@ class SessionAnswer extends DataClass implements Insertable<SessionAnswer> {
           ? data.selectedOption.value
           : this.selectedOption,
       isCorrect: data.isCorrect.present ? data.isCorrect.value : this.isCorrect,
+      timeSpent: data.timeSpent.present ? data.timeSpent.value : this.timeSpent,
     );
   }
 
@@ -1413,14 +1445,21 @@ class SessionAnswer extends DataClass implements Insertable<SessionAnswer> {
           ..write('sessionId: $sessionId, ')
           ..write('questionId: $questionId, ')
           ..write('selectedOption: $selectedOption, ')
-          ..write('isCorrect: $isCorrect')
+          ..write('isCorrect: $isCorrect, ')
+          ..write('timeSpent: $timeSpent')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, sessionId, questionId, selectedOption, isCorrect);
+  int get hashCode => Object.hash(
+    id,
+    sessionId,
+    questionId,
+    selectedOption,
+    isCorrect,
+    timeSpent,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1429,7 +1468,8 @@ class SessionAnswer extends DataClass implements Insertable<SessionAnswer> {
           other.sessionId == this.sessionId &&
           other.questionId == this.questionId &&
           other.selectedOption == this.selectedOption &&
-          other.isCorrect == this.isCorrect);
+          other.isCorrect == this.isCorrect &&
+          other.timeSpent == this.timeSpent);
 }
 
 class SessionAnswersCompanion extends UpdateCompanion<SessionAnswer> {
@@ -1438,12 +1478,14 @@ class SessionAnswersCompanion extends UpdateCompanion<SessionAnswer> {
   final Value<String> questionId;
   final Value<String?> selectedOption;
   final Value<bool> isCorrect;
+  final Value<int> timeSpent;
   const SessionAnswersCompanion({
     this.id = const Value.absent(),
     this.sessionId = const Value.absent(),
     this.questionId = const Value.absent(),
     this.selectedOption = const Value.absent(),
     this.isCorrect = const Value.absent(),
+    this.timeSpent = const Value.absent(),
   });
   SessionAnswersCompanion.insert({
     this.id = const Value.absent(),
@@ -1451,6 +1493,7 @@ class SessionAnswersCompanion extends UpdateCompanion<SessionAnswer> {
     required String questionId,
     this.selectedOption = const Value.absent(),
     required bool isCorrect,
+    this.timeSpent = const Value.absent(),
   }) : sessionId = Value(sessionId),
        questionId = Value(questionId),
        isCorrect = Value(isCorrect);
@@ -1460,6 +1503,7 @@ class SessionAnswersCompanion extends UpdateCompanion<SessionAnswer> {
     Expression<String>? questionId,
     Expression<String>? selectedOption,
     Expression<bool>? isCorrect,
+    Expression<int>? timeSpent,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -1467,6 +1511,7 @@ class SessionAnswersCompanion extends UpdateCompanion<SessionAnswer> {
       if (questionId != null) 'question_id': questionId,
       if (selectedOption != null) 'selected_option': selectedOption,
       if (isCorrect != null) 'is_correct': isCorrect,
+      if (timeSpent != null) 'time_spent': timeSpent,
     });
   }
 
@@ -1476,6 +1521,7 @@ class SessionAnswersCompanion extends UpdateCompanion<SessionAnswer> {
     Value<String>? questionId,
     Value<String?>? selectedOption,
     Value<bool>? isCorrect,
+    Value<int>? timeSpent,
   }) {
     return SessionAnswersCompanion(
       id: id ?? this.id,
@@ -1483,6 +1529,7 @@ class SessionAnswersCompanion extends UpdateCompanion<SessionAnswer> {
       questionId: questionId ?? this.questionId,
       selectedOption: selectedOption ?? this.selectedOption,
       isCorrect: isCorrect ?? this.isCorrect,
+      timeSpent: timeSpent ?? this.timeSpent,
     );
   }
 
@@ -1504,6 +1551,9 @@ class SessionAnswersCompanion extends UpdateCompanion<SessionAnswer> {
     if (isCorrect.present) {
       map['is_correct'] = Variable<bool>(isCorrect.value);
     }
+    if (timeSpent.present) {
+      map['time_spent'] = Variable<int>(timeSpent.value);
+    }
     return map;
   }
 
@@ -1514,7 +1564,8 @@ class SessionAnswersCompanion extends UpdateCompanion<SessionAnswer> {
           ..write('sessionId: $sessionId, ')
           ..write('questionId: $questionId, ')
           ..write('selectedOption: $selectedOption, ')
-          ..write('isCorrect: $isCorrect')
+          ..write('isCorrect: $isCorrect, ')
+          ..write('timeSpent: $timeSpent')
           ..write(')'))
         .toString();
   }
@@ -1750,6 +1801,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $SessionAnswersTable sessionAnswers = $SessionAnswersTable(this);
   late final $MistakesTable mistakes = $MistakesTable(this);
+  late final Index questionsIndex = Index(
+    'questions_index',
+    'CREATE INDEX questions_index ON questions (exam_name, subject, topic)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1759,6 +1814,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     practiceSessions,
     sessionAnswers,
     mistakes,
+    questionsIndex,
   ];
 }
 
@@ -2548,6 +2604,7 @@ typedef $$SessionAnswersTableCreateCompanionBuilder =
       required String questionId,
       Value<String?> selectedOption,
       required bool isCorrect,
+      Value<int> timeSpent,
     });
 typedef $$SessionAnswersTableUpdateCompanionBuilder =
     SessionAnswersCompanion Function({
@@ -2556,6 +2613,7 @@ typedef $$SessionAnswersTableUpdateCompanionBuilder =
       Value<String> questionId,
       Value<String?> selectedOption,
       Value<bool> isCorrect,
+      Value<int> timeSpent,
     });
 
 final class $$SessionAnswersTableReferences
@@ -2618,6 +2676,11 @@ class $$SessionAnswersTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get timeSpent => $composableBuilder(
+    column: $table.timeSpent,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$PracticeSessionsTableFilterComposer get sessionId {
     final $$PracticeSessionsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -2671,6 +2734,11 @@ class $$SessionAnswersTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get timeSpent => $composableBuilder(
+    column: $table.timeSpent,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$PracticeSessionsTableOrderingComposer get sessionId {
     final $$PracticeSessionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -2719,6 +2787,9 @@ class $$SessionAnswersTableAnnotationComposer
 
   GeneratedColumn<bool> get isCorrect =>
       $composableBuilder(column: $table.isCorrect, builder: (column) => column);
+
+  GeneratedColumn<int> get timeSpent =>
+      $composableBuilder(column: $table.timeSpent, builder: (column) => column);
 
   $$PracticeSessionsTableAnnotationComposer get sessionId {
     final $$PracticeSessionsTableAnnotationComposer composer = $composerBuilder(
@@ -2779,12 +2850,14 @@ class $$SessionAnswersTableTableManager
                 Value<String> questionId = const Value.absent(),
                 Value<String?> selectedOption = const Value.absent(),
                 Value<bool> isCorrect = const Value.absent(),
+                Value<int> timeSpent = const Value.absent(),
               }) => SessionAnswersCompanion(
                 id: id,
                 sessionId: sessionId,
                 questionId: questionId,
                 selectedOption: selectedOption,
                 isCorrect: isCorrect,
+                timeSpent: timeSpent,
               ),
           createCompanionCallback:
               ({
@@ -2793,12 +2866,14 @@ class $$SessionAnswersTableTableManager
                 required String questionId,
                 Value<String?> selectedOption = const Value.absent(),
                 required bool isCorrect,
+                Value<int> timeSpent = const Value.absent(),
               }) => SessionAnswersCompanion.insert(
                 id: id,
                 sessionId: sessionId,
                 questionId: questionId,
                 selectedOption: selectedOption,
                 isCorrect: isCorrect,
+                timeSpent: timeSpent,
               ),
           withReferenceMapper: (p0) => p0
               .map(

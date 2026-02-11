@@ -158,6 +158,19 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     );
   }
 
+  Color _getDifficultyColor(String? difficulty) {
+    switch (difficulty?.toLowerCase()) {
+      case 'easy':
+        return Colors.greenAccent;
+      case 'medium':
+        return Colors.orangeAccent;
+      case 'hard':
+        return Colors.redAccent;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     List<dynamic> options = [];
@@ -165,6 +178,8 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       options = jsonDecode(widget.question.optionsJson);
     } catch (_) {}
     final subjectColor = AppColors.getForSubject(widget.question.subject);
+
+    final difficultyColor = _getDifficultyColor(widget.question.difficulty);
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
@@ -226,12 +241,31 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                 children: [
                   _metaItem(Icons.calendar_today, "${widget.question.year}"),
                   _verticalDivider(),
+
                   _metaItem(
                     Icons.numbers,
-                    "Q. ${widget.question.id.contains('_') ? widget.question.id.split('_').last : '?'}",
+                    "Q.${widget.question.id.contains('_') ? widget.question.id.split('_').last : '?'}",
                   ),
                   _verticalDivider(),
-                  _metaItem(Icons.book, widget.question.subject),
+
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.signal_cellular_alt,
+                        color: difficultyColor,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        widget.question.difficulty ?? "Medium",
+                        style: TextStyle(
+                          color: difficultyColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -243,13 +277,13 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               children: [
                 _actionChip(
                   context,
-                  "Practice Topic: ${widget.question.topic}",
+                  "Topic: ${widget.question.topic}",
                   () => _launchQuickPractice(topics: [widget.question.topic]),
                   subjectColor,
                 ),
                 _actionChip(
                   context,
-                  "Practice Year: ${widget.question.year}",
+                  "Year: ${widget.question.year}",
                   () => _launchQuickPractice(years: [widget.question.year]),
                   subjectColor,
                 ),
