@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,17 +9,44 @@ import 'package:google_fonts/google_fonts.dart';
 import 'database.dart';
 import 'home_screen.dart';
 import 'services/sync_service.dart';
+import 'services/weightage_service.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
 
-void main() {
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-    ),
-  );
-  runApp(const ProviderScope(child: MyApp()));
+Future<void> main() async {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    try {
+      await Firebase.initializeApp();
+      FlutterError.onError = (details) {
+        if (!kDebugMode) {
+          FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+        } else {
+          FlutterError.presentError(details);
+        }
+      };
+      PlatformDispatcher.instance.onError = (error, stack) {
+        if (!kDebugMode) {
+          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+        }
+        return true;
+      };
+    } catch (e) {
+      debugPrint("Firebase init failed: $e");
+    }
+
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+      ),
+    );
+    runApp(const ProviderScope(child: MyApp()));
+  }, (error, stack) {
+    if (!kDebugMode) {
+      FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    }
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -90,6 +120,7 @@ class _PremiumSplashScreenState extends ConsumerState<PremiumSplashScreen>
     try {
       setState(() => _loadingText = "Syncing Question Bank...");
       await sync.initializeData();
+      await WeightageService().ensureLoaded();
     } catch (e) {
       debugPrint("Sync Error (Offline Mode): $e");
     }

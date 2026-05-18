@@ -9,6 +9,7 @@ import '../database.dart';
 import '../screens/quiz_screen.dart';
 import 'widgets/tex_view.dart';
 import 'utils/colors.dart';
+import 'services/weightage_service.dart';
 
 class DetailScreen extends ConsumerStatefulWidget {
   final Question question;
@@ -287,6 +288,12 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                   () => _launchQuickPractice(years: [widget.question.year]),
                   subjectColor,
                 ),
+                _WeightageChip(
+                  tier: WeightageService().tierFor(
+                    widget.question.subject,
+                    widget.question.topic,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 20),
@@ -485,6 +492,49 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               color: Colors.white70,
               fontSize: 15,
               height: 1.6,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WeightageChip extends StatelessWidget {
+  final WeightageTier tier;
+  const _WeightageChip({required this.tier});
+
+  @override
+  Widget build(BuildContext context) {
+    if (tier == WeightageTier.unknown) return const SizedBox.shrink();
+    final (label, icon, color) = switch (tier) {
+      WeightageTier.high =>
+        ("HIGH YIELD", Icons.local_fire_department, const Color(0xFFEF4444)),
+      WeightageTier.medium =>
+        ("MEDIUM", Icons.flash_on, const Color(0xFFF59E0B)),
+      WeightageTier.low =>
+        ("LOW", Icons.remove_circle_outline, const Color(0xFF64748B)),
+      WeightageTier.unknown => ("", Icons.help_outline, Colors.transparent),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.4)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: color,
+              letterSpacing: 0.5,
             ),
           ),
         ],

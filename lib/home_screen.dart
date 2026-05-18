@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +15,7 @@ import 'screens/history_screen.dart';
 import 'screens/mistake_screen.dart';
 import 'widgets/tex_view.dart';
 import 'utils/colors.dart';
+import 'services/analytics_service.dart';
 import 'package:drift/drift.dart' as drift;
 
 final selectedExamProvider = StateProvider<String?>((ref) => null);
@@ -113,6 +115,7 @@ class ExamSelectionScreen extends ConsumerWidget {
     await prefs.setString('selected_exam', exam);
     ref.read(subjectFilterProvider.notifier).state = defaultSubject;
     ref.read(selectedExamProvider.notifier).state = exam;
+    unawaited(AnalyticsService.logExamSelected(exam));
   }
 
   @override
@@ -161,14 +164,27 @@ class ExamSelectionScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 50),
-                  _ExamCard(
-                    title: "JEE Main",
-                    subtitle: "Engineering Entrance",
-                    icon: Icons.engineering,
-                    color1: const Color(0xFF3B82F6),
-                    color2: const Color(0xFF2563EB),
-                    onTap: () => _selectExam(ref, "JEE Main", "Physics"),
-                  ),
+                  Builder(builder: (ctx) {
+                    return _ExamCard(
+                      title: "JEE Main",
+                      subtitle: "Engineering Entrance",
+                      icon: Icons.engineering,
+                      color1: const Color(0xFF3B82F6),
+                      color2: const Color(0xFF2563EB),
+                      comingSoon: true,
+                      onTap: () {
+                        AnalyticsService.logComingSoonTap("JEE Main");
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "JEE PYQs launching soon. NEET is fully available now.",
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      },
+                    );
+                  }),
                   const SizedBox(height: 20),
                   _ExamCard(
                     title: "NEET",
@@ -209,6 +225,7 @@ class _ExamCard extends StatelessWidget {
   final Color color1;
   final Color color2;
   final VoidCallback onTap;
+  final bool comingSoon;
 
   const _ExamCard({
     required this.title,
@@ -217,68 +234,102 @@ class _ExamCard extends StatelessWidget {
     required this.color1,
     required this.color2,
     required this.onTap,
+    this.comingSoon = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final opacity = comingSoon ? 0.55 : 1.0;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        height: 100,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [color1.withOpacity(0.2), color2.withOpacity(0.1)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color1.withOpacity(0.5), width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: color1.withOpacity(0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 4),
+      child: Opacity(
+        opacity: opacity,
+        child: Container(
+          height: 100,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [color1.withOpacity(0.2), color2.withOpacity(0.1)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-          ],
-        ),
-        child: Row(
-          children: [
-            const SizedBox(width: 24),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color1,
-                borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color1.withOpacity(0.5), width: 1),
+            boxShadow: [
+              BoxShadow(
+                color: color1.withOpacity(0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
               ),
-              child: Icon(icon, color: Colors.white, size: 28),
-            ),
-            const SizedBox(width: 20),
-            Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const SizedBox(width: 24),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: color1,
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.inter(fontSize: 12, color: Colors.white70),
+                child: Icon(icon, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                        if (comingSoon) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "SOON",
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.inter(
+                          fontSize: 12, color: Colors.white70),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const Spacer(),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: color1.withOpacity(0.5),
-              size: 16,
-            ),
-            const SizedBox(width: 24),
-          ],
+              ),
+              Icon(
+                Icons.arrow_forward_ios,
+                color: color1.withOpacity(0.5),
+                size: 16,
+              ),
+              const SizedBox(width: 24),
+            ],
+          ),
         ),
       ),
     );
