@@ -143,13 +143,65 @@ class PdfService {
     if (text.isEmpty) return "";
     String clean = text.replaceAll('\n', ' ');
 
+    // Many source questions encode line breaks as the literal 2-char
+    // sequences "\\" or "\n" (backslash + n) — common in Match-the-columns
+    // and Assertion-Reason items. If the stem has no other LaTeX commands,
+    // these are not math — convert them to real HTML breaks. Otherwise the
+    // math-wrap heuristic below would treat the stray backslash as math
+    // and wrap the whole English prose in $$...$$.
+    final stripped = clean
+        .replaceAll(r'\\', '')
+        .replaceAll(r'\n', '')
+        .replaceAll(r'\t', '');
+    final hasRealLatex = stripped.contains(r'\');
+
+    // HTML-escape <,> outside math FIRST — questions sometimes contain text
+    // arrows like "A -> B" or inequalities like "modulation index < 1" that
+    // the browser would otherwise parse as the start of an HTML tag.
+    // Doing this before inserting <br/> ensures our injected tags survive.
+    clean = _escapeOutsideMath(clean);
+
+    if (!hasRealLatex) {
+      clean = clean
+          .replaceAll(r'\\', '<br/>')
+          .replaceAll(r'\n', '<br/>')
+          .replaceAll(r'\t', '  ');
+    }
+
     // KaTeX auto-render needs explicit delimiters if they are missing
-    bool hasDelimiter = clean.contains(r'$') || clean.contains(r'\(');
-    bool hasMathCommand = clean.contains(r'\');
+    final hasDelimiter = clean.contains(r'$') || clean.contains(r'\(');
+    final hasMathCommand = clean.contains(r'\');
 
     if (!hasDelimiter && hasMathCommand) {
       return r'$$' + clean + r'$$';
     }
     return clean;
+  }
+
+  static String _escapeOutsideMath(String s) {
+    final buf = StringBuffer();
+    int i = 0;
+    while (i < s.length) {
+      if (s[i] == r'$') {
+        final close = s.indexOf(r'$', i + 1);
+        if (close == -1) {
+          buf.write(s.substring(i));
+          break;
+        }
+        buf.write(s.substring(i, close + 1));
+        i = close + 1;
+      } else {
+        final c = s[i];
+        if (c == '<') {
+          buf.write('&lt;');
+        } else if (c == '>') {
+          buf.write('&gt;');
+        } else {
+          buf.write(c);
+        }
+        i++;
+      }
+    }
+    return buf.toString();
   }
 }

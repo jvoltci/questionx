@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
@@ -170,40 +171,145 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<List<Question>> getCustomQuestions({
+    String? examName,
     List<int>? years,
     List<String>? subjects,
     List<String>? topics,
     int limit = 500,
-  }) {
-    return (select(questions)
+  }) async {
+    final rows = await (select(questions)
           ..where((t) {
             final List<Expression<bool>> predicates = [];
-            if (years != null && years.isNotEmpty)
+            if (examName != null) {
+              predicates.add(t.examName.like('%$examName%'));
+            }
+            if (years != null && years.isNotEmpty) {
               predicates.add(t.year.isIn(years));
-            if (subjects != null && subjects.isNotEmpty)
+            }
+            if (subjects != null && subjects.isNotEmpty) {
               predicates.add(t.subject.isIn(subjects));
-            if (topics != null && topics.isNotEmpty)
+            }
+            if (topics != null && topics.isNotEmpty) {
               predicates.add(t.topic.isIn(topics));
+            }
             return predicates.isEmpty
                 ? const Constant(true)
                 : Expression.and(predicates);
           })
           ..limit(limit))
         .get();
+    return _dedupeByContent(rows);
   }
 
-  Future<List<int>> getAvailableYears() async {
+  // Collapses content-identical duplicates (Set-A/Set-B paper variants and
+  // intra-paper repeats) so practice sessions never show the same question
+  // twice. First occurrence wins. See AUDIT_PROGRESS.json session_13_summary.
+  List<Question> _dedupeByContent(List<Question> qs) {
+    final seen = <String>{};
+    final out = <Question>[];
+    for (final q in qs) {
+      final fp = _contentFingerprint(q);
+      if (seen.add(fp)) out.add(q);
+    }
+    return out;
+  }
+
+  static final RegExp _reDollar = RegExp(r'\$+');
+  static final RegExp _reLatexDelim = RegExp(r'\\\(|\\\)|\\\[|\\\]');
+  static final RegExp _reLatexCmd = RegExp(r'\\[a-zA-Z]+\*?');
+  static final RegExp _reBraces = RegExp(r'[{}~]');
+  static final RegExp _reArrow = RegExp(r'[→⟶←⇐⇒⇌]');
+  static final RegExp _reNonAlnum =
+      RegExp(r'[^a-z0-9\s\-\+\=/\.\^]');
+  static final RegExp _reWs = RegExp(r'\s+');
+
+  static String _normalize(String s) {
+    var t = s.toLowerCase();
+    t = t.replaceAll(_reDollar, ' ');
+    t = t.replaceAll(_reLatexDelim, ' ');
+    t = t.replaceAll(_reArrow, ' ');
+    t = t.replaceAll(_reLatexCmd, ' ');
+    t = t.replaceAll(_reBraces, ' ');
+    t = t.replaceAll(_reNonAlnum, ' ');
+    t = t.replaceAll(_reWs, ' ').trim();
+    return t;
+  }
+
+  String _contentFingerprint(Question q) {
+    final stem = _normalize(q.questionLatex);
+    final raw = jsonDecode(q.optionsJson);
+    final List<String> opts;
+    if (raw is List) {
+      opts = raw.map((e) => _normalize(e.toString())).toList();
+    } else if (raw is Map) {
+      final keys = raw.keys.map((k) => k.toString()).toList()..sort();
+      opts = keys.map((k) => _normalize(raw[k].toString())).toList();
+    } else {
+      opts = const [];
+    }
+    opts.sort();
+    return '$stem || ${opts.where((o) => o.isNotEmpty).join(' | ')}';
+  }
+
+  Future<List<Question>> searchQuestions({
+    required String examName,
+    required String subject,
+    String? search,
+    int limit = 500,
+  }) {
+    final q = select(questions)
+      ..where((t) => t.examName.like('%$examName%'))
+      ..where((t) => t.subject.equals(subject));
+    if (search != null && search.isNotEmpty) {
+      final like = '%$search%';
+      q.where((t) => t.questionLatex.like(like) | t.topic.like(like));
+    }
+    q.limit(limit);
+    return q.get();
+  }
+
+  Future<int> countQuestions() async {
+    final exp = questions.id.count();
+    final query = selectOnly(questions)..addColumns([exp]);
+    final row = await query.getSingle();
+    return row.read(exp) ?? 0;
+  }
+
+  Future<({int total, List<String> exams, List<String> subjects})>
+      getDbStats() async {
+    final total = await countQuestions();
+    final examQuery = selectOnly(questions, distinct: true)
+      ..addColumns([questions.examName]);
+    final exams =
+        await examQuery.map((r) => r.read(questions.examName)!).get();
+    final subjectQuery = selectOnly(questions, distinct: true)
+      ..addColumns([questions.subject]);
+    final subjects =
+        await subjectQuery.map((r) => r.read(questions.subject)!).get();
+    return (total: total, exams: exams, subjects: subjects);
+  }
+
+  Future<List<int>> getAvailableYears({String? examName}) async {
     final query = selectOnly(questions, distinct: true)
       ..addColumns([questions.year]);
+    if (examName != null) {
+      query.where(questions.examName.like('%$examName%'));
+    }
     final result = await query.map((row) => row.read(questions.year)!).get();
     result.sort();
     return result;
   }
 
-  Future<List<String>> getAvailableTopics(String? subject) async {
+  Future<List<String>> getAvailableTopics(
+    String? subject, {
+    String? examName,
+  }) async {
     final query = selectOnly(questions, distinct: true)
       ..addColumns([questions.topic]);
-    if (subject != null) query.where(questions.subject.equals(subject));
+    final filters = <Expression<bool>>[];
+    if (subject != null) filters.add(questions.subject.equals(subject));
+    if (examName != null) filters.add(questions.examName.like('%$examName%'));
+    if (filters.isNotEmpty) query.where(Expression.and(filters));
     final result = await query.map((row) => row.read(questions.topic)!).get();
     result.sort();
     return result;

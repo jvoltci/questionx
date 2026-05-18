@@ -1,0 +1,2436 @@
+{
+  "total_questions": 5056,
+  "fingerprinted": 5056,
+  "skipped_short_fingerprint": 0,
+  "unique_fingerprints": 4974,
+  "duplicate_clusters_total": 81,
+  "cross_year_clusters": 58,
+  "same_year_clusters": 23,
+  "extra_copies_by_subject": {
+    "Biology": 20,
+    "Chemistry": 10,
+    "Physics": 10,
+    "General Knowledge": 19
+  },
+  "cross_year_clusters_detail": [
+    {
+      "size": 3,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_54",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 54,
+          "subject": "Biology",
+          "topic": "Microbes in Human Welfare",
+          "answer_key": "A",
+          "question_preview": "Which one of the following is not a biofertilizer?"
+        },
+        {
+          "id": "AIPMT_2011_Bio_101",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 101,
+          "subject": "Biology",
+          "topic": "Microbes in Human Welfare",
+          "answer_key": "A",
+          "question_preview": "Which one of the following is not a biofertilizer?"
+        },
+        {
+          "id": "AIPMT_2011_Bio_141",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 141,
+          "subject": "Biology",
+          "topic": "Microbes in Human Welfare",
+          "answer_key": "B",
+          "question_preview": "Which one of the following is not a biofertilizer?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2005",
+        "AIPMT 2007"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIPMT_2005_Chem_78",
+          "exam": "AIPMT",
+          "year": 2005,
+          "qno": 78,
+          "subject": "Chemistry",
+          "topic": "Surface Chemistry",
+          "answer_key": "B",
+          "question_preview": "Which one of the following forms micelles in aqueous solution above certain concentration?"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Chem_119",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 119,
+          "subject": "Chemistry",
+          "topic": "Surface Chemistry",
+          "answer_key": "A",
+          "question_preview": "Which one of the following forms micelles in aqueous solution above certain concentration?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2008",
+        "AIPMT 2005"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2005_Bio_104",
+          "exam": "AIPMT",
+          "year": 2005,
+          "qno": 104,
+          "subject": "Biology",
+          "topic": "Reproduction",
+          "answer_key": "B",
+          "question_preview": "Grey crescent is the area:"
+        },
+        {
+          "id": "AIIMS_2008_Bio_137",
+          "exam": "AIIMS",
+          "year": 2008,
+          "qno": 137,
+          "subject": "Biology",
+          "topic": "Human Reproduction",
+          "answer_key": "B",
+          "question_preview": "Grey crescent is the area"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2006",
+        "AIPMT 2007"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIPMT_2006_Chem_88",
+          "exam": "AIPMT",
+          "year": 2006,
+          "qno": 88,
+          "subject": "Chemistry",
+          "topic": "Amines",
+          "answer_key": "D",
+          "question_preview": "Which of the following is more basic than aniline?"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Chem_27",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 27,
+          "subject": "Chemistry",
+          "topic": "Amines",
+          "answer_key": "D",
+          "question_preview": "Which of the following is more basic than aniline?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2009"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIPMT_2007_Mains_Chem_32",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 32,
+          "subject": "Chemistry",
+          "topic": "Hydrocarbons",
+          "answer_key": "D",
+          "question_preview": "Which of the following compounds will exhibit cis-trans (geometrical) isomerism?"
+        },
+        {
+          "id": "AIPMT_2009_Chem_184",
+          "exam": "AIPMT",
+          "year": 2009,
+          "qno": 184,
+          "subject": "Chemistry",
+          "topic": "Hydrocarbons",
+          "answer_key": "D",
+          "question_preview": "Which of the following compounds will exhibit cis-trans (geometrical) isomerism?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2008"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Mains_Bio_33",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 33,
+          "subject": "Biology",
+          "topic": "Human Health and Disease",
+          "answer_key": "D",
+          "question_preview": "Which one of the following is linked to the discovery of Bordeaux mixture as a popular fungicide?"
+        },
+        {
+          "id": "AIPMT_2008_Bio_182",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 182,
+          "subject": "Biology",
+          "topic": "Strategies for Enhancement in Food Production",
+          "answer_key": "C",
+          "question_preview": "Which one of the following is linked to the discovery of Bordeaux mixture as a popular fungicide?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2009"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Phy_42",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 42,
+          "subject": "Physics",
+          "topic": "Electrostatics",
+          "answer_key": "B",
+          "question_preview": "Three capacitors each of capacitance $C$ and of breakdown voltage $V$ are joined in series. The capacitance and breakdown voltage of the combination will be:"
+        },
+        {
+          "id": "AIPMT_2009_Phy_38",
+          "exam": "AIPMT",
+          "year": 2009,
+          "qno": 38,
+          "subject": "Physics",
+          "topic": "Electrostatics",
+          "answer_key": "B",
+          "question_preview": "Three capacitors each of capacitance $C$ and of breakdown voltage $V$ are joined in series. The capacitance and breakdown voltage of the combination will be:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2008"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_51",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 51,
+          "subject": "Biology",
+          "topic": "Microbes in Human Welfare",
+          "answer_key": "B",
+          "question_preview": "Which one of the following is being tried in India as a biofuel substitute for fossil fuels?"
+        },
+        {
+          "id": "AIPMT_2008_Bio_183",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 183,
+          "subject": "Biology",
+          "topic": "Microbes in Human Welfare",
+          "answer_key": "B",
+          "question_preview": "Which one of the following is being tried in India as a biofuel substitute for fossil fuels?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2008"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2007_Mains_Phy_55",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 55,
+          "subject": "Physics",
+          "topic": "Gravitation",
+          "answer_key": "B",
+          "question_preview": "Two satellites of earth, $S_1$ and $S_2$, are moving in the same orbit. The mass of $S_1$ is four times the mass of $S_2$. Which one of the following statements is true?"
+        },
+        {
+          "id": "AIPMT_2008_Phy_13",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 13,
+          "subject": "Physics",
+          "topic": "Gravitation",
+          "answer_key": "B",
+          "question_preview": "Two satellites of earth, $S_1$ and $S_2$, are moving in the same orbit. The mass of $S_1$ is four times the mass of $S_2$. Which one of the following statements is true?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2010"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2007_Mains_Phy_61",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 61,
+          "subject": "Physics",
+          "topic": "Semiconductor Electronics",
+          "answer_key": "C",
+          "question_preview": "A common emitter amplifier has a voltage gain of 50, an input impedance of $100 \\Omega$ and an output impedance of $200 \\Omega$. The power gain of the amplifier is:"
+        },
+        {
+          "id": "CBSE_2010_Pre_Phy_46",
+          "exam": "AIPMT",
+          "year": 2010,
+          "qno": 46,
+          "subject": "Physics",
+          "topic": "Semiconductor Electronics",
+          "answer_key": "D",
+          "question_preview": "A common emitter amplifier has a voltage gain of 50, an input impedance of 100 $\\Omega$ and an output impedance of 200 $\\Omega$. The power gain of the amplifier is"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2008"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Phy_77",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 77,
+          "subject": "Physics",
+          "topic": "Units and Measurements",
+          "answer_key": "B",
+          "question_preview": "If the error in the measurement of radius of a sphere is $2\\%$, then the error in the determination of volume of the sphere will be:"
+        },
+        {
+          "id": "AIPMT_2008_Phy_2",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 2,
+          "subject": "Physics",
+          "topic": "Units and Measurements",
+          "answer_key": "C",
+          "question_preview": "If the error in the measurement of radius of a sphere is $2\\%$, then the error in the determination of volume of the sphere will be"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2012"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Chem_79",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 79,
+          "subject": "Chemistry",
+          "topic": "Chemical Bonding",
+          "answer_key": "D",
+          "question_preview": "Which one of the following pairs is isostructural (i.e., having the same shape and hybridization)?"
+        },
+        {
+          "id": "AIPMT_2012_Pre_Chem_13",
+          "exam": "AIPMT",
+          "year": 2012,
+          "qno": 13,
+          "subject": "Chemistry",
+          "topic": "Chemical Bonding",
+          "answer_key": "B",
+          "question_preview": "Which one of the following pairs is isostructural (i.e. having the same shape and hybridization)?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2008"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Phy_97",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 97,
+          "subject": "Physics",
+          "topic": "Motion in a Plane",
+          "answer_key": "C",
+          "question_preview": "A particle of mass $m$ is projected with velocity $v$ making an angle of $45^{\\circ}$ with the horizontal. When the particle lands on the level ground, the magnitude of the change in its momentum will"
+        },
+        {
+          "id": "AIPMT_2008_Phy_6",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 6,
+          "subject": "Physics",
+          "topic": "Motion in a Plane",
+          "answer_key": "C",
+          "question_preview": "A particle of mass $m$ is projected with velocity $v$ making an angle of $45^\\circ$ with the horizontal. When the particle lands on the level ground the magnitude of the change in its momentum will be"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2008"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Chem_106",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 106,
+          "subject": "Chemistry",
+          "topic": "Solid State",
+          "answer_key": "B",
+          "question_preview": "With which one of the following elements silicon should be doped so as to give p-type of semiconductor?"
+        },
+        {
+          "id": "AIPMT_2008_Chem_79",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 79,
+          "subject": "Chemistry",
+          "topic": "Solid State",
+          "answer_key": "A",
+          "question_preview": "With which one of the following elements silicon should be doped so as to give p-type of semiconductor?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2010"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Chem_110",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 110,
+          "subject": "Chemistry",
+          "topic": "Chemistry in Everyday Life",
+          "answer_key": "B",
+          "question_preview": "Which one of the following is employed as a tranquilizer drug?"
+        },
+        {
+          "id": "CBSE_2010_Pre_Chem_86",
+          "exam": "AIPMT",
+          "year": 2010,
+          "qno": 86,
+          "subject": "Chemistry",
+          "topic": "Chemistry in Everyday Life",
+          "answer_key": "C",
+          "question_preview": "Which one of the following is employed as a Tranquilizer drug?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "NEET 2018"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Phy_111",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 111,
+          "subject": "Physics",
+          "topic": "Nuclei",
+          "answer_key": "A",
+          "question_preview": "For a radioactive material, half-life is 10 minutes. If initially there are 600 number of nuclei, the time taken (in minutes) for the disintegration of 450 nuclei is:"
+        },
+        {
+          "id": "NEET_2018_Phy_13",
+          "exam": "NEET",
+          "year": 2018,
+          "qno": 13,
+          "subject": "Physics",
+          "topic": "Nuclei",
+          "answer_key": "C",
+          "question_preview": "For a radioactive material, half-life is 10 minutes. If initially there are 600 number of nuclei, the time taken (in minutes) for the disintegration of 450 nuclei is"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2010"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Chem_116",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 116,
+          "subject": "Chemistry",
+          "topic": "d and f Block Elements",
+          "answer_key": "D",
+          "question_preview": "Which of the following pairs has the same size?"
+        },
+        {
+          "id": "CBSE_2010_Pre_Chem_54",
+          "exam": "AIPMT",
+          "year": 2010,
+          "qno": 54,
+          "subject": "Chemistry",
+          "topic": "d and f Block Elements",
+          "answer_key": "D",
+          "question_preview": "Which of the following pairs has the same size?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2012"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_124",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 124,
+          "subject": "Biology",
+          "topic": "Plant Kingdom",
+          "answer_key": "D",
+          "question_preview": "Which one of the following is a correct statement?"
+        },
+        {
+          "id": "AIPMT_2012_Pre_Bio_85",
+          "exam": "AIPMT",
+          "year": 2012,
+          "qno": 85,
+          "subject": "Biology",
+          "topic": "Plant Kingdom",
+          "answer_key": "A",
+          "question_preview": "Which one of the following is a correct statement?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2008"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Phy_126",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 126,
+          "subject": "Physics",
+          "topic": "Waves",
+          "answer_key": "B",
+          "question_preview": "Two periodic waves of intensities $I_1$ and $I_2$ pass through a region at the same time in the same direction. The sum of the maximum and minimum intensities is:"
+        },
+        {
+          "id": "AIPMT_2008_Phy_20",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 20,
+          "subject": "Physics",
+          "topic": "Waves",
+          "answer_key": "B",
+          "question_preview": "Two periodic waves of intensities $I_1$ and $I_2$ pass through a region at the same time in the same direction. The sum of the maximum and minimum intensities is"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_127",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 127,
+          "subject": "Biology",
+          "topic": "Morphology of Flowering Plants",
+          "answer_key": "D",
+          "question_preview": "The \"eyes\" of the potato tuber are:"
+        },
+        {
+          "id": "AIPMT_2011_Bio_106",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 106,
+          "subject": "Biology",
+          "topic": "Reproduction in Organisms",
+          "answer_key": "D",
+          "question_preview": "The 'eyes' of the potato tuber are"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2009"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Phy_138",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 138,
+          "subject": "Physics",
+          "topic": "System of Particles and Rotational Motion",
+          "answer_key": "C",
+          "question_preview": "A thin circular ring of mass $M$ and radius $R$ is rotating in a horizontal plane about an axis vertical to its plane with a constant angular velocity $\\omega$. If two objects each of mass $m$ be atta"
+        },
+        {
+          "id": "AIPMT_2009_Phy_2",
+          "exam": "AIPMT",
+          "year": 2009,
+          "qno": 2,
+          "subject": "Physics",
+          "topic": "Rotational Motion",
+          "answer_key": "A",
+          "question_preview": "A thin circular ring of mass $M$ and radius $R$ is rotating in a horizontal plane about an axis vertical to its plane with a constant angular velocity $\\omega$. If two objects each of mass $m$ be atta"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007",
+        "AIPMT 2008"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Chem_142",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 142,
+          "subject": "Chemistry",
+          "topic": "Biomolecules",
+          "answer_key": "C",
+          "question_preview": "Which one of the following is an amine hormone?"
+        },
+        {
+          "id": "AIPMT_2008_Bio_100",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 100,
+          "subject": "Biology",
+          "topic": "Chemical Coordination and Integration",
+          "answer_key": "B",
+          "question_preview": "Which one of the following is an amine hormone?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2008",
+        "AIPMT 2008"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2008_Phy_18",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 18,
+          "subject": "Physics",
+          "topic": "Electromagnetic Waves",
+          "answer_key": "C",
+          "question_preview": "The velocity of electromagnetic radiation in a medium of permittivity $\\epsilon_0$ and permeability $\\mu_0$ is given by"
+        },
+        {
+          "id": "AIIMS_2008_Phy_13",
+          "exam": "AIIMS",
+          "year": 2008,
+          "qno": 13,
+          "subject": "Physics",
+          "topic": "Electromagnetic Waves",
+          "answer_key": "A",
+          "question_preview": "The velocity of electromagnetic radiation in a medium of permittivity $\\epsilon_{0}$ and permeability $\\mu_{0}$ is given by"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2008",
+        "AIPMT 2008"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2008_Phy_21",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 21,
+          "subject": "Physics",
+          "topic": "Waves",
+          "answer_key": "A",
+          "question_preview": "The wave described by $y = 0.25 \\sin(10\\pi x - 2\\pi t)$, where x and y are in meters and t in seconds, is a wave travelling along the"
+        },
+        {
+          "id": "AIIMS_2008_Phy_21",
+          "exam": "AIIMS",
+          "year": 2008,
+          "qno": 21,
+          "subject": "Physics",
+          "topic": "Waves",
+          "answer_key": "A",
+          "question_preview": "The wave described by $y = 0.25 \\sin(10\\pi x - 2\\pi t)$, where x and y are in meters and t in seconds, is a wave travelling along the"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2008",
+        "AIPMT 2008"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIPMT_2008_Chem_68",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 68,
+          "subject": "Chemistry",
+          "topic": "Equilibrium",
+          "answer_key": "C",
+          "question_preview": "The dissociation equilibrium of a gas $AB_2$ can be represented as, $2AB_2(g) \\rightleftharpoons 2AB(g) + B_2(g)$. The degree of dissociation is 'x' and is small compared to 1. The expression relating"
+        },
+        {
+          "id": "AIIMS_2008_Chem_65",
+          "exam": "AIIMS",
+          "year": 2008,
+          "qno": 65,
+          "subject": "Chemistry",
+          "topic": "Chemical Equilibrium",
+          "answer_key": "D",
+          "question_preview": "The dissociation equilibrium of a gas $AB_2$ can be represented as $2AB_2(g) \\rightleftharpoons 2AB(g) + B_2(g)$. The degree of dissociation is x and is small compared to 1. The expression relating th"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2008",
+        "AIPMT 2008"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIPMT_2008_Chem_86",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 86,
+          "subject": "Chemistry",
+          "topic": "Environmental Chemistry",
+          "answer_key": "C",
+          "question_preview": "Green chemistry means such reactions which"
+        },
+        {
+          "id": "AIIMS_2008_Chem_74",
+          "exam": "AIIMS",
+          "year": 2008,
+          "qno": 74,
+          "subject": "Chemistry",
+          "topic": "Environmental Chemistry",
+          "answer_key": "D",
+          "question_preview": "Green chemistry means such reactions which"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2008",
+        "AIPMT 2008"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2008_Bio_161",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 161,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "C",
+          "question_preview": "Which one of the following pairs of plant structures has haploid number of chromosomes?"
+        },
+        {
+          "id": "AIIMS_2008_Bio_144",
+          "exam": "AIIMS",
+          "year": 2008,
+          "qno": 144,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "D",
+          "question_preview": "Which one of the following pairs of plant structures has haploid number of chromosomes?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011",
+        "AIPMT 2012"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_107",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 107,
+          "subject": "Biology",
+          "topic": "Reproduction in Organisms",
+          "answer_key": "A",
+          "question_preview": "Which one of the following is correctly matched?"
+        },
+        {
+          "id": "AIPMT_2012_Pre_Bio_122",
+          "exam": "AIPMT",
+          "year": 2012,
+          "qno": 122,
+          "subject": "Biology",
+          "topic": "Reproduction in Organisms",
+          "answer_key": "B",
+          "question_preview": "Which one of the following is correctly matched?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011",
+        "AIPMT 2012"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_115",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 115,
+          "subject": "Biology",
+          "topic": "Ecosystem",
+          "answer_key": "B",
+          "question_preview": "Which one of the following is not a gaseous biogeochemical cycle in ecosystem?"
+        },
+        {
+          "id": "AIPMT_2012_Pre_Bio_149",
+          "exam": "AIPMT",
+          "year": 2012,
+          "qno": 149,
+          "subject": "Biology",
+          "topic": "Ecosystem",
+          "answer_key": "C",
+          "question_preview": "Which one of the following is not a gaseous biogeochemical cycle in ecosystem?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011",
+        "NEET 2016"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_117",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 117,
+          "subject": "Biology",
+          "topic": "Ecosystem",
+          "answer_key": "D",
+          "question_preview": "Which one of the following is a characteristic feature of cropland ecosystem?"
+        },
+        {
+          "id": "NEET_2016_Ph1_86",
+          "exam": "NEET",
+          "year": 2016,
+          "qno": 86,
+          "subject": "Biology",
+          "topic": "Ecosystem",
+          "answer_key": "D",
+          "question_preview": "Which one of the following is a characteristic feature of cropland ecosystem?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_181",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 181,
+          "subject": "General Knowledge",
+          "topic": "Polity",
+          "answer_key": "D",
+          "question_preview": "From whom does the Indian government take advice on legal issues?"
+        },
+        {
+          "id": "AIIMS_2013_GK_181",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 181,
+          "subject": "General Knowledge",
+          "topic": "Polity",
+          "answer_key": "D",
+          "question_preview": "From whom does the Indian government take advice on legal issues?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_182",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 182,
+          "subject": "General Knowledge",
+          "topic": "Polity",
+          "answer_key": "B",
+          "question_preview": "The Vice President of India is the Chairman of"
+        },
+        {
+          "id": "AIIMS_2013_GK_182",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 182,
+          "subject": "General Knowledge",
+          "topic": "Polity",
+          "answer_key": "B",
+          "question_preview": "The Vice President of India is the Chairman of"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_183",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 183,
+          "subject": "General Knowledge",
+          "topic": "Sports",
+          "answer_key": "B",
+          "question_preview": "Which of the following players won Miami Men's Double tennis 2012 title?"
+        },
+        {
+          "id": "AIIMS_2013_GK_183",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 183,
+          "subject": "General Knowledge",
+          "topic": "Sports",
+          "answer_key": "B",
+          "question_preview": "Which of the following players won Miami Men's Double tennis 2012 title?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_184",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 184,
+          "subject": "General Knowledge",
+          "topic": "History and Culture",
+          "answer_key": "B",
+          "question_preview": "Which ancient Indian sage authored 'Yog Sutra'?"
+        },
+        {
+          "id": "AIIMS_2013_GK_184",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 184,
+          "subject": "General Knowledge",
+          "topic": "History",
+          "answer_key": "B",
+          "question_preview": "Which ancient Indian sage authored 'Yog Sutra'?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_185",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 185,
+          "subject": "General Knowledge",
+          "topic": "History of Science",
+          "answer_key": "D",
+          "question_preview": "Which Indian Mathematician first time in the world used zero as a number and showed its mathematical operation?"
+        },
+        {
+          "id": "AIIMS_2013_GK_185",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 185,
+          "subject": "General Knowledge",
+          "topic": "History of Science",
+          "answer_key": "D",
+          "question_preview": "Which Indian Mathematician first time in the world used zero as a number and showed its mathematical operation?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_186",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 186,
+          "subject": "General Knowledge",
+          "topic": "History",
+          "answer_key": "B",
+          "question_preview": "Which Indian freedom fighter was popularly called \"Mahamana\"?"
+        },
+        {
+          "id": "AIIMS_2013_GK_186",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 186,
+          "subject": "General Knowledge",
+          "topic": "History",
+          "answer_key": "B",
+          "question_preview": "Which Indian freedom fighter was popularly called \"Mahamana\"?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_187",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 187,
+          "subject": "General Knowledge",
+          "topic": "Books and Authors",
+          "answer_key": "C",
+          "question_preview": "The book \"Big Egos, Small Men\" is written by"
+        },
+        {
+          "id": "AIIMS_2013_GK_187",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 187,
+          "subject": "General Knowledge",
+          "topic": "Books and Authors",
+          "answer_key": "C",
+          "question_preview": "The book \"Big Egos, Small Men\" is written by"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_188",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 188,
+          "subject": "General Knowledge",
+          "topic": "Culture and Tourism",
+          "answer_key": "B",
+          "question_preview": "Which is the largest buddhist monastery in India?"
+        },
+        {
+          "id": "AIIMS_2013_GK_188",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 188,
+          "subject": "General Knowledge",
+          "topic": "Culture",
+          "answer_key": "B",
+          "question_preview": "Which is the largest buddhist monastery in India?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_189",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 189,
+          "subject": "General Knowledge",
+          "topic": "Important Days",
+          "answer_key": "B",
+          "question_preview": "'Van Mahotsav' Day is observed on"
+        },
+        {
+          "id": "AIIMS_2013_GK_189",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 189,
+          "subject": "General Knowledge",
+          "topic": "Important Days",
+          "answer_key": "B",
+          "question_preview": "'Van Mahotsav' Day is observed on"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_190",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 190,
+          "subject": "General Knowledge",
+          "topic": "Culture and Tourism",
+          "answer_key": "A",
+          "question_preview": "The famous Kashi Vishwanath temple at Varanasi is dedicated to which Hindu god?"
+        },
+        {
+          "id": "AIIMS_2013_GK_190",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 190,
+          "subject": "General Knowledge",
+          "topic": "Culture",
+          "answer_key": "A",
+          "question_preview": "The famous Kashi Vishwanath temple at Varanasi is dedicated to which Hindu god?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_191",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 191,
+          "subject": "General Knowledge",
+          "topic": "Indian States",
+          "answer_key": "B",
+          "question_preview": "Which Indian State celebrated its 77th foundation day on 1 April, 2013?"
+        },
+        {
+          "id": "AIIMS_2013_GK_191",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 191,
+          "subject": "General Knowledge",
+          "topic": "Indian States",
+          "answer_key": "B",
+          "question_preview": "Which Indian State celebrated its 77th foundation day on 1 April, 2013?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_192",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 192,
+          "subject": "General Knowledge",
+          "topic": "Mythology",
+          "answer_key": "D",
+          "question_preview": "According to Mahabharat who constructed the unparalled palace of the Pandavas?"
+        },
+        {
+          "id": "AIIMS_2013_GK_192",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 192,
+          "subject": "General Knowledge",
+          "topic": "Mythology",
+          "answer_key": "D",
+          "question_preview": "According to Mahabharat who constructed the unparalled palace of the Pandavas?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_193",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 193,
+          "subject": "General Knowledge",
+          "topic": "Economy",
+          "answer_key": "A",
+          "question_preview": "Where was first share market of India established?"
+        },
+        {
+          "id": "AIIMS_2013_GK_193",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 193,
+          "subject": "General Knowledge",
+          "topic": "Economy",
+          "answer_key": "A",
+          "question_preview": "Where was first share market of India established?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_194",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 194,
+          "subject": "General Knowledge",
+          "topic": "Geography",
+          "answer_key": "A",
+          "question_preview": "Garampani Sanctuary is located at"
+        },
+        {
+          "id": "AIIMS_2013_GK_194",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 194,
+          "subject": "General Knowledge",
+          "topic": "Geography",
+          "answer_key": "A",
+          "question_preview": "Garampani Sanctuary is located at"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_195",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 195,
+          "subject": "General Knowledge",
+          "topic": "Geography",
+          "answer_key": "C",
+          "question_preview": "Maximum sugarcane production occurs in which country?"
+        },
+        {
+          "id": "AIIMS_2013_GK_195",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 195,
+          "subject": "General Knowledge",
+          "topic": "Geography",
+          "answer_key": "C",
+          "question_preview": "Maximum sugarcane production occurs in which country?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_197",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 197,
+          "subject": "General Knowledge",
+          "topic": "Awards and Honors",
+          "answer_key": "A",
+          "question_preview": "Which first woman singer got the Bharat Ratna award and is also known as nightingale of carnatic music?"
+        },
+        {
+          "id": "AIIMS_2013_GK_197",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 197,
+          "subject": "General Knowledge",
+          "topic": "Awards",
+          "answer_key": "A",
+          "question_preview": "Which first woman singer got the Bharat Ratna award and is also known as nightingale of carnatic music?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_198",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 198,
+          "subject": "General Knowledge",
+          "topic": "Science and Technology",
+          "answer_key": "B",
+          "question_preview": "For seeing objects on the surface of water from submarine, the instrument used is"
+        },
+        {
+          "id": "AIIMS_2013_GK_198",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 198,
+          "subject": "General Knowledge",
+          "topic": "Science",
+          "answer_key": "B",
+          "question_preview": "For seeing objects on the surface of water from submarine, the instrument used is"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_199",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 199,
+          "subject": "General Knowledge",
+          "topic": "History",
+          "answer_key": "A",
+          "question_preview": "Under the tenure of which Prime Minister did Indo-Pak war (1965) take place which ended with Tashkent Treaty?"
+        },
+        {
+          "id": "AIIMS_2013_GK_199",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 199,
+          "subject": "General Knowledge",
+          "topic": "History",
+          "answer_key": "A",
+          "question_preview": "Under the tenure of which Prime Minister did Indo-Pak war (1965) take place which ended with Tashkent Treaty?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013",
+        "AIPMT 2013"
+      ],
+      "subject": "General Knowledge",
+      "members": [
+        {
+          "id": "AIPMT_2013_GK_200",
+          "exam": "AIPMT",
+          "year": 2013,
+          "qno": 200,
+          "subject": "General Knowledge",
+          "topic": "History",
+          "answer_key": "B",
+          "question_preview": "A famous writer who travelled to India with Mahmood Ghazni and wrote a book \"Tareekh-al-Hind\""
+        },
+        {
+          "id": "AIIMS_2013_GK_200",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 200,
+          "subject": "General Knowledge",
+          "topic": "History",
+          "answer_key": "B",
+          "question_preview": "A famous writer who travelled to India with Mahmood Ghazni and wrote a book \"Tareekh-al-Hind\""
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "NEET 2015",
+        "NEET 2025"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "NEET_2015_Bio_107",
+          "exam": "NEET",
+          "year": 2015,
+          "qno": 107,
+          "subject": "Biology",
+          "topic": "Principles of Inheritance and Variation",
+          "answer_key": "A",
+          "question_preview": "A gene showing codominance has:"
+        },
+        {
+          "id": "NEET_2025_Bio_154",
+          "exam": "NEET",
+          "year": 2025,
+          "qno": 154,
+          "subject": "Biology",
+          "topic": "Principles of Inheritance and Variation",
+          "answer_key": "B",
+          "question_preview": "A gene showing codominance has:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "NEET 2019",
+        "NEET 2025"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "NEET_2019_Bio_116",
+          "exam": "NEET",
+          "year": 2019,
+          "qno": 116,
+          "subject": "Biology",
+          "topic": "Human Reproduction",
+          "answer_key": "B",
+          "question_preview": "Select the correct sequence for transport of sperm cells in male reproductive system."
+        },
+        {
+          "id": "NEET_2025_Bio_159",
+          "exam": "NEET",
+          "year": 2025,
+          "qno": 159,
+          "subject": "Biology",
+          "topic": "Human Reproduction",
+          "answer_key": "C",
+          "question_preview": "Select the correct sequence for transport of sperm cells in male reproductive system."
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "NEET 2019",
+        "NEET 2025"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "NEET_2019_Bio_148",
+          "exam": "NEET",
+          "year": 2019,
+          "qno": 148,
+          "subject": "Biology",
+          "topic": "Respiration in Plants",
+          "answer_key": "B",
+          "question_preview": "Conversion of glucose to glucose-6-phosphate, the first irreversible reaction of glycolysis, is catalyzed by"
+        },
+        {
+          "id": "NEET_2025_Bio_157",
+          "exam": "NEET",
+          "year": 2025,
+          "qno": 157,
+          "subject": "Biology",
+          "topic": "Respiration in Plants",
+          "answer_key": "C",
+          "question_preview": "Conversion of glucose to glucose-6-phosphate, the first irreversible reaction of glycolysis, is catalyzed by:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "NEET 2021",
+        "NEET 2025"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "NEET_2021_Bot_111",
+          "exam": "NEET",
+          "year": 2021,
+          "qno": 111,
+          "subject": "Biology",
+          "topic": "Plant Kingdom",
+          "answer_key": "A",
+          "question_preview": "Which of the following algae contains mannitol as reserve food material?"
+        },
+        {
+          "id": "NEET_2025_Bio_152",
+          "exam": "NEET",
+          "year": 2025,
+          "qno": 152,
+          "subject": "Biology",
+          "topic": "Plant Kingdom",
+          "answer_key": "B",
+          "question_preview": "Which of the following algae contains mannitol as reserve food material?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "NEET 2021",
+        "NEET 2023"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "NEET_2021_Bot_130",
+          "exam": "NEET",
+          "year": 2021,
+          "qno": 130,
+          "subject": "Biology",
+          "topic": "Biotechnology: Principles and Processes",
+          "answer_key": "B",
+          "question_preview": "During the purification process for recombinant DNA technology, addition of chilled ethanol precipitates out:"
+        },
+        {
+          "id": "NEET_2023_E1_Bot_128",
+          "exam": "NEET",
+          "year": 2023,
+          "qno": 128,
+          "subject": "Biology",
+          "topic": "Biotechnology: Principles and Processes",
+          "answer_key": "B",
+          "question_preview": "During the purification process for recombinant DNA technology, addition of chilled ethanol precipitates out"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "NEET 2021",
+        "NEET 2025"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "NEET_2021_Zoo_175",
+          "exam": "NEET",
+          "year": 2021,
+          "qno": 175,
+          "subject": "Biology",
+          "topic": "Environmental Issues",
+          "answer_key": "C",
+          "question_preview": "Dobson units are used to measure thickness of:"
+        },
+        {
+          "id": "NEET_2025_Bio_161",
+          "exam": "NEET",
+          "year": 2025,
+          "qno": 161,
+          "subject": "Biology",
+          "topic": "Environmental Issues",
+          "answer_key": "D",
+          "question_preview": "Dobson units are used to measure thickness of:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "NEET 2021",
+        "NEET 2025"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "NEET_2021_Zoo_177",
+          "exam": "NEET",
+          "year": 2021,
+          "qno": 177,
+          "subject": "Biology",
+          "topic": "Principles of Inheritance and Variation",
+          "answer_key": "C",
+          "question_preview": "In a cross between a male and female, both heterozygous for sickle cell anaemia gene, what percentage of the progeny will be diseased?"
+        },
+        {
+          "id": "NEET_2025_Bio_172",
+          "exam": "NEET",
+          "year": 2025,
+          "qno": 172,
+          "subject": "Biology",
+          "topic": "Molecular Basis of Inheritance",
+          "answer_key": "C",
+          "question_preview": "In a cross between a male and female, both heterozygous for sickle cell anaemia gene, what percentage of the progeny will be diseased?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "NEET 2021",
+        "NEET 2025"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "NEET_2021_Zoo_182",
+          "exam": "NEET",
+          "year": 2021,
+          "qno": 182,
+          "subject": "Biology",
+          "topic": "Strategies for Enhancement in Food Production",
+          "answer_key": "B",
+          "question_preview": "Which of the following is not an objective of Biofortification in crops?"
+        },
+        {
+          "id": "NEET_2025_Bio_168",
+          "exam": "NEET",
+          "year": 2025,
+          "qno": 168,
+          "subject": "Biology",
+          "topic": "Strategies for Enhancement in Food Production",
+          "answer_key": "B",
+          "question_preview": "Which of the following is NOT an objective of Biofortification in crops?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "NEET 2022",
+        "NEET 2024"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "NEET_2022_Bio_182",
+          "exam": "NEET",
+          "year": 2022,
+          "qno": 182,
+          "subject": "Biology",
+          "topic": "Reproduction in Organisms",
+          "answer_key": "B",
+          "question_preview": "Identify the asexual reproductive structure associated with Penicillium:"
+        },
+        {
+          "id": "NEET_2024_Zoo_183",
+          "exam": "NEET",
+          "year": 2024,
+          "qno": 183,
+          "subject": "Biology",
+          "topic": "Reproduction in Organisms",
+          "answer_key": "A",
+          "question_preview": "Identify the asexual reproductive structure associated with Penicillium:"
+        }
+      ]
+    }
+  ],
+  "same_year_clusters_detail": [
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_15",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 15,
+          "subject": "Biology",
+          "topic": "Molecular Basis of Inheritance",
+          "answer_key": "B",
+          "question_preview": "The two polynucleotide chains in DNA are:"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Bio_192",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 192,
+          "subject": "Biology",
+          "topic": "Molecular Basis of Inheritance",
+          "answer_key": "B",
+          "question_preview": "The two polynucleotide chains in DNA are:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_22",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 22,
+          "subject": "Biology",
+          "topic": "Cell: The Unit of Life",
+          "answer_key": "B",
+          "question_preview": "Which one of the following is not a constituent of cell membrane?"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Bio_185",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 185,
+          "subject": "Biology",
+          "topic": "Cell: The Unit of Life",
+          "answer_key": "B",
+          "question_preview": "Which one of the following is not a constituent of cell membrane?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Mains_Bio_37",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 37,
+          "subject": "Biology",
+          "topic": "Human Reproduction",
+          "answer_key": "B",
+          "question_preview": "In the human female, menstruation can be deferred by the administration of:"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Bio_184",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 184,
+          "subject": "Biology",
+          "topic": "Human Reproduction",
+          "answer_key": "B",
+          "question_preview": "In the human female, menstruation can be deferred by the administration of:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_41",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 41,
+          "subject": "Biology",
+          "topic": "Principles of Inheritance and Variation",
+          "answer_key": "B",
+          "question_preview": "Inheritance of skin colour in humans is an example of:"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Bio_161",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 161,
+          "subject": "Biology",
+          "topic": "Principles of Inheritance and Variation",
+          "answer_key": "B",
+          "question_preview": "Inheritance of skin colour in humans is an example of:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_44",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 44,
+          "subject": "Biology",
+          "topic": "The Living World",
+          "answer_key": "D",
+          "question_preview": "Two plants can be conclusively said to belong to the same species if they:"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Bio_160",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 160,
+          "subject": "Biology",
+          "topic": "The Living World",
+          "answer_key": "D",
+          "question_preview": "Two plants can be conclusively said to belong to the same species if they:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Mains_Bio_91",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 91,
+          "subject": "Biology",
+          "topic": "Human Health and Disease",
+          "answer_key": "B",
+          "question_preview": "Lysozyme that is present in perspiration, saliva and tears, destroys:"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Bio_183",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 183,
+          "subject": "Biology",
+          "topic": "Human Health and Disease",
+          "answer_key": "A",
+          "question_preview": "Lysozyme that is present in perspiration, saliva and tears, destroys:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_105",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 105,
+          "subject": "Biology",
+          "topic": "Strategies for Enhancement in Food Production",
+          "answer_key": "D",
+          "question_preview": "Which one of the following is a viral disease of poultry?"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Bio_196",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 196,
+          "subject": "Biology",
+          "topic": "Strategies for Enhancement in Food Production",
+          "answer_key": "B",
+          "question_preview": "Which one of the following is a viral disease of poultry?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_109",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 109,
+          "subject": "Biology",
+          "topic": "Photosynthesis in Higher Plants",
+          "answer_key": "B",
+          "question_preview": "In the leaves of $C_4$ plants, malic acid formation during $CO_2$ fixation occurs in the cells of:"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Bio_153",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 153,
+          "subject": "Biology",
+          "topic": "Photosynthesis in Higher Plants",
+          "answer_key": "D",
+          "question_preview": "In the leaves of $C_4$ plants, malic acid formation during $CO_2$ fixation occurs in the cells of:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_129",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 129,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "A",
+          "question_preview": "Male gametes in angiosperms are formed by the division of:"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Bio_177",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 177,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "A",
+          "question_preview": "Male gametes in angiosperms are formed by the division of:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2007"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2007_Screening_Bio_134",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 134,
+          "subject": "Biology",
+          "topic": "Biotechnology and its Applications",
+          "answer_key": "D",
+          "question_preview": "A genetically engineered micro-organism used successfully in bioremediation of oil spills is a species of:"
+        },
+        {
+          "id": "AIPMT_2007_Screening_Bio_152",
+          "exam": "AIPMT",
+          "year": 2007,
+          "qno": 152,
+          "subject": "Biology",
+          "topic": "Biotechnology and its Applications",
+          "answer_key": "D",
+          "question_preview": "A genetically engineered micro-organism used successfully in bioremediation of oil spills is a species of:"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2008"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2008_Phy_10",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 10,
+          "subject": "Physics",
+          "topic": "System of Particles and Rotational Motion",
+          "answer_key": "D",
+          "question_preview": "A thin rod of length L and mass M is bent at its midpoint into two halves so that the angle between them is $90^\\circ$. The moment of inertia of the bent rod about an axis passing through the bending "
+        },
+        {
+          "id": "AIPMT_2008_Phy_19",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 19,
+          "subject": "Physics",
+          "topic": "System of Particles and Rotational Motion",
+          "answer_key": "D",
+          "question_preview": "A thin rod of length L and mass M is bent at its midpoint into two halves so that the angle between them is $90^\\circ$. The moment of inertia of the bent rod about an axis passing through the bending "
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2008"
+      ],
+      "subject": "Physics",
+      "members": [
+        {
+          "id": "AIPMT_2008_Phy_34",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 34,
+          "subject": "Physics",
+          "topic": "Dual Nature of Radiation",
+          "answer_key": "A",
+          "question_preview": "The work function of a surface of a photosensitive material is 6.2 eV. The wavelength of the incident radiation for which the stopping potential is 5 V lies in the:"
+        },
+        {
+          "id": "AIPMT_2008_Phy_41",
+          "exam": "AIPMT",
+          "year": 2008,
+          "qno": 41,
+          "subject": "Physics",
+          "topic": "Dual Nature of Radiation and Matter",
+          "answer_key": "B",
+          "question_preview": "The work function of a surface of a photosensitive material is 6.2 eV. The wavelength of the incident radiation for which the stopping potential is 5 V lies in the"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_103",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 103,
+          "subject": "Biology",
+          "topic": "Microbes in Human Welfare",
+          "answer_key": "A",
+          "question_preview": "Which one of the following helps in absorption of phosphorus from soil by plants?"
+        },
+        {
+          "id": "AIPMT_2011_Bio_143",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 143,
+          "subject": "Biology",
+          "topic": "Microbes in Human Welfare",
+          "answer_key": "B",
+          "question_preview": "Which one of the following helps in absorption of phosphorus from soil by plants?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_105",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 105,
+          "subject": "Biology",
+          "topic": "Microbes in Human Welfare",
+          "answer_key": "D",
+          "question_preview": "Secondary sewage treatment is mainly a"
+        },
+        {
+          "id": "AIPMT_2011_Bio_135",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 135,
+          "subject": "Biology",
+          "topic": "Microbes in Human Welfare",
+          "answer_key": "A",
+          "question_preview": "Secondary sewage treatment is mainly a"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_109",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 109,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "C",
+          "question_preview": "Filiform apparatus is a characteristic feature of"
+        },
+        {
+          "id": "AIPMT_2011_Bio_129",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 129,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "D",
+          "question_preview": "Filiform apparatus is a characteristic feature of"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_110",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 110,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "A",
+          "question_preview": "Nucellar polyembryony is reported in species of"
+        },
+        {
+          "id": "AIPMT_2011_Bio_128",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 128,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "B",
+          "question_preview": "Nucellar polyembryony is reported in species of"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_111",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 111,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "C",
+          "question_preview": "Wind pollination is common in"
+        },
+        {
+          "id": "AIPMT_2011_Bio_131",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 131,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "D",
+          "question_preview": "Wind pollination is common in"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_112",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 112,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "D",
+          "question_preview": "In which one of the following pollination is autogamous?"
+        },
+        {
+          "id": "AIPMT_2011_Bio_132",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 132,
+          "subject": "Biology",
+          "topic": "Sexual Reproduction in Flowering Plants",
+          "answer_key": "A",
+          "question_preview": "In which one of the following pollination is autogamous?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_114",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 114,
+          "subject": "Biology",
+          "topic": "Ecosystem",
+          "answer_key": "C",
+          "question_preview": "Of the total incident solar radiation the proportion of PAR is"
+        },
+        {
+          "id": "AIPMT_2011_Bio_126",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 126,
+          "subject": "Biology",
+          "topic": "Ecosystem",
+          "answer_key": "D",
+          "question_preview": "Of the total incident solar radiation the proportion of PAR is"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_116",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 116,
+          "subject": "Biology",
+          "topic": "Ecosystem",
+          "answer_key": "B",
+          "question_preview": "Which one of the following statements is correct for secondary succession?"
+        },
+        {
+          "id": "AIPMT_2011_Bio_139",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 139,
+          "subject": "Biology",
+          "topic": "Ecosystem",
+          "answer_key": "C",
+          "question_preview": "Which one of the following statements is correct for secondary succession?"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_118",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 118,
+          "subject": "Biology",
+          "topic": "Environmental Issues",
+          "answer_key": "B",
+          "question_preview": "Eutrophication is often seen in"
+        },
+        {
+          "id": "AIPMT_2011_Bio_136",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 136,
+          "subject": "Biology",
+          "topic": "Environmental Issues",
+          "answer_key": "C",
+          "question_preview": "Eutrophication is often seen in"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIPMT 2011"
+      ],
+      "subject": "Biology",
+      "members": [
+        {
+          "id": "AIPMT_2011_Bio_119",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 119,
+          "subject": "Biology",
+          "topic": "Organisms and Populations",
+          "answer_key": "C",
+          "question_preview": "Large Woody Vines are more commonly found in"
+        },
+        {
+          "id": "AIPMT_2011_Bio_137",
+          "exam": "AIPMT",
+          "year": 2011,
+          "qno": 137,
+          "subject": "Biology",
+          "topic": "Ecosystem",
+          "answer_key": "D",
+          "question_preview": "Large Woody Vines are more commonly found in"
+        }
+      ]
+    },
+    {
+      "size": 2,
+      "exam_years": [
+        "AIIMS 2013"
+      ],
+      "subject": "Chemistry",
+      "members": [
+        {
+          "id": "AIIMS_2013_Chem_75",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 75,
+          "subject": "Chemistry",
+          "topic": "Environmental Chemistry",
+          "answer_key": "A",
+          "question_preview": "Which of the following is not a green house gas?"
+        },
+        {
+          "id": "AIIMS_2013_GK_196",
+          "exam": "AIIMS",
+          "year": 2013,
+          "qno": 196,
+          "subject": "General Knowledge",
+          "topic": "Environment",
+          "answer_key": "D",
+          "question_preview": "Which of the following is not a green house gas?"
+        }
+      ]
+    }
+  ]
+}
