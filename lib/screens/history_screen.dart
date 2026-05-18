@@ -30,13 +30,14 @@ class HistoryScreen extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text("Error: $e")),
         data: (sessions) {
-          if (sessions.isEmpty)
+          if (sessions.isEmpty) {
             return const Center(
               child: Text(
                 "No history yet.",
                 style: TextStyle(color: Colors.white54),
               ),
             );
+          }
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -84,14 +85,14 @@ class _HistoryCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF1E293B),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: scoreColor.withOpacity(0.1),
+                color: scoreColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Text(

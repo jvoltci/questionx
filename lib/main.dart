@@ -177,7 +177,7 @@ class _PremiumSplashScreenState extends ConsumerState<PremiumSplashScreen>
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF38BDF8).withOpacity(0.3),
+                          color: const Color(0xFF38BDF8).withValues(alpha: 0.3),
                           blurRadius: 40,
                           spreadRadius: 10,
                         ),

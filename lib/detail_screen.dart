@@ -1,13 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../main.dart';
 import '../database.dart';
 import '../screens/quiz_screen.dart';
 import 'widgets/tex_view.dart';
+import 'widgets/question_diagram.dart';
+import 'services/diagram_storage.dart';
 import 'utils/colors.dart';
 import 'services/weightage_service.dart';
 
@@ -37,6 +38,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   }
 
   void _toggleBookmark() {
+    if (!mounted) return;
     final db = ref.read(databaseProvider);
 
     setState(() => _isBookmarked = !_isBookmarked);
@@ -47,8 +49,9 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       db.removeMistake(widget.question.id);
     }
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    messenger.showSnackBar(
       SnackBar(
         content: Text(_isBookmarked ? "Saved to Notebook" : "Removed"),
         duration: const Duration(milliseconds: 800),
@@ -159,8 +162,8 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     );
   }
 
-  Color _getDifficultyColor(String? difficulty) {
-    switch (difficulty?.toLowerCase()) {
+  Color _getDifficultyColor(String difficulty) {
+    switch (difficulty.toLowerCase()) {
       case 'easy':
         return Colors.greenAccent;
       case 'medium':
@@ -233,7 +236,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
+                color: Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.white10),
               ),
@@ -258,7 +261,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        widget.question.difficulty ?? "Medium",
+                        widget.question.difficulty,
                         style: TextStyle(
                           color: difficultyColor,
                           fontWeight: FontWeight.bold,
@@ -306,28 +309,43 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
             if (widget.question.questionSvg != null &&
                 widget.question.questionSvg!.isNotEmpty)
-              Container(
-                height: 250,
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 24),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white10),
-                ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 24),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: InteractiveViewer(
-                    minScale: 1.0,
-                    maxScale: 4.0,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: SvgPicture.string(
+                  child: Material(
+                    color: DiagramStorage.isFilenameReference(
+                      widget.question.questionSvg,
+                    )
+                        ? Colors.white
+                        : Colors.white.withValues(alpha: 0.05),
+                    child: InkWell(
+                      onTap: () => QuestionDiagram.openFullscreen(
+                        context,
                         widget.question.questionSvg!,
-                        colorFilter: const ColorFilter.mode(
-                          Colors.white,
-                          BlendMode.srcIn,
-                        ),
+                      ),
+                      child: Stack(
+                        children: [
+                          Container(
+                            height: 250,
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(20),
+                            child: QuestionDiagram(
+                              value: widget.question.questionSvg!,
+                              color: Colors.white,
+                              cacheWidth: 900,
+                            ),
+                          ),
+                          const Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Icon(
+                              Icons.zoom_out_map,
+                              size: 18,
+                              color: Colors.black45,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -381,7 +399,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
   ) {
     return ActionChip(
       label: Text(label, style: TextStyle(fontSize: 11, color: color)),
-      backgroundColor: color.withOpacity(0.1),
+      backgroundColor: color.withValues(alpha: 0.1),
       side: BorderSide(color: color, width: 0.5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       onPressed: onTap,
@@ -394,11 +412,11 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     bool isCorrect = label == widget.question.answerKey;
 
     Color borderColor = Colors.white10;
-    Color bgColor = Colors.white.withOpacity(0.02);
+    Color bgColor = Colors.white.withValues(alpha: 0.02);
 
     if (_isRevealed && isCorrect) {
       borderColor = Colors.green;
-      bgColor = Colors.green.withOpacity(0.1);
+      bgColor = Colors.green.withValues(alpha: 0.1);
     }
 
     return Container(
@@ -466,7 +484,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -519,9 +537,9 @@ class _WeightageChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.4)),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

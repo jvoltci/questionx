@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import '../database.dart';
+import 'diagram_storage.dart';
 
 class PdfService {
   /// Generates a Professional Exam PDF using KaTeX (High Performance)
@@ -36,10 +37,32 @@ class PdfService {
         options = List<String>.from(jsonDecode(q.optionsJson));
       } catch (_) {}
 
-      // Diagram handling
+      // Diagram handling: the question_svg field is either an external
+      // filename (e.g. "AIPMT_2013_Phy_8.jpg") backed by a file under
+      // ${docs}/diagrams/, or a legacy inline <svg>...</svg> blob. Render
+      // both into self-contained HTML so the printing engine can embed them
+      // without needing filesystem access.
       String svgHtml = '';
       if (q.questionSvg != null && q.questionSvg!.isNotEmpty) {
-        svgHtml = '<div class="q-img">${q.questionSvg}</div>';
+        final v = q.questionSvg!;
+        if (DiagramStorage.isFilenameReference(v)) {
+          final file = await DiagramStorage.fileFor(v);
+          if (file != null) {
+            final bytes = await file.readAsBytes();
+            final lower = v.toLowerCase();
+            final mime = lower.endsWith('.png')
+                ? 'image/png'
+                : lower.endsWith('.webp')
+                    ? 'image/webp'
+                    : 'image/jpeg';
+            final dataUrl = 'data:$mime;base64,${base64Encode(bytes)}';
+            svgHtml =
+                '<div class="q-img"><img src="$dataUrl" style="max-width:100%;"/></div>';
+          }
+        } else {
+          // Legacy inline SVG (or any literal HTML) — pass through unchanged.
+          svgHtml = '<div class="q-img">$v</div>';
+        }
       }
 
       bodyHtml.write("""

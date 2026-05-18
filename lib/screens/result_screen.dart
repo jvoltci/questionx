@@ -60,7 +60,7 @@ class ResultScreen extends StatelessWidget {
                           ),
                           _chartSection(Colors.red, wrong.toDouble(), "Wrong"),
                           _chartSection(
-                            Colors.grey.withOpacity(0.3),
+                            Colors.grey.withValues(alpha: 0.3),
                             skipped.toDouble(),
                             "Skip",
                           ),

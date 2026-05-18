@@ -4,56 +4,79 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:dio/dio.dart';
 import 'package:archive/archive_io.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:drift/drift.dart' as drift;
 import '../database.dart';
+import 'diagram_storage.dart';
 
 class SyncService {
   final AppDatabase db;
   final Dio _dio = Dio();
 
-  // --- CONFIGURATION ---
   static const String _repoOwner = "jvoltci";
   static const String _repoName = "questionx";
   static const String _versionKey = "db_version_tag";
+  static const String _lastCheckKey = "db_last_check_ms";
+  static const Duration _checkInterval = Duration(hours: 6);
 
   SyncService(this.db);
 
-  /// 1. Main Entry Point
   Future<void> initializeData() async {
     final prefs = await SharedPreferences.getInstance();
     final currentVersion = prefs.getString(_versionKey);
 
-    // Step A: Check Online for Updates
-    try {
-      print("🔍 Checking for updates...");
-      final latestTag = await _checkForUpdates(currentVersion);
+    // Ensure the diagrams directory exists before any UI renders. The actual
+    // JPEGs arrive via _downloadAndSync() below (from the GitHub release's
+    // data.zip), not from a bundled asset.
+    await DiagramStorage.ensureReady();
 
-      if (latestTag != null) {
-        // Update found! Download and Sync
-        await _downloadAndSync(latestTag);
-        await prefs.setString(_versionKey, latestTag);
-        return; // Exit, we are done
-      }
-    } catch (e) {
-      print("⚠️ Online check failed ($e). Proceeding with local checks.");
+    // Self-heal: if a prior install recorded a version tag but the diagrams
+    // directory is empty (e.g. earlier APK had no extraction code, or sync
+    // crashed mid-write), force a re-sync regardless of the throttle.
+    final diagramCount = await DiagramStorage.countFiles();
+    final diagramsMissing = currentVersion != null && diagramCount == 0;
+    if (diagramsMissing) {
+      debugPrint("🩹 Version $currentVersion recorded but diagrams dir is "
+          "empty — forcing re-sync.");
     }
 
-    // Step B: If no update or offline, check if DB is empty
-    final questionCount = await db
-        .select(db.questions)
-        .get()
-        .then((l) => l.length);
+    try {
+      if (_shouldCheckOnline(prefs) || diagramsMissing) {
+        debugPrint("🔍 Checking for updates...");
+        final latestTag = await _checkForUpdates(
+          diagramsMissing ? null : currentVersion,
+        );
+        await prefs.setInt(_lastCheckKey, DateTime.now().millisecondsSinceEpoch);
+
+        if (latestTag != null) {
+          await _downloadAndSync(latestTag);
+          await prefs.setString(_versionKey, latestTag);
+          return;
+        }
+      } else {
+        debugPrint("⏭️ Skipping online check (within throttle window).");
+      }
+    } catch (e) {
+      debugPrint("⚠️ Online check failed ($e). Proceeding with local checks.");
+    }
+
+    final questionCount = await db.countQuestions();
     if (questionCount == 0) {
-      print("📦 Database empty. Loading from Bundled Assets...");
+      debugPrint("📦 Database empty. Loading from Bundled Assets...");
       await _loadFromAssets();
     } else {
-      print("✅ Database is ready (Version: $currentVersion).");
+      debugPrint("✅ Database is ready (Version: $currentVersion).");
     }
   }
 
-  /// 2. Check GitHub API for latest release tag
+  bool _shouldCheckOnline(SharedPreferences prefs) {
+    final lastMs = prefs.getInt(_lastCheckKey);
+    if (lastMs == null) return true;
+    final last = DateTime.fromMillisecondsSinceEpoch(lastMs);
+    return DateTime.now().difference(last) >= _checkInterval;
+  }
+
   Future<String?> _checkForUpdates(String? currentVersion) async {
     const url =
         "https://api.github.com/repos/$_repoOwner/$_repoName/releases/latest";
@@ -62,80 +85,77 @@ class SyncService {
     if (response.statusCode == 200) {
       final latestTag = response.data['tag_name'];
       if (currentVersion == null || latestTag != currentVersion) {
-        print("🚀 New Update Found: $latestTag");
+        debugPrint("🚀 New Update Found: $latestTag");
         return latestTag;
       }
     }
-    return null; // No update needed
+    return null;
   }
 
-  /// 3. Download Zip, Extract, Filter Mac Junk, Insert to DB
   Future<void> _downloadAndSync(String tag) async {
     final dir = await getApplicationDocumentsDirectory();
     final zipPath = "${dir.path}/data.zip";
 
-    // A. Download
-    // Note: We use the 'download' URL format for releases
     final downloadUrl =
         "https://github.com/$_repoOwner/$_repoName/releases/download/$tag/data.zip";
 
-    print("⬇️ Downloading $downloadUrl...");
+    debugPrint("⬇️ Downloading $downloadUrl...");
     await _dio.download(downloadUrl, zipPath);
 
-    // B. Unzip
-    print("📦 Unzipping...");
+    debugPrint("📦 Unzipping...");
+    final zipFile = File(zipPath);
+
+    // 1. Extract any image files into the diagrams directory. The data.zip
+    //    layout is: `neet.json`, `jee.json`, plus `diagrams/<qid>.jpg` for
+    //    every figure-essential question.
+    try {
+      final imgCount = await DiagramStorage.unpackZipFrom(zipFile);
+      if (imgCount > 0) {
+        debugPrint("🖼️ Extracted $imgCount diagram(s).");
+      }
+    } catch (e) {
+      debugPrint("⚠️ Diagram extraction failed: $e");
+    }
+
+    // 2. Process the JSON datasets into the database.
     final inputStream = InputFileStream(zipPath);
     final archive = ZipDecoder().decodeBuffer(inputStream);
-
-    // C. Process Files
     for (var file in archive.files) {
-      if (file.isFile) {
-        final filename = file.name;
+      if (!file.isFile) continue;
+      final filename = file.name;
+      if (filename.startsWith('.') ||
+          filename.contains("__MACOSX") ||
+          !filename.endsWith(".json")) {
+        continue;
+      }
 
-        // --- CRITICAL FIX: IGNORE MAC TRASH FILES ---
-        if (filename.startsWith('.') ||
-            filename.contains("__MACOSX") ||
-            !filename.endsWith(".json")) {
-          continue;
-        }
-        // --------------------------------------------
+      debugPrint("📄 Processing $filename...");
+      final fileContent = utf8.decode(file.content as List<int>);
+      final jsonData = await compute(jsonDecode, fileContent);
+      await _insertBatch(jsonData, _examNameForFile(filename));
+    }
 
-        print("📄 Processing $filename...");
+    await zipFile.delete();
+    debugPrint("🎉 Sync Complete!");
+  }
 
-        // Extract content to memory directly
-        final fileContent = utf8.decode(file.content as List<int>);
-
-        // Parse in background
-        final jsonData = await compute(jsonDecode, fileContent);
-
-        // Detect Exam Source
-        String examSource = filename.toLowerCase().contains("neet")
-            ? "NEET"
-            : "JEE Main";
-
-        // Insert
-        await _insertBatch(jsonData, examSource);
+  Future<void> _loadFromAssets() async {
+    for (final asset in const ['assets/neet.json', 'assets/jee.json']) {
+      try {
+        final jsonString = await rootBundle.loadString(asset);
+        if (jsonString.trim().isEmpty) continue;
+        final jsonData = await compute(jsonDecode, jsonString);
+        await _insertBatch(jsonData, _examNameForFile(asset));
+      } catch (e) {
+        debugPrint("❌ Asset Load Error ($asset): $e");
       }
     }
-
-    // Cleanup
-    File(zipPath).delete();
-    print("🎉 Sync Complete!");
   }
 
-  /// 4. Fallback: Load from local Assets (if offline/first run)
-  Future<void> _loadFromAssets() async {
-    try {
-      // Assuming you have neet.json in assets. Add jee.json to assets if you want that too.
-      final jsonString = await rootBundle.loadString('assets/neet.json');
-      final jsonData = await compute(jsonDecode, jsonString);
-      await _insertBatch(jsonData, "NEET (Bundled)");
-    } catch (e) {
-      print("❌ Asset Load Error: $e");
-    }
+  static String _examNameForFile(String filename) {
+    return filename.toLowerCase().contains("neet") ? "NEET" : "JEE Main";
   }
 
-  /// 5. Database Insertion Logic
   Future<void> _insertBatch(dynamic jsonData, String examSource) async {
     List<dynamic> list;
     if (jsonData is Map && jsonData.containsKey('questions')) {

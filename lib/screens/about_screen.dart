@@ -28,7 +28,7 @@ class AboutScreen extends StatelessWidget {
               width: 300,
               height: 300,
               decoration: BoxDecoration(
-                color: const Color(0xFF38BDF8).withOpacity(0.15),
+                color: const Color(0xFF38BDF8).withValues(alpha: 0.15),
                 shape: BoxShape.circle,
                 boxShadow: const [
                   BoxShadow(
@@ -61,7 +61,7 @@ class AboutScreen extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF38BDF8).withOpacity(0.3),
+                          color: const Color(0xFF38BDF8).withValues(alpha: 0.3),
                           blurRadius: 20,
                           offset: const Offset(0, 5),
                         ),
@@ -184,17 +184,6 @@ class AboutScreen extends StatelessWidget {
                   style: GoogleFonts.inter(color: Colors.white24, fontSize: 12),
                 ),
                 const SizedBox(height: 10),
-                // Row(
-                //   mainAxisAlignment: MainAxisAlignment.center,
-                //   children: [
-                //     _textLink("Privacy Policy"),
-                //     _textDivider(),
-                //     _textLink("Terms"),
-                //     _textDivider(),
-                //     _textLink("Website"),
-                //   ],
-                // ),
-                // const SizedBox(height: 20),
               ],
             ),
           ),
@@ -225,7 +214,7 @@ class AboutScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: const Color(0xFF38BDF8), size: 20),
@@ -254,21 +243,6 @@ class AboutScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _textLink(String text) {
-    return TextButton(
-      onPressed: () {},
-      child: Text(
-        text,
-        style: const TextStyle(color: Colors.white38, fontSize: 11),
-      ),
-    );
-  }
-
-  Widget _textDivider() => const Padding(
-    padding: EdgeInsets.symmetric(horizontal: 5),
-    child: Text("•", style: TextStyle(color: Colors.white24)),
-  );
 
   Future<void> _launchEmail() async {
     final Uri emailUri = Uri.parse(

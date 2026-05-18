@@ -14,40 +14,28 @@ class TexText extends StatelessWidget {
     this.textColor = Colors.white,
   });
 
+  static final _mathPattern = RegExp(r'\$\$(.+?)\$\$|\$(.+?)\$', dotAll: true);
+
   @override
   Widget build(BuildContext context) {
-    List<String> parts = text.split(r'$');
-    List<Widget> widgets = [];
-
-    TextStyle baseStyle =
+    final TextStyle baseStyle =
         style ?? GoogleFonts.inter(color: textColor, fontSize: 15, height: 1.6);
 
-    for (int i = 0; i < parts.length; i++) {
-      if (parts[i].isEmpty) continue;
-
-      if (i % 2 == 0) {
-        widgets.add(Text(parts[i], style: baseStyle));
-      } else {
-        widgets.add(
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 2),
-            constraints: const BoxConstraints(maxWidth: double.infinity),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: Math.tex(
-                parts[i],
-                textStyle: baseStyle.copyWith(fontFamily: 'SansSerif'),
-                mathStyle: MathStyle.text,
-                onErrorFallback: (err) => Text(
-                  parts[i],
-                  style: baseStyle.copyWith(color: Colors.red),
-                ),
-              ),
-            ),
-          ),
-        );
+    final widgets = <Widget>[];
+    int last = 0;
+    for (final m in _mathPattern.allMatches(text)) {
+      if (m.start > last) {
+        final plain = text.substring(last, m.start);
+        if (plain.isNotEmpty) widgets.add(Text(plain, style: baseStyle));
       }
+      final isDisplay = m.group(1) != null;
+      final tex = (m.group(1) ?? m.group(2) ?? '').trim();
+      if (tex.isNotEmpty) widgets.add(_mathBox(tex, baseStyle, isDisplay));
+      last = m.end;
+    }
+    if (last < text.length) {
+      final tail = text.substring(last);
+      if (tail.isNotEmpty) widgets.add(Text(tail, style: baseStyle));
     }
 
     return Wrap(
@@ -56,6 +44,24 @@ class TexText extends StatelessWidget {
       runSpacing: 6,
       spacing: 4,
       children: widgets,
+    );
+  }
+
+  Widget _mathBox(String tex, TextStyle baseStyle, bool isDisplay) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      constraints: const BoxConstraints(maxWidth: double.infinity),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Math.tex(
+          tex,
+          textStyle: baseStyle.copyWith(fontFamily: 'SansSerif'),
+          mathStyle: isDisplay ? MathStyle.display : MathStyle.text,
+          onErrorFallback: (err) =>
+              Text(tex, style: baseStyle.copyWith(color: Colors.red)),
+        ),
+      ),
     );
   }
 }

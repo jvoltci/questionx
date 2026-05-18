@@ -1,11 +1,11 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../main.dart';
 import '../database.dart';
 import '../widgets/tex_view.dart';
+import '../widgets/question_diagram.dart';
+import '../services/diagram_storage.dart';
 
 final sessionDetailsProvider =
     FutureProvider.family<List<QuestionWithAnswer>, int>((
@@ -74,18 +74,13 @@ class _ReviewCard extends StatelessWidget {
         ? "Skipped"
         : (isCorrect ? "Correct" : "Wrong");
 
-    List<dynamic> options = [];
-    try {
-      options = jsonDecode(q.optionsJson);
-    } catch (_) {}
-
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: statusColor.withOpacity(0.5)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +115,7 @@ class _ReviewCard extends StatelessWidget {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.2),
+                      color: statusColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -144,16 +139,26 @@ class _ReviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          if (q.questionSvg != null)
-            Container(
-              height: 100,
-              padding: const EdgeInsets.all(8),
-              color: Colors.white.withOpacity(0.05),
-              child: SvgPicture.string(
-                q.questionSvg!,
-                colorFilter: const ColorFilter.mode(
-                  Colors.white,
-                  BlendMode.srcIn,
+          if (q.questionSvg != null && q.questionSvg!.isNotEmpty)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Material(
+                color: DiagramStorage.isFilenameReference(q.questionSvg)
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.05),
+                child: InkWell(
+                  onTap: () =>
+                      QuestionDiagram.openFullscreen(context, q.questionSvg!),
+                  child: Container(
+                    height: 100,
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    child: QuestionDiagram(
+                      value: q.questionSvg!,
+                      color: Colors.white,
+                      cacheWidth: 600,
+                    ),
+                  ),
                 ),
               ),
             ),

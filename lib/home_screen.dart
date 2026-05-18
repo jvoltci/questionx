@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:questionx/screens/about_screen.dart';
@@ -14,9 +13,10 @@ import 'screens/practice_config_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/mistake_screen.dart';
 import 'widgets/tex_view.dart';
+import 'widgets/question_diagram.dart';
+import 'services/diagram_storage.dart';
 import 'utils/colors.dart';
 import 'services/analytics_service.dart';
-import 'package:drift/drift.dart' as drift;
 
 final selectedExamProvider = StateProvider<String?>((ref) => null);
 final subjectFilterProvider = StateProvider<String>((ref) => "Physics");
@@ -32,21 +32,11 @@ final filteredQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
 
   if (exam == null) return [];
 
-  final query = db.select(db.questions)
-    ..where((tbl) => tbl.examName.contains(exam))
-    ..where((tbl) => tbl.subject.equals(subject));
-
-  final subjectQuestions = await query.get();
-
-  if (search.isEmpty) {
-    return subjectQuestions;
-  } else {
-    final lowerSearch = search.toLowerCase();
-    return subjectQuestions.where((q) {
-      return q.questionLatex.toLowerCase().contains(lowerSearch) ||
-          q.topic.toLowerCase().contains(lowerSearch);
-    }).toList();
-  }
+  return db.searchQuestions(
+    examName: exam,
+    subject: subject,
+    search: search.isEmpty ? null : search,
+  );
 });
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -210,7 +200,7 @@ class ExamSelectionScreen extends ConsumerWidget {
         width: 300,
         height: 300,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.15),
+          color: color.withValues(alpha: 0.15),
           shape: BoxShape.circle,
         ),
       ),
@@ -248,15 +238,15 @@ class _ExamCard extends StatelessWidget {
           height: 100,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color1.withOpacity(0.2), color2.withOpacity(0.1)],
+              colors: [color1.withValues(alpha: 0.2), color2.withValues(alpha: 0.1)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color1.withOpacity(0.5), width: 1),
+            border: Border.all(color: color1.withValues(alpha: 0.5), width: 1),
             boxShadow: [
               BoxShadow(
-                color: color1.withOpacity(0.1),
+                color: color1.withValues(alpha: 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
               ),
@@ -298,7 +288,7 @@ class _ExamCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 2),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.15),
+                              color: Colors.white.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
@@ -324,7 +314,7 @@ class _ExamCard extends StatelessWidget {
               ),
               Icon(
                 Icons.arrow_forward_ios,
-                color: color1.withOpacity(0.5),
+                color: color1.withValues(alpha: 0.5),
                 size: 16,
               ),
               const SizedBox(width: 24),
@@ -340,11 +330,7 @@ class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   void _showDbStats(BuildContext context, WidgetRef ref) async {
-    final db = ref.read(databaseProvider);
-    final all = await db.select(db.questions).get();
-
-    final exams = all.map((e) => e.examName).toSet().toList();
-    final subjects = all.map((e) => e.subject).toSet().toList();
+    final stats = await ref.read(databaseProvider).getDbStats();
 
     if (!context.mounted) return;
 
@@ -361,7 +347,7 @@ class DashboardScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Total Questions: ${all.length}",
+              "Total Questions: ${stats.total}",
               style: const TextStyle(color: Colors.white70),
             ),
             const SizedBox(height: 10),
@@ -369,14 +355,17 @@ class DashboardScreen extends ConsumerWidget {
               "Exams Found:",
               style: TextStyle(color: Colors.cyan, fontWeight: FontWeight.bold),
             ),
-            Text(exams.toString(), style: const TextStyle(color: Colors.white)),
+            Text(
+              stats.exams.toString(),
+              style: const TextStyle(color: Colors.white),
+            ),
             const SizedBox(height: 10),
             const Text(
               "Subjects Found:",
               style: TextStyle(color: Colors.cyan, fontWeight: FontWeight.bold),
             ),
             Text(
-              subjects.toString(),
+              stats.subjects.toString(),
               style: const TextStyle(color: Colors.white),
             ),
           ],
@@ -426,7 +415,7 @@ class DashboardScreen extends ConsumerWidget {
             duration: const Duration(milliseconds: 500),
             bottom: -100,
             right: -100,
-            child: _glowCircle(activeColor.withOpacity(0.5)),
+            child: _glowCircle(activeColor.withValues(alpha: 0.5)),
           ),
           SafeArea(
             child: Column(
@@ -454,7 +443,7 @@ class DashboardScreen extends ConsumerWidget {
                               Icon(
                                 Icons.search_off,
                                 size: 50,
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                               ),
                               const SizedBox(height: 10),
                               Text(
@@ -497,7 +486,7 @@ class DashboardScreen extends ConsumerWidget {
         width: 300,
         height: 300,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.2),
+          color: color.withValues(alpha: 0.2),
           shape: BoxShape.circle,
         ),
       ),
@@ -558,14 +547,6 @@ class DashboardScreen extends ConsumerWidget {
               ),
               Row(
                 children: [
-                  // IconButton(
-                  //   icon: const Icon(
-                  //     Icons.bug_report,
-                  //     color: Colors.white24,
-                  //     size: 20,
-                  //   ),
-                  //   onPressed: () => _showDbStats(context, ref),
-                  // ),
                   _iconBtn(
                     Icons.history,
                     () => Navigator.push(
@@ -598,10 +579,10 @@ class DashboardScreen extends ConsumerWidget {
             cursorColor: accentColor,
             decoration: InputDecoration(
               hintText: 'Search anything...',
-              hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
               prefixIcon: Icon(Icons.search, color: accentColor),
               filled: true,
-              fillColor: Colors.white.withOpacity(0.08),
+              fillColor: Colors.white.withValues(alpha: 0.08),
               contentPadding: const EdgeInsets.symmetric(horizontal: 20),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
@@ -610,7 +591,7 @@ class DashboardScreen extends ConsumerWidget {
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(30),
                 borderSide: BorderSide(
-                  color: accentColor.withOpacity(0.5),
+                  color: accentColor.withValues(alpha: 0.5),
                   width: 1,
                 ),
               ),
@@ -652,13 +633,13 @@ class DashboardScreen extends ConsumerWidget {
               margin: const EdgeInsets.only(right: 12),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
               decoration: BoxDecoration(
-                color: isSelected ? color : Colors.white.withOpacity(0.05),
+                color: isSelected ? color : Colors.white.withValues(alpha: 0.05),
                 borderRadius: BorderRadius.circular(25),
                 border: isSelected ? null : Border.all(color: Colors.white10),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: color.withOpacity(0.4),
+                          color: color.withValues(alpha: 0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
@@ -696,12 +677,12 @@ class QuestionCard extends StatelessWidget {
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          color: AppColors.cardDark.withOpacity(0.8),
+          color: AppColors.cardDark.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.08)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               blurRadius: 8,
               offset: const Offset(0, 4),
             ),
@@ -741,7 +722,7 @@ class QuestionCard extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
+                              color: Colors.white.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
@@ -758,26 +739,32 @@ class QuestionCard extends StatelessWidget {
                       const SizedBox(height: 12),
                       if (question.questionSvg != null &&
                           question.questionSvg!.isNotEmpty)
-                        Container(
-                          height: 80,
-                          width: double.infinity,
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.black26,
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.05),
-                            ),
-                          ),
-                          child: SvgPicture.string(
-                            question.questionSvg!,
-                            colorFilter: const ColorFilter.mode(
-                              Colors.white70,
-                              BlendMode.srcIn,
-                            ),
-                            placeholderBuilder: (_) => const Center(
-                              child: Icon(Icons.image, color: Colors.white24),
+                            child: Material(
+                              color: DiagramStorage.isFilenameReference(
+                                question.questionSvg,
+                              )
+                                  ? Colors.white
+                                  : Colors.black26,
+                              child: InkWell(
+                                onTap: () => QuestionDiagram.openFullscreen(
+                                  context,
+                                  question.questionSvg!,
+                                ),
+                                child: Container(
+                                  height: 80,
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.all(8),
+                                  child: QuestionDiagram(
+                                    value: question.questionSvg!,
+                                    color: Colors.white70,
+                                    cacheWidth: 600,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
@@ -804,9 +791,9 @@ class QuestionCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Text(
         text.toUpperCase(),

@@ -4,21 +4,44 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:questionx/services/pdf_service.dart';
+import '../home_screen.dart';
 import '../main.dart';
-import '../database.dart';
 import 'quiz_screen.dart';
 
-final availableYearsProvider = FutureProvider<List<int>>(
-  (ref) => ref.read(databaseProvider).getAvailableYears(),
-);
-final selectedYearsProvider = StateProvider<List<int>>((ref) => []);
-final selectedSubjectProvider = StateProvider<String?>((ref) => null);
-final selectedTopicsProvider = StateProvider<List<String>>((ref) => []);
-
-final availableTopicsProvider = FutureProvider<List<String>>((ref) async {
-  final subject = ref.watch(selectedSubjectProvider);
-  return ref.read(databaseProvider).getAvailableTopics(subject);
+final availableYearsProvider = FutureProvider.autoDispose<List<int>>((ref) {
+  final exam = ref.watch(selectedExamProvider);
+  return ref.read(databaseProvider).getAvailableYears(examName: exam);
 });
+final selectedYearsProvider =
+    StateProvider.autoDispose<List<int>>((ref) => []);
+final selectedSubjectProvider =
+    StateProvider.autoDispose<String?>((ref) => null);
+final selectedTopicsProvider =
+    StateProvider.autoDispose<List<String>>((ref) => []);
+
+final availableTopicsProvider =
+    FutureProvider.autoDispose<List<String>>((ref) async {
+  final subject = ref.watch(selectedSubjectProvider);
+  final exam = ref.watch(selectedExamProvider);
+  return ref
+      .read(databaseProvider)
+      .getAvailableTopics(subject, examName: exam);
+});
+
+List<Map<String, Object>> _subjectsForExam(String? exam) {
+  if (exam != null && exam.toUpperCase().contains("JEE")) {
+    return const [
+      {'name': "Mathematics", 'icon': Icons.calculate_rounded},
+      {'name': "Physics", 'icon': Icons.flash_on_rounded},
+      {'name': "Chemistry", 'icon': Icons.science_rounded},
+    ];
+  }
+  return const [
+    {'name': "Physics", 'icon': Icons.flash_on_rounded},
+    {'name': "Chemistry", 'icon': Icons.science_rounded},
+    {'name': "Biology", 'icon': Icons.spa_rounded},
+  ];
+}
 
 class PracticeConfigScreen extends ConsumerWidget {
   const PracticeConfigScreen({super.key});
@@ -86,7 +109,7 @@ class PracticeConfigScreen extends ConsumerWidget {
     width: 400,
     height: 400,
     decoration: BoxDecoration(
-      color: color.withOpacity(opacity),
+      color: color.withValues(alpha: opacity),
       shape: BoxShape.circle,
     ),
   );
@@ -101,7 +124,7 @@ class PracticeConfigScreen extends ConsumerWidget {
             children: [
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: IconButton(
@@ -141,7 +164,7 @@ class PracticeConfigScreen extends ConsumerWidget {
               );
             },
             style: TextButton.styleFrom(
-              backgroundColor: Colors.white.withOpacity(0.05),
+              backgroundColor: Colors.white.withValues(alpha: 0.05),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -179,12 +202,8 @@ class PracticeConfigScreen extends ConsumerWidget {
 
   Widget _buildSubjectSelector(WidgetRef ref) {
     final selected = ref.watch(selectedSubjectProvider);
-
-    final subjects = [
-      {'name': "Physics", 'icon': Icons.flash_on_rounded},
-      {'name': "Chemistry", 'icon': Icons.science_rounded},
-      {'name': "Biology", 'icon': Icons.spa_rounded},
-    ];
+    final exam = ref.watch(selectedExamProvider);
+    final subjects = _subjectsForExam(exam);
 
     return Row(
       children: subjects.map((subMap) {
@@ -207,17 +226,17 @@ class PracticeConfigScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: isSelected
                     ? const Color(0xFF38BDF8)
-                    : Colors.white.withOpacity(0.03),
+                    : Colors.white.withValues(alpha: 0.03),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected
                       ? Colors.transparent
-                      : Colors.white.withOpacity(0.08),
+                      : Colors.white.withValues(alpha: 0.08),
                 ),
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF38BDF8).withOpacity(0.3),
+                          color: const Color(0xFF38BDF8).withValues(alpha: 0.3),
                           blurRadius: 15,
                           offset: const Offset(0, 4),
                         ),
@@ -291,7 +310,7 @@ class PracticeConfigScreen extends ConsumerWidget {
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.03),
+              color: Colors.white.withValues(alpha: 0.03),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: Colors.white10),
             ),
@@ -344,13 +363,13 @@ class PracticeConfigScreen extends ConsumerWidget {
         ),
         decoration: BoxDecoration(
           color: isSelected
-              ? const Color(0xFF38BDF8).withOpacity(0.15)
-              : Colors.white.withOpacity(0.03),
+              ? const Color(0xFF38BDF8).withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
             color: isSelected
                 ? const Color(0xFF38BDF8)
-                : Colors.white.withOpacity(0.1),
+                : Colors.white.withValues(alpha: 0.1),
             width: 1,
           ),
         ),
@@ -373,9 +392,9 @@ class PracticeConfigScreen extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 34),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F172A).withOpacity(0.8),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.8),
             border: Border(
-              top: BorderSide(color: Colors.white.withOpacity(0.1)),
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
             ),
           ),
           child: Row(
@@ -387,9 +406,9 @@ class PracticeConfigScreen extends ConsumerWidget {
                   height: 56,
                   width: 56,
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.05),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withOpacity(0.1)),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
                   ),
                   child: const Icon(
                     Icons.picture_as_pdf_rounded,
@@ -411,7 +430,7 @@ class PracticeConfigScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF38BDF8).withOpacity(0.4),
+                        color: const Color(0xFF38BDF8).withValues(alpha: 0.4),
                         blurRadius: 15,
                         offset: const Offset(0, 4),
                       ),
@@ -459,6 +478,7 @@ class PracticeConfigScreen extends ConsumerWidget {
     final years = ref.read(selectedYearsProvider);
     final subject = ref.read(selectedSubjectProvider);
     final topics = ref.read(selectedTopicsProvider);
+    final exam = ref.read(selectedExamProvider);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -473,6 +493,7 @@ class PracticeConfigScreen extends ConsumerWidget {
     final questions = await ref
         .read(databaseProvider)
         .getCustomQuestions(
+          examName: exam,
           years: years,
           subjects: subject != null ? [subject] : null,
           topics: topics,
@@ -499,10 +520,12 @@ class PracticeConfigScreen extends ConsumerWidget {
     final years = ref.read(selectedYearsProvider);
     final subject = ref.read(selectedSubjectProvider);
     final topics = ref.read(selectedTopicsProvider);
+    final exam = ref.read(selectedExamProvider);
 
     final questions = await ref
         .read(databaseProvider)
         .getCustomQuestions(
+          examName: exam,
           years: years,
           subjects: subject != null ? [subject] : null,
           topics: topics,
