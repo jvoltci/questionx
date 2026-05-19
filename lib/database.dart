@@ -275,6 +275,40 @@ class AppDatabase extends _$AppDatabase {
     return row.read(exp) ?? 0;
   }
 
+  /// Count rows whose `examName` matches the given label (LIKE semantics, same
+  /// shape as the filter used by [searchQuestions]). Used for the exam-card
+  /// Q-count badges on the home screen.
+  Future<int> countQuestionsByExam(String examName) async {
+    final exp = questions.id.count();
+    final query = selectOnly(questions)
+      ..addColumns([exp])
+      ..where(questions.examName.like('%$examName%'));
+    final row = await query.getSingle();
+    return row.read(exp) ?? 0;
+  }
+
+  /// Count rows matching an arbitrary filter set — mirrors getCustomQuestions
+  /// but returns only the count, for the live "X questions match" indicator.
+  Future<int> countCustomQuestions({
+    String? examName,
+    List<int> years = const [],
+    List<String>? subjects,
+    List<String> topics = const [],
+  }) async {
+    final exp = questions.id.count();
+    final query = selectOnly(questions)..addColumns([exp]);
+    final filters = <Expression<bool>>[];
+    if (examName != null) filters.add(questions.examName.like('%$examName%'));
+    if (years.isNotEmpty) filters.add(questions.year.isIn(years));
+    if (subjects != null && subjects.isNotEmpty) {
+      filters.add(questions.subject.isIn(subjects));
+    }
+    if (topics.isNotEmpty) filters.add(questions.topic.isIn(topics));
+    if (filters.isNotEmpty) query.where(Expression.and(filters));
+    final row = await query.getSingle();
+    return row.read(exp) ?? 0;
+  }
+
   Future<({int total, List<String> exams, List<String> subjects})>
       getDbStats() async {
     final total = await countQuestions();

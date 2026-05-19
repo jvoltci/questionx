@@ -38,7 +38,7 @@ UA = (
     "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 )
 BASE = "https://questions.examside.com"
-TARGET_YEARS = {2024, 2025, 2026}
+TARGET_YEARS: set[int] | None = None  # None = accept all years (full archive)
 ROOT = Path(__file__).resolve().parent
 OUT_DIR = ROOT / "out"
 
@@ -160,14 +160,33 @@ def fetch_topic_questions(exam: str, subject: str, topic: str) -> list[dict] | N
     return qs
 
 
-_PAPER_RE_MAIN = re.compile(
+_PAPER_RE_MAIN_ONLINE = re.compile(
     r"JEE\s+Main\s+(?P<year>\d{4})\s*\(Online\)\s+"
     r"(?P<day>\d{1,2})(?:st|nd|rd|th)\s+(?P<mon>[A-Za-z]+)\s+"
     r"(?P<shift>Morning|Evening)\s+(?:Shift|Slot)",
     re.IGNORECASE,
 )
+# Pre-2019 NTA papers were one single offline paper per year, no shift granularity.
+_PAPER_RE_MAIN_OFFLINE = re.compile(
+    r"JEE\s+Main\s+(?P<year>\d{4})\s*\(Offline\)",
+    re.IGNORECASE,
+)
+# AIEEE = pre-2013 predecessor of JEE Main. One paper per year.
+_PAPER_RE_AIEEE = re.compile(r"AIEEE\s+(?P<year>\d{4})", re.IGNORECASE)
+
 _PAPER_RE_ADV = re.compile(
     r"JEE\s+Advanced\s+(?P<year>\d{4})\s+Paper\s+(?P<paper>[12])\s+(?P<mode>Online|Offline)",
+    re.IGNORECASE,
+)
+# IIT-JEE = pre-2013 predecessor of JEE Advanced.
+# 2007-2012: split into Paper 1 + Paper 2.
+_PAPER_RE_IITJEE_SPLIT = re.compile(
+    r"IIT-JEE\s+(?P<year>\d{4})\s+Paper\s+(?P<paper>[12])(?:\s+(?P<mode>Online|Offline))?",
+    re.IGNORECASE,
+)
+# 1978-2006: single paper, sometimes labelled "Screening" or "Mains".
+_PAPER_RE_IITJEE_OLD = re.compile(
+    r"IIT-JEE\s+(?P<year>\d{4})(?:\s+(?P<extra>Screening|Mains))?$",
     re.IGNORECASE,
 )
 _MONTH = {
@@ -182,26 +201,51 @@ def parse_paper_meta(exam: str, paper_title: str | None) -> dict[str, Any] | Non
     if not paper_title:
         return None
     if exam == "jee-main":
-        m = _PAPER_RE_MAIN.search(paper_title)
-        if not m:
-            return None
-        year = int(m["year"])
-        day = int(m["day"])
-        mon = _MONTH.get(m["mon"].lower())
-        if not mon:
-            return None
-        shift = "S1" if m["shift"].lower() == "morning" else "S2"
-        return {"year": year, "mon": mon, "day": day, "shift": shift, "kind": "main"}
+        m = _PAPER_RE_MAIN_ONLINE.search(paper_title)
+        if m:
+            year = int(m["year"])
+            day = int(m["day"])
+            mon = _MONTH.get(m["mon"].lower())
+            if not mon:
+                return None
+            shift = "S1" if m["shift"].lower() == "morning" else "S2"
+            return {"year": year, "mon": mon, "day": day, "shift": shift,
+                    "kind": "main"}
+        # Fall back to the pre-2019 offline format: single paper, no shift.
+        m = _PAPER_RE_MAIN_OFFLINE.search(paper_title)
+        if m:
+            return {"year": int(m["year"]), "kind": "main_offline"}
+        # AIEEE 2002-2012: single paper per year (legacy name; treated as JEE Main).
+        m = _PAPER_RE_AIEEE.search(paper_title)
+        if m:
+            return {"year": int(m["year"]), "kind": "aieee"}
+        return None
     if exam == "jee-advanced":
         m = _PAPER_RE_ADV.search(paper_title)
-        if not m:
-            return None
-        return {
-            "year": int(m["year"]),
-            "paper": int(m["paper"]),
-            "mode": m["mode"][0].upper(),  # O for both Online and Offline; we'll keep both
-            "kind": "adv",
-        }
+        if m:
+            return {
+                "year": int(m["year"]),
+                "paper": int(m["paper"]),
+                "mode": m["mode"][0].upper(),
+                "kind": "adv",
+            }
+        # IIT-JEE 2007-2012 (Paper 1/2 era): treated as JEE Advanced.
+        m = _PAPER_RE_IITJEE_SPLIT.search(paper_title)
+        if m:
+            return {
+                "year": int(m["year"]),
+                "paper": int(m["paper"]),
+                "kind": "iitjee_split",
+            }
+        # IIT-JEE 1978-2006 (single paper; sometimes "Screening" or "Mains").
+        m = _PAPER_RE_IITJEE_OLD.search(paper_title)
+        if m:
+            return {
+                "year": int(m["year"]),
+                "extra": (m["extra"] or "").capitalize() or None,
+                "kind": "iitjee_old",
+            }
+        return None
     return None
 
 
@@ -210,10 +254,21 @@ _SUBJ_ABBR = {"physics": "Phy", "chemistry": "Chem", "mathematics": "Math"}
 
 def make_id(exam: str, meta: dict, subject: str, ordinal: int) -> str:
     subj = _SUBJ_ABBR[subject]
-    if meta["kind"] == "main":
+    kind = meta["kind"]
+    if kind == "main":
         return f"JEE_Main_{meta['year']}_{meta['mon']}{meta['day']:02d}_{meta['shift']}_{subj}_{ordinal}"
-    # advanced
-    return f"JEE_Adv_{meta['year']}_P{meta['paper']}_{subj}_{ordinal}"
+    if kind == "main_offline":
+        return f"JEE_Main_{meta['year']}_Offline_{subj}_{ordinal}"
+    if kind == "aieee":
+        return f"JEE_Main_AIEEE_{meta['year']}_{subj}_{ordinal}"
+    if kind == "adv":
+        return f"JEE_Adv_{meta['year']}_P{meta['paper']}_{subj}_{ordinal}"
+    if kind == "iitjee_split":
+        return f"JEE_Adv_IITJEE_{meta['year']}_P{meta['paper']}_{subj}_{ordinal}"
+    if kind == "iitjee_old":
+        suffix = f"_{meta['extra']}" if meta.get("extra") else ""
+        return f"JEE_Adv_IITJEE_{meta['year']}{suffix}_{subj}_{ordinal}"
+    raise ValueError(f"unknown meta kind: {kind}")
 
 
 _TAG = re.compile(r"<[^>]+>")
@@ -258,7 +313,7 @@ def to_neet_record(q: dict, exam: str, subject: str, ordinal: int) -> dict | Non
     meta = parse_paper_meta(exam, q.get("paperTitle"))
     if not meta:
         return None
-    if meta["year"] not in TARGET_YEARS:
+    if TARGET_YEARS is not None and meta["year"] not in TARGET_YEARS:
         return None
     en = (q.get("question") or {}).get("en") or {}
     q_html = en.get("content") or ""
@@ -358,7 +413,7 @@ def scrape(exam_filter: list[str], subject_filter: list[str] | None,
                     if not meta:
                         skipped_no_meta += 1
                         continue
-                    if meta["year"] not in TARGET_YEARS:
+                    if TARGET_YEARS is not None and meta["year"] not in TARGET_YEARS:
                         skipped_wrong_year += 1
                         continue
                     pkey = q.get("paperId") or q.get("paperTitle") or ""
@@ -379,7 +434,8 @@ def scrape(exam_filter: list[str], subject_filter: list[str] | None,
     print()
     print(f"Total records: {len(all_records)}")
     print(f"Skipped (no paper meta): {skipped_no_meta}")
-    print(f"Skipped (year not in {sorted(TARGET_YEARS)}): {skipped_wrong_year}")
+    year_filter_desc = sorted(TARGET_YEARS) if TARGET_YEARS is not None else "ALL"
+    print(f"Skipped (year not in {year_filter_desc}): {skipped_wrong_year}")
     print("By (exam/subject):")
     for k, v in sorted(counters.items()):
         print(f"  {k}: {v}")

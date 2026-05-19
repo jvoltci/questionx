@@ -22,6 +22,27 @@ final selectedExamProvider = StateProvider<String?>((ref) => null);
 final subjectFilterProvider = StateProvider<String>((ref) => "Physics");
 final searchProvider = StateProvider<String>((ref) => "");
 
+/// Map of display-label → row count for the three exam buckets. Powers the
+/// Q-count badge on the exam-selection cards.
+final examCountsProvider = FutureProvider<Map<String, int>>((ref) async {
+  final db = ref.read(databaseProvider);
+  final results = await Future.wait([
+    db.countQuestionsByExam("JEE Main"),
+    db.countQuestionsByExam("JEE Advanced"),
+    db.countQuestionsByExam("NEET"),
+  ]);
+  return {
+    "JEE Main": results[0],
+    "JEE Advanced": results[1],
+    "NEET": results[2],
+  };
+});
+
+String _formatCount(int n) {
+  if (n >= 1000) return "${(n / 1000).toStringAsFixed(n >= 10000 ? 0 : 1)}K";
+  return "$n";
+}
+
 final filteredQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
   ref,
 ) async {
@@ -110,6 +131,11 @@ class ExamSelectionScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final countsAsync = ref.watch(examCountsProvider);
+    final counts = countsAsync.maybeWhen(
+      data: (m) => m,
+      orElse: () => const <String, int>{},
+    );
     return Scaffold(
       backgroundColor: const Color(0xFF0B1120),
       body: Stack(
@@ -160,6 +186,7 @@ class ExamSelectionScreen extends ConsumerWidget {
                     icon: Icons.engineering,
                     color1: const Color(0xFF3B82F6),
                     color2: const Color(0xFF2563EB),
+                    countLabel: counts["JEE Main"],
                     onTap: () => _selectExam(ref, "JEE Main", "Physics"),
                   ),
                   const SizedBox(height: 20),
@@ -169,6 +196,7 @@ class ExamSelectionScreen extends ConsumerWidget {
                     icon: Icons.school,
                     color1: const Color(0xFF8B5CF6),
                     color2: const Color(0xFF6D28D9),
+                    countLabel: counts["JEE Advanced"],
                     onTap: () => _selectExam(ref, "JEE Advanced", "Physics"),
                   ),
                   const SizedBox(height: 20),
@@ -178,6 +206,7 @@ class ExamSelectionScreen extends ConsumerWidget {
                     icon: Icons.medical_services,
                     color1: const Color(0xFF10B981),
                     color2: const Color(0xFF059669),
+                    countLabel: counts["NEET"],
                     onTap: () => _selectExam(ref, "NEET", "Biology"),
                   ),
                 ],
@@ -211,6 +240,7 @@ class _ExamCard extends StatelessWidget {
   final Color color1;
   final Color color2;
   final VoidCallback onTap;
+  final int? countLabel;
 
   const _ExamCard({
     required this.title,
@@ -219,6 +249,7 @@ class _ExamCard extends StatelessWidget {
     required this.color1,
     required this.color2,
     required this.onTap,
+    this.countLabel,
   });
 
   @override
@@ -273,6 +304,26 @@ class _ExamCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                        if (countLabel != null && countLabel! > 0) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.18),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "${_formatCount(countLabel!)} Qs",
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                     Text(

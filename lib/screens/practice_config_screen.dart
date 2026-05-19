@@ -28,6 +28,21 @@ final availableTopicsProvider =
       .getAvailableTopics(subject, examName: exam);
 });
 
+/// Live count of questions matching the current filter selection. Drives the
+/// match-count chip near the Start Practice button.
+final liveMatchCountProvider = FutureProvider.autoDispose<int>((ref) async {
+  final exam = ref.watch(selectedExamProvider);
+  final years = ref.watch(selectedYearsProvider);
+  final subject = ref.watch(selectedSubjectProvider);
+  final topics = ref.watch(selectedTopicsProvider);
+  return ref.read(databaseProvider).countCustomQuestions(
+        examName: exam,
+        years: years,
+        subjects: subject != null ? [subject] : null,
+        topics: topics,
+      );
+});
+
 List<Map<String, Object>> _subjectsForExam(String? exam) {
   if (exam != null && exam.toUpperCase().contains("JEE")) {
     return const [
@@ -279,21 +294,108 @@ class PracticeConfigScreen extends ConsumerWidget {
           const Center(child: CircularProgressIndicator(strokeWidth: 2)),
       error: (_, __) =>
           const Text("Failed to load", style: TextStyle(color: Colors.red)),
-      data: (years) => Wrap(
-        spacing: 10,
-        runSpacing: 10,
-        children: years.map((year) {
-          final isSelected = selectedYears.contains(year);
-          return _buildMinimalChip(
-            label: "$year",
-            isSelected: isSelected,
-            onTap: () {
-              final current = [...ref.read(selectedYearsProvider)];
-              isSelected ? current.remove(year) : current.add(year);
-              ref.read(selectedYearsProvider.notifier).state = current;
-            },
-          );
-        }).toList(),
+      data: (years) {
+        // Sort descending so newest years sit at the top — most aspirants
+        // start with recent papers.
+        final sorted = [...years]..sort((a, b) => b.compareTo(a));
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Quick-pick presets so users don't have to tap 20+ year chips.
+            _buildYearPresets(ref, sorted),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: sorted.map((year) {
+                final isSelected = selectedYears.contains(year);
+                return _buildMinimalChip(
+                  label: "$year",
+                  isSelected: isSelected,
+                  onTap: () {
+                    final current = [...ref.read(selectedYearsProvider)];
+                    isSelected ? current.remove(year) : current.add(year);
+                    ref.read(selectedYearsProvider.notifier).state = current;
+                  },
+                );
+              }).toList(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildYearPresets(WidgetRef ref, List<int> available) {
+    if (available.isEmpty) return const SizedBox.shrink();
+    final newest = available.first;
+    // Effective "now" comes from the dataset itself so the presets stay
+    // sensible whether the device clock is 2026 or a few years later.
+    final last5 = available.where((y) => y >= newest - 4).toList();
+    final last10 = available.where((y) => y >= newest - 9).toList();
+    final selected = ref.watch(selectedYearsProvider);
+    bool sameSet(List<int> a) =>
+        a.length == selected.length && a.toSet().containsAll(selected);
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _buildPresetChip(
+          label: "All (${available.length})",
+          active: selected.isEmpty || sameSet(available),
+          onTap: () =>
+              ref.read(selectedYearsProvider.notifier).state = const [],
+        ),
+        _buildPresetChip(
+          label: "Last 5",
+          active: sameSet(last5),
+          onTap: () =>
+              ref.read(selectedYearsProvider.notifier).state = last5,
+        ),
+        _buildPresetChip(
+          label: "Last 10",
+          active: sameSet(last10),
+          onTap: () =>
+              ref.read(selectedYearsProvider.notifier).state = last10,
+        ),
+        _buildPresetChip(
+          label: "Clear",
+          active: false,
+          onTap: () =>
+              ref.read(selectedYearsProvider.notifier).state = const [],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPresetChip({
+    required String label,
+    required bool active,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: active
+              ? const Color(0xFF38BDF8)
+              : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: active
+                ? Colors.transparent
+                : Colors.white.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Text(
+          label,
+          style: GoogleFonts.inter(
+            color: active ? Colors.black87 : Colors.white70,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }
@@ -386,86 +488,115 @@ class PracticeConfigScreen extends ConsumerWidget {
   }
 
   Widget _buildBottomBar(BuildContext context, WidgetRef ref) {
+    final matchCount = ref.watch(liveMatchCountProvider);
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
-          padding: const EdgeInsets.fromLTRB(24, 20, 24, 34),
+          padding: const EdgeInsets.fromLTRB(24, 12, 24, 34),
           decoration: BoxDecoration(
             color: const Color(0xFF0F172A).withValues(alpha: 0.8),
             border: Border(
               top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
             ),
           ),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              InkWell(
-                onTap: () => _handlePdfExport(context, ref),
-                borderRadius: BorderRadius.circular(16),
-                child: Container(
-                  height: 56,
-                  width: 56,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                  child: const Icon(
-                    Icons.picture_as_pdf_rounded,
-                    color: Colors.white70,
-                  ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.filter_alt_outlined,
+                        color: Colors.white38, size: 14),
+                    const SizedBox(width: 6),
+                    Text(
+                      matchCount.maybeWhen(
+                        data: (n) => "$n question${n == 1 ? '' : 's'} match",
+                        orElse: () => "Counting…",
+                      ),
+                      style: GoogleFonts.inter(
+                        color: Colors.white54,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 16),
-
-              Expanded(
-                child: Container(
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0EA5E9), Color(0xFF38BDF8)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
+              Row(
+                children: [
+                  InkWell(
+                    onTap: () => _handlePdfExport(context, ref),
                     borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF38BDF8).withValues(alpha: 0.4),
-                        blurRadius: 15,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ElevatedButton(
-                    onPressed: () => _handleStartQuiz(context, ref),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
+                    child: Container(
+                      height: 56,
+                      width: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.1)),
+                      ),
+                      child: const Icon(
+                        Icons.picture_as_pdf_rounded,
+                        color: Colors.white70,
                       ),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Start Practice",
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Container(
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0EA5E9), Color(0xFF38BDF8)],
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF38BDF8)
+                                .withValues(alpha: 0.4),
+                            blurRadius: 15,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () => _handleStartQuiz(context, ref),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        const Icon(
-                          Icons.arrow_forward_rounded,
-                          color: Colors.white,
-                          size: 20,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Start Practice",
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.arrow_forward_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),

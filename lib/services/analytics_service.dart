@@ -50,9 +50,6 @@ class AnalyticsService {
         'duration_s': durationSeconds,
       });
 
-  static Future<void> logComingSoonTap(String exam) =>
-      _log('coming_soon_tap', {'exam': exam});
-
   static void recordError(Object error, StackTrace stack, {String? reason}) {
     if (kDebugMode || !_firebaseReady) return;
     FirebaseCrashlytics.instance

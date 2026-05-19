@@ -21,7 +21,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 ASSETS = REPO / "assets"
-JEE_FIG_DIR = REPO / "scripts" / "jee" / "out" / "full" / "diagrams_jee"
+JEE_FIG_DIR = REPO / "scripts" / "jee" / "out" / "full" / "diagrams_jee_clean"
 V41_ZIP = Path("/tmp/v41_release/data.zip")
 OUT_DIR = REPO / "scripts" / "jee" / "out" / "release"
 OUT_ZIP = OUT_DIR / "data.zip"
