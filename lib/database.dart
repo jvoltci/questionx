@@ -268,6 +268,13 @@ class AppDatabase extends _$AppDatabase {
     return q.get();
   }
 
+  /// Wipe the entire questions table. Called at the start of an OTA sync so
+  /// that records DROPPED in the new release stop appearing to the user
+  /// (insertOrReplace would only touch IDs present in the new payload).
+  Future<void> deleteAllQuestions() async {
+    await delete(questions).go();
+  }
+
   Future<int> countQuestions() async {
     final exp = questions.id.count();
     final query = selectOnly(questions)..addColumns([exp]);

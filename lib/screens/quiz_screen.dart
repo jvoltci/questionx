@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../main.dart';
 import '../database.dart';
 import '../services/analytics_service.dart';
@@ -151,6 +152,26 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
       questionId: q.id,
       reason: picked,
     );
+    // Also open the user's mail client with a pre-filled report so we get an
+    // email copy in addition to the Firebase event. We don't include the full
+    // question text to keep the mailto: URL short.
+    final body = Uri.encodeComponent(
+      "Question ID: ${q.id}\n"
+      "Exam: ${q.examName}\n"
+      "Subject: ${q.subject}\n"
+      "Year: ${q.year}\n"
+      "Reported reason: $picked\n\n"
+      "Your note (optional):\n",
+    );
+    final subject = Uri.encodeComponent("QuestionX report: ${q.id}");
+    final mailto = Uri.parse(
+      "mailto:j.voltci@gmail.com?subject=$subject&body=$body",
+    );
+    try {
+      await launchUrl(mailto, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      // No mail client; the Firebase log already captured the report.
+    }
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

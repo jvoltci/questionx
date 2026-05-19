@@ -142,7 +142,13 @@ class SyncService {
     }
 
     // Phase 3: process JSON datasets into the DB (0.85 → 0.99).
+    // CRITICAL: nuke all existing question rows first. We need this because a
+    // new release can both ADD records and DROP records (e.g. v1.3.0 trimmed
+    // 4K JEE rows from v1.2.0). Without a delete pass, dropped records keep
+    // showing up to the user because `insertOrReplace` only touches IDs
+    // present in the new payload.
     _emit(0.85, "Indexing questions...");
+    await db.deleteAllQuestions();
     final inputStream = InputFileStream(zipPath);
     final archive = ZipDecoder().decodeBuffer(inputStream);
     final jsonFiles = archive.files
