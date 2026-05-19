@@ -611,13 +611,39 @@ class PracticeConfigScreen extends ConsumerWidget {
     final topics = ref.read(selectedTopicsProvider);
     final exam = ref.read(selectedExamProvider);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          "Generating PDF...",
-          style: GoogleFonts.inter(color: Colors.white),
-        ),
+    // Show a blocking modal so the user knows work is in progress and can't
+    // double-tap the export button.
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => Dialog(
         backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const CircularProgressIndicator(
+                color: Color(0xFF38BDF8),
+                strokeWidth: 3,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Generating PDF...",
+                style: GoogleFonts.poppins(
+                    color: Colors.white, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "This can take a few seconds for large sets.",
+                style: GoogleFonts.inter(
+                    color: Colors.white54, fontSize: 11),
+              ),
+            ],
+          ),
+        ),
       ),
     );
 
@@ -631,12 +657,12 @@ class PracticeConfigScreen extends ConsumerWidget {
           limit: 100,
         );
 
+    if (!context.mounted) return;
     if (questions.isEmpty) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No questions to export!")),
-        );
-      }
+      Navigator.of(context, rootNavigator: true).pop(); // dismiss spinner
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No questions to export.")),
+      );
       return;
     }
 
@@ -644,6 +670,14 @@ class PracticeConfigScreen extends ConsumerWidget {
       questions: questions,
       title: "Custom Practice Set",
       subject: subject ?? "Mixed Subjects",
+    );
+    if (!context.mounted) return;
+    Navigator.of(context, rootNavigator: true).pop(); // dismiss spinner
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Exported ${questions.length} questions."),
+        backgroundColor: const Color(0xFF1E293B),
+      ),
     );
   }
 

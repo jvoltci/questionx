@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:google_fonts/google_fonts.dart';
@@ -397,10 +398,15 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                         final optionText = options[index];
 
                         return GestureDetector(
-                          onTap: () => setState(
-                            () => _userAnswers[_currentIndex] = optionChar,
-                          ),
-                          child: Container(
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(
+                              () => _userAnswers[_currentIndex] = optionChar,
+                            );
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 180),
+                            curve: Curves.easeOut,
                             margin: const EdgeInsets.only(bottom: 12),
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
@@ -450,41 +456,120 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                 ),
               ),
 
+              const SizedBox(height: 12),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  if (_currentIndex > 0)
-                    ElevatedButton(
-                      onPressed: () => setState(() => _currentIndex--),
-                      child: const Text("Previous"),
-                    )
-                  else
-                    const SizedBox(width: 10),
-
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          _currentIndex == widget.questions.length - 1
-                          ? Colors.green
-                          : Colors.blue,
+                  Expanded(
+                    flex: 1,
+                    child: Opacity(
+                      opacity: _currentIndex > 0 ? 1.0 : 0.35,
+                      child: _navButton(
+                        label: "Previous",
+                        icon: Icons.arrow_back_rounded,
+                        leadingIcon: true,
+                        filled: false,
+                        onTap: _currentIndex > 0
+                            ? () {
+                                HapticFeedback.selectionClick();
+                                setState(() => _currentIndex--);
+                              }
+                            : null,
+                      ),
                     ),
-                    onPressed: () {
-                      if (_currentIndex < widget.questions.length - 1) {
-                        setState(() => _currentIndex++);
-                      } else {
-                        _submitQuiz();
-                      }
-                    },
-                    child: Text(
-                      _currentIndex == widget.questions.length - 1
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: _navButton(
+                      label: _currentIndex == widget.questions.length - 1
                           ? "Submit"
                           : "Next",
+                      icon: _currentIndex == widget.questions.length - 1
+                          ? Icons.check_rounded
+                          : Icons.arrow_forward_rounded,
+                      leadingIcon: false,
+                      filled: true,
+                      submit: _currentIndex == widget.questions.length - 1,
+                      onTap: () {
+                        HapticFeedback.mediumImpact();
+                        if (_currentIndex < widget.questions.length - 1) {
+                          setState(() => _currentIndex++);
+                        } else {
+                          _submitQuiz();
+                        }
+                      },
                     ),
                   ),
                 ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navButton({
+    required String label,
+    required IconData icon,
+    required bool leadingIcon,
+    required bool filled,
+    bool submit = false,
+    VoidCallback? onTap,
+  }) {
+    final accent = submit ? const Color(0xFF10B981) : const Color(0xFF38BDF8);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          gradient: filled
+              ? LinearGradient(
+                  colors: [accent.withValues(alpha: 0.95), accent],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: filled ? null : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(14),
+          border: filled
+              ? null
+              : Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          boxShadow: filled
+              ? [
+                  BoxShadow(
+                    color: accent.withValues(alpha: 0.35),
+                    blurRadius: 14,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (leadingIcon) ...[
+              Icon(icon,
+                  size: 18,
+                  color: filled ? Colors.white : Colors.white70),
+              const SizedBox(width: 8),
+            ],
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: filled ? Colors.white : Colors.white70,
+              ),
+            ),
+            if (!leadingIcon) ...[
+              const SizedBox(width: 8),
+              Icon(icon,
+                  size: 18,
+                  color: filled ? Colors.white : Colors.white70),
+            ],
+          ],
         ),
       ),
     );

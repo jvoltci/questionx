@@ -84,7 +84,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "v1.3.0",
+                  "v1.4.0",
                   style: GoogleFonts.robotoMono(
                     fontSize: 12,
                     color: Colors.cyanAccent,
@@ -202,7 +202,7 @@ class AboutScreen extends StatelessWidget {
                         width: double.infinity,
                         height: 45,
                         child: ElevatedButton.icon(
-                          onPressed: () => _launchEmail(),
+                          onPressed: () => _launchEmail(context),
                           icon: const Icon(Icons.mail_outline),
                           label: const Text("Contact Developer"),
                           style: ElevatedButton.styleFrom(
@@ -307,12 +307,29 @@ class AboutScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _launchEmail() async {
+  Future<void> _launchEmail(BuildContext context) async {
     final Uri emailUri = Uri.parse(
-      "mailto:jvoltci@gmail.com?subject=QuestionX Feedback",
+      "mailto:j.voltci@gmail.com?subject=QuestionX Feedback",
     );
-    if (await canLaunchUrl(emailUri)) {
-      await launchUrl(emailUri);
+    try {
+      final ok = await launchUrl(emailUri,
+          mode: LaunchMode.externalApplication);
+      if (!ok && context.mounted) {
+        _showNoMail(context);
+      }
+    } catch (_) {
+      if (context.mounted) _showNoMail(context);
     }
+  }
+
+  void _showNoMail(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          "No mail app found. Email us at j.voltci@gmail.com",
+        ),
+        backgroundColor: Color(0xFF1E293B),
+      ),
+    );
   }
 }

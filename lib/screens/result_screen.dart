@@ -122,7 +122,7 @@ class ResultScreen extends StatelessWidget {
                   Expanded(
                     child: _statCard(
                       Icons.timer,
-                      "${duration}s",
+                      _formatDuration(duration),
                       "Time Taken",
                       Colors.blue,
                     ),
@@ -208,6 +208,16 @@ class ResultScreen extends StatelessWidget {
         color: Colors.white,
       ),
     );
+  }
+
+  String _formatDuration(int seconds) {
+    if (seconds < 60) return "${seconds}s";
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    if (m < 60) return s == 0 ? "${m}m" : "${m}m ${s}s";
+    final h = m ~/ 60;
+    final remM = m % 60;
+    return remM == 0 ? "${h}h" : "${h}h ${remM}m";
   }
 
   Widget _statCard(IconData icon, String value, String label, Color color) {

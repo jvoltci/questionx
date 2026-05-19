@@ -594,30 +594,7 @@ class DashboardScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 15),
-          TextField(
-            onChanged: (val) => ref.read(searchProvider.notifier).state = val,
-            style: const TextStyle(color: Colors.white),
-            cursorColor: accentColor,
-            decoration: InputDecoration(
-              hintText: 'Search anything...',
-              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
-              prefixIcon: Icon(Icons.search, color: accentColor),
-              filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.08),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 20),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: BorderSide(
-                  color: accentColor.withValues(alpha: 0.5),
-                  width: 1,
-                ),
-              ),
-            ),
-          ),
+          _SearchField(accentColor: accentColor),
         ],
       ),
     );
@@ -678,6 +655,73 @@ class DashboardScreen extends ConsumerWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _SearchField extends ConsumerStatefulWidget {
+  final Color accentColor;
+  const _SearchField({required this.accentColor});
+  @override
+  ConsumerState<_SearchField> createState() => _SearchFieldState();
+}
+
+class _SearchFieldState extends ConsumerState<_SearchField> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: ref.read(searchProvider));
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final accent = widget.accentColor;
+    return TextField(
+      controller: _controller,
+      onChanged: (val) => ref.read(searchProvider.notifier).state = val,
+      style: const TextStyle(color: Colors.white),
+      cursorColor: accent,
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        hintText: 'Search anything...',
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+        prefixIcon: Icon(Icons.search, color: accent),
+        suffixIcon: ValueListenableBuilder<TextEditingValue>(
+          valueListenable: _controller,
+          builder: (_, v, __) => v.text.isEmpty
+              ? const SizedBox.shrink()
+              : IconButton(
+                  tooltip: "Clear search",
+                  icon: const Icon(Icons.close_rounded, color: Colors.white60),
+                  onPressed: () {
+                    _controller.clear();
+                    ref.read(searchProvider.notifier).state = "";
+                  },
+                ),
+        ),
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: 0.08),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide(
+            color: accent.withValues(alpha: 0.5),
+            width: 1,
+          ),
+        ),
       ),
     );
   }
