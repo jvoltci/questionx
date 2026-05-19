@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -350,57 +351,6 @@ class _ExamCard extends StatelessWidget {
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
-  void _showDbStats(BuildContext context, WidgetRef ref) async {
-    final stats = await ref.read(databaseProvider).getDbStats();
-
-    if (!context.mounted) return;
-
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        title: const Text(
-          "Database Debugger",
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Total Questions: ${stats.total}",
-              style: const TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "Exams Found:",
-              style: TextStyle(color: Colors.cyan, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              stats.exams.toString(),
-              style: const TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 10),
-            const Text(
-              "Subjects Found:",
-              style: TextStyle(color: Colors.cyan, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              stats.subjects.toString(),
-              style: const TextStyle(color: Colors.white),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Close"),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedSubject = ref.watch(subjectFilterProvider);
@@ -410,18 +360,11 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.bgDark,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(
+      floatingActionButton: _AnimatedCustomTestFab(
+        color: activeColor,
+        onTap: () => Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const PracticeConfigScreen()),
-        ),
-        backgroundColor: activeColor,
-        foregroundColor: Colors.black,
-        elevation: 10,
-        icon: const Icon(Icons.tune),
-        label: const Text(
-          "Custom Test",
-          style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Stack(
@@ -457,28 +400,64 @@ class DashboardScreen extends ConsumerWidget {
                     ),
                     data: (questions) {
                       if (questions.isEmpty) {
+                        final selectedSubject =
+                            ref.watch(subjectFilterProvider);
+                        final searchTerm = ref.watch(searchProvider);
+                        final hasSearch = searchTerm.isNotEmpty;
+                        final title = hasSearch
+                            ? "No matches for \"$searchTerm\""
+                            : "No $selectedSubject questions yet";
+                        final hint = hasSearch
+                            ? "Try a shorter search or clear the filter."
+                            : "Pick a different subject above, or try the "
+                              "Custom Test button to broaden your selection.";
                         return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.search_off,
-                                size: 50,
-                                color: Colors.white.withValues(alpha: 0.2),
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                "No questions found.",
-                                style: GoogleFonts.inter(color: Colors.white38),
-                              ),
-                              const SizedBox(height: 20),
-
-                              TextButton.icon(
-                                icon: const Icon(Icons.bug_report),
-                                label: const Text("Check DB Data"),
-                                onPressed: () => _showDbStats(context, ref),
-                              ),
-                            ],
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 40),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  hasSearch
+                                      ? Icons.search_off_rounded
+                                      : Icons.inventory_2_outlined,
+                                  size: 56,
+                                  color: Colors.white.withValues(alpha: 0.25),
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  title,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  hint,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.inter(
+                                    color: Colors.white54,
+                                    fontSize: 13,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                if (hasSearch) ...[
+                                  const SizedBox(height: 16),
+                                  TextButton.icon(
+                                    icon: const Icon(Icons.close_rounded,
+                                        size: 16),
+                                    label: const Text("Clear search"),
+                                    onPressed: () => ref
+                                        .read(searchProvider.notifier)
+                                        .state = "",
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                         );
                       }
@@ -655,6 +634,46 @@ class DashboardScreen extends ConsumerWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _AnimatedCustomTestFab extends StatefulWidget {
+  final Color color;
+  final VoidCallback onTap;
+  const _AnimatedCustomTestFab({required this.color, required this.onTap});
+  @override
+  State<_AnimatedCustomTestFab> createState() => _AnimatedCustomTestFabState();
+}
+
+class _AnimatedCustomTestFabState extends State<_AnimatedCustomTestFab> {
+  double _scale = 1.0;
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _scale = 0.92),
+      onTapCancel: () => setState(() => _scale = 1.0),
+      onTapUp: (_) {
+        setState(() => _scale = 1.0);
+        HapticFeedback.lightImpact();
+        widget.onTap();
+      },
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: FloatingActionButton.extended(
+          onPressed: null,
+          backgroundColor: widget.color,
+          foregroundColor: Colors.black,
+          elevation: 10,
+          icon: const Icon(Icons.tune),
+          label: const Text(
+            "Custom Test",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
       ),
     );
   }

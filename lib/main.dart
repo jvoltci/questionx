@@ -13,6 +13,11 @@ import 'services/weightage_service.dart';
 
 final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
 
+/// Single source of truth for the app's display version. Mirror pubspec.yaml's
+/// `version:` field minor+patch portion. Used by About screen and any future
+/// "Send Feedback" flows.
+const String appVersion = "1.5.0";
+
 Future<void> main() async {
   runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();

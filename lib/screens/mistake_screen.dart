@@ -34,20 +34,38 @@ class MistakeScreen extends ConsumerWidget {
         data: (questions) {
           if (questions.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.check_circle_outline,
-                    size: 60,
-                    color: Colors.green,
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "No mistakes pending!",
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.check_circle_outline,
+                      size: 64,
+                      color: Colors.green,
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      "No mistakes pending",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Wrong answers from your quizzes show up here for "
+                      "review. Swipe a card to mark it done.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        color: Colors.white54,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -55,8 +73,9 @@ class MistakeScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(16),
             itemCount: questions.length,
             itemBuilder: (ctx, index) {
+              final q = questions[index];
               return Dismissible(
-                key: Key(questions[index].id),
+                key: Key(q.id),
                 direction: DismissDirection.endToStart,
                 background: Container(
                   alignment: Alignment.centerRight,
@@ -64,10 +83,26 @@ class MistakeScreen extends ConsumerWidget {
                   padding: const EdgeInsets.only(right: 20),
                   child: const Icon(Icons.check, color: Colors.white),
                 ),
-                onDismissed: (_) {
-                  ref.read(databaseProvider).removeMistake(questions[index].id);
+                onDismissed: (_) async {
+                  await ref.read(databaseProvider).removeMistake(q.id);
+                  if (!ctx.mounted) return;
+                  ScaffoldMessenger.of(ctx)
+                    ..hideCurrentSnackBar()
+                    ..showSnackBar(
+                      SnackBar(
+                        content: const Text("Removed from notebook"),
+                        backgroundColor: const Color(0xFF1E293B),
+                        duration: const Duration(seconds: 3),
+                        action: SnackBarAction(
+                          label: "Undo",
+                          textColor: const Color(0xFF38BDF8),
+                          onPressed: () =>
+                              ref.read(databaseProvider).addMistake(q.id),
+                        ),
+                      ),
+                    );
                 },
-                child: QuestionCard(question: questions[index]),
+                child: QuestionCard(question: q),
               );
             },
           );

@@ -76,13 +76,44 @@ class _ReviewCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: const Color(0xFF1E293B),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: statusColor.withValues(alpha: 0.5)),
+        border: Border.all(color: statusColor.withValues(alpha: 0.4)),
       ),
-      child: Column(
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          // 5px colored stripe on the leading edge so users can scan correct/
+          // wrong/skipped at a glance.
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 5,
+            child: Container(color: statusColor),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
+            child: _cardBody(context, q, ans, isSkipped, isCorrect, timeSpent,
+                statusColor, statusText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _cardBody(
+    BuildContext context,
+    Question q,
+    SessionAnswer ans,
+    bool isSkipped,
+    bool isCorrect,
+    int timeSpent,
+    Color statusColor,
+    String statusText,
+  ) {
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -195,9 +226,7 @@ class _ReviewCard extends StatelessWidget {
             q.solution ?? "No explanation.",
             style: const TextStyle(color: Colors.white70, fontSize: 13),
           ),
-        ],
-      ),
-    );
+        ]);
   }
 
   Widget _row(String label, String value, Color valColor) {

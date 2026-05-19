@@ -46,51 +46,7 @@ class ResultScreen extends StatelessWidget {
 
               SizedBox(
                 height: 220,
-                child: Stack(
-                  children: [
-                    PieChart(
-                      PieChartData(
-                        sectionsSpace: 4,
-                        centerSpaceRadius: 60,
-                        sections: [
-                          _chartSection(
-                            Colors.green,
-                            correct.toDouble(),
-                            "Correct",
-                          ),
-                          _chartSection(Colors.red, wrong.toDouble(), "Wrong"),
-                          _chartSection(
-                            Colors.grey.withValues(alpha: 0.3),
-                            skipped.toDouble(),
-                            "Skip",
-                          ),
-                        ],
-                      ),
-                    ),
-                    Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            "${accuracy.toStringAsFixed(1)}%",
-                            style: GoogleFonts.inter(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Text(
-                            "Score",
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: Colors.white54,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                child: _buildScoreVisual(accuracy),
               ),
 
               const SizedBox(height: 40),
@@ -207,6 +163,74 @@ class ResultScreen extends StatelessWidget {
         fontWeight: FontWeight.bold,
         color: Colors.white,
       ),
+    );
+  }
+
+  /// Choose between pie chart (when all three counts are non-zero) and a
+  /// segmented bar (when one or more is zero — pie collapses to two visible
+  /// slices and looks broken). The center % readout is preserved in both.
+  Widget _buildScoreVisual(double accuracy) {
+    final nonZero = [correct, wrong, skipped].where((c) => c > 0).length;
+    final centerLabel = Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            "${accuracy.toStringAsFixed(1)}%",
+            style: GoogleFonts.inter(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            "Score",
+            style: GoogleFonts.inter(fontSize: 12, color: Colors.white54),
+          ),
+        ],
+      ),
+    );
+    if (nonZero >= 2) {
+      return Stack(
+        children: [
+          PieChart(
+            PieChartData(
+              sectionsSpace: 4,
+              centerSpaceRadius: 60,
+              sections: [
+                if (correct > 0)
+                  _chartSection(Colors.green, correct.toDouble(), "Correct"),
+                if (wrong > 0)
+                  _chartSection(Colors.red, wrong.toDouble(), "Wrong"),
+                if (skipped > 0)
+                  _chartSection(Colors.grey.withValues(alpha: 0.3),
+                      skipped.toDouble(), "Skip"),
+              ],
+            ),
+          ),
+          centerLabel,
+        ],
+      );
+    }
+    // Single-color fallback: every answer fell into one bucket. Render a
+    // bold ring with the score in the middle and no chart noise.
+    final color = correct > 0
+        ? Colors.green
+        : (wrong > 0 ? Colors.red : Colors.grey);
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Container(
+          height: 180,
+          width: 180,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: color, width: 6),
+            color: color.withValues(alpha: 0.08),
+          ),
+        ),
+        centerLabel,
+      ],
     );
   }
 

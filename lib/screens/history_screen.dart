@@ -31,10 +31,36 @@ class HistoryScreen extends ConsumerWidget {
         error: (e, _) => Center(child: Text("Error: $e")),
         data: (sessions) {
           if (sessions.isEmpty) {
-            return const Center(
-              child: Text(
-                "No history yet.",
-                style: TextStyle(color: Colors.white54),
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.history_rounded,
+                        size: 64, color: Colors.white24),
+                    const SizedBox(height: 20),
+                    Text(
+                      "No quizzes yet",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Once you finish a practice session, you'll see "
+                      "scores, durations, and a breakdown here.",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.inter(
+                        color: Colors.white54,
+                        fontSize: 13,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -59,7 +85,12 @@ class _HistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = DateFormat('MMM d, y • h:mm a').format(session.startTime);
+    // Locale-aware: yMMMd respects the device's date convention (US 11/20/26
+    // vs IN 20-Nov-2026 vs UK 20 Nov 2026), Hm gives 24h time in locales that
+    // use it.
+    final dateStr =
+        "${DateFormat.yMMMd().format(session.startTime)} • "
+        "${DateFormat.Hm().format(session.startTime)}";
     final score = (session.correctCount / session.totalQuestions) * 100;
     Color scoreColor = score >= 50 ? Colors.green : Colors.orange;
 
