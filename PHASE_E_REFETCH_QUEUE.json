@@ -1,0 +1,146 @@
+[
+  {
+    "id": "AIIMS_2010_Bio_126",
+    "filename": "AIIMS_2010_Bio_126.jpg",
+    "exam": null,
+    "year": 2010,
+    "subject": "Biology",
+    "question_latex_excerpt": "A diagram of the plasma membrane shows four labelled transport configurations across a lipid bilayer: $A$ — a transmembrane protein spanning the bilayer (a generic membrane-spanning channel/carrier); $B$ — a carrier moving two different sol"
+  },
+  {
+    "id": "AIIMS_2010_Phy_3",
+    "filename": "AIIMS_2010_Phy_3.jpg",
+    "exam": null,
+    "year": 2010,
+    "subject": "Physics",
+    "question_latex_excerpt": "In the digital circuit shown, inputs $A$ and $B$ are fed into a $\\mathrm{NOR}$ gate, whose output is then passed through a $\\mathrm{NOT}$ gate to give the final output $Y$. The circuit is equivalent to a single:"
+  },
+  {
+    "id": "AIIMS_2011_Bio_124",
+    "filename": "AIIMS_2011_Bio_124.jpg",
+    "exam": null,
+    "year": 2011,
+    "subject": "Biology",
+    "question_latex_excerpt": "A sigmoidal (S-shaped) growth curve is plotted with time on the x-axis and growth on the y-axis. The curve has three labelled regions: region $A$ is the initial slow / near-flat portion in which growth proceeds slowly; region $B$ is the ste"
+  },
+  {
+    "id": "AIIMS_2013_Bio_149",
+    "filename": "AIIMS_2013_Bio_149.jpg",
+    "exam": null,
+    "year": 2013,
+    "subject": "Biology",
+    "question_latex_excerpt": "Which of the following is true for the labelled parts in the figure below? (Sarcomere)"
+  },
+  {
+    "id": "AIIMS_2013_Phy_34",
+    "filename": "AIIMS_2013_Phy_34.jpg",
+    "exam": null,
+    "year": 2013,
+    "subject": "Physics",
+    "question_latex_excerpt": "In a logic-gate circuit, two inputs $A$ and $B$ are each passed through a $\\mathrm{NOT}$ gate, and the inverted outputs $\\bar{A}$ and $\\bar{B}$ are then fed as the two inputs of an $\\mathrm{AND}$ gate whose output is $Y$. The circuit is equ"
+  },
+  {
+    "id": "AIPMT_2008_Bio_150",
+    "filename": "AIPMT_2008_Bio_150.jpg",
+    "exam": null,
+    "year": 2008,
+    "subject": "Biology",
+    "question_latex_excerpt": "In a diagrammatic cross-section of a single loop of the human cochlea, four parts are labelled A, B, C, D. Part A lies in the upper chamber (scala vestibuli), part C in the lower chamber (scala tympani), and the middle chamber (scala media)"
+  },
+  {
+    "id": "AIPMT_2013_Bio_168",
+    "filename": "AIPMT_2013_Bio_168.jpg",
+    "exam": null,
+    "year": 2013,
+    "subject": "Biology",
+    "question_latex_excerpt": "The central dogma of molecular biology can be represented schematically as $\\mathrm{DNA} \\xrightarrow{A} \\mathrm{mRNA} \\xrightarrow{B} \\mathrm{Protein}$, and was proposed by scientist $C$. Choose the option that correctly fills the blanks $"
+  },
+  {
+    "id": "CBSE_2010_Pre_Bio_118",
+    "filename": "CBSE_2010_Pre_Bio_118.jpg",
+    "exam": null,
+    "year": 2010,
+    "subject": "Biology",
+    "question_latex_excerpt": "Two mitotic-cell-division figures are shown. Figure $A$ shows two well-separated sister-chromatid sets that have almost reached the opposite poles of the cell (the chromatids are V-shaped, with their centromeres leading and their arms trail"
+  },
+  {
+    "id": "CBSE_2010_Pre_Bio_179",
+    "filename": "CBSE_2010_Pre_Bio_179.jpg",
+    "exam": null,
+    "year": 2010,
+    "subject": "Biology",
+    "question_latex_excerpt": "A diagrammatic graph plots an organism's internal environment (y-axis) against an external abiotic factor such as ambient temperature (x-axis). Three response curves are shown: curve $a$ remains essentially horizontal across the full range "
+  },
+  {
+    "id": "CBSE_2010_Pre_Phy_37",
+    "filename": "CBSE_2010_Pre_Phy_37.jpg",
+    "exam": null,
+    "year": 2010,
+    "subject": "Physics",
+    "question_latex_excerpt": "In a series L-C-R circuit driven by a $220\\,\\mathrm{V}$ AC source, voltmeter $V_1$ across the inductor and voltmeter $V_2$ across the capacitor each read $300\\,\\mathrm{V}$. Voltmeter $V_3$ is connected across the resistor $R = 100\\,\\Omega$,"
+  },
+  {
+    "id": "CBSE_2010_Pre_Phy_50",
+    "filename": "CBSE_2010_Pre_Phy_50.jpg",
+    "exam": null,
+    "year": 2010,
+    "subject": "Physics",
+    "question_latex_excerpt": "In the digital circuit shown, inputs $A$ and $B$ are fed into an $\\mathrm{OR}$ gate, and the output of that $\\mathrm{OR}$ gate is fed together with input $C$ into an $\\mathrm{AND}$ gate whose output is $Y$ (so $Y = (A + B)\\cdot C$). For $Y "
+  },
+  {
+    "id": "NEET_2016_Ph1_31",
+    "filename": "NEET_2016_Ph1_31.jpg",
+    "exam": null,
+    "year": 2016,
+    "subject": "Physics",
+    "question_latex_excerpt": "In the circuit shown, an ideal junction diode is connected in series with a $1\\;\\text{k}\\Omega$ resistor between two nodes $A$ and $B$. Node $A$ is held at $+4$ V and node $B$ at $-6$ V. The diode is oriented so that its anode (p-side) is t"
+  },
+  {
+    "id": "NEET_2018_Phy_15",
+    "filename": "NEET_2018_Phy_15.jpg",
+    "exam": null,
+    "year": 2018,
+    "subject": "Physics",
+    "question_latex_excerpt": "In the circuit shown in the figure, an n-p-n transistor is biased so that the input voltage $V_{i} = 20$ V is applied through a base resistor $R_{B} = 500\\;\\text{k}\\Omega$, and the collector is connected through a collector resistor $R_{C} "
+  },
+  {
+    "id": "NEET_2019_Phy_39",
+    "filename": "NEET_2019_Phy_39.jpg",
+    "exam": null,
+    "year": 2019,
+    "subject": "Physics",
+    "question_latex_excerpt": "A digital logic circuit has two inputs $A$ and $B$ and one output $Y$. Direct testing of the circuit gives the following truth table: $(A,B) \\to Y$: $(0,0) \\to 1$, $(0,1) \\to 1$, $(1,0) \\to 1$, $(1,1) \\to 0$. The correct Boolean operation r"
+  },
+  {
+    "id": "NEET_2025_Phy_34",
+    "filename": "NEET_2025_Phy_34.jpg",
+    "exam": null,
+    "year": 2025,
+    "subject": "Physics",
+    "question_latex_excerpt": "A segment AB of a larger circuit contains, in series from A to B: an inductor of 1 H, a battery of EMF 5 V (with its positive terminal towards A), and a resistor of 2 $\\Omega$. The current flowing from A to B is $i = 2$ A and is increasing "
+  },
+  {
+    "id": "AIIMS_2008_Phy_6",
+    "filename": "AIIMS_2008_Phy_6.jpg",
+    "exam": null,
+    "year": 2008,
+    "subject": "Physics",
+    "question_latex_excerpt": "Three coplanar forces $P$, $Q$ and $R$ act at a point and are in equilibrium. In the configuration shown, the angle between $Q$ and $R$ (the angle opposite to $P$) is $150^\\circ$, and the angle between $P$ and $Q$ (opposite to $R$) is $\\the"
+  },
+  {
+    "id": "AIPMT_2005_Chem_88",
+    "filename": "AIPMT_2005_Chem_88.jpg",
+    "exam": null,
+    "year": 2005,
+    "subject": "Chemistry",
+    "question_latex_excerpt": "A central carbon atom is attached to four different groups: $\\mathrm{Br}$, $\\mathrm{Cl}$, $\\mathrm{CH_3}$ and $\\mathrm{H}$. In the structural representation, the H atom lies on a dashed bond pointing into the plane of the page (away from th"
+  },
+  {
+    "id": "AIPMT_2007_Mains_Phy_6",
+    "filename": "AIPMT_2007_Mains_Phy_6.jpg",
+    "exam": null,
+    "year": 2007,
+    "subject": "Physics",
+    "question_latex_excerpt": "Three logic gates are shown with their inputs as follows:\\\\\\\\Gate A: a NAND gate with inputs $1$ and $1$.\\\\\\\\Gate B: a NOR gate with inputs $0$ and $1$.\\\\\\\\Gate C: a NAND gate with inputs $0$ and $1$.\\\\\\\\Which of the three gates has an outp"
+  }
+]
