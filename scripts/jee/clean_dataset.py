@@ -45,6 +45,20 @@ def strip_tags(s: str | None) -> str:
     return out.strip()
 
 
+_MATH_BLOCK_RE = re.compile(r"\$\$.+?\$\$|\$.+?\$", re.DOTALL)
+_LATEX_LEAK_RE = re.compile(
+    r"\\[a-zA-Z]+|_\{[^{}]*\}|\^\{[^{}]*\}"
+)
+
+
+def _has_latex_leak(s: str | None) -> bool:
+    """True if `s` contains LaTeX-shaped tokens OUTSIDE `$...$` delimiters
+    (i.e., raw `\\frac`, `_{...}`, `^{...}` that would render as plain text)."""
+    if not s:
+        return False
+    return bool(_LATEX_LEAK_RE.search(_MATH_BLOCK_RE.sub("", s)))
+
+
 def is_fatal(q: dict) -> str | None:
     """Return a short reason if the record should be dropped, else None."""
     qt = q.get("question_type", "mcq")
@@ -59,6 +73,16 @@ def is_fatal(q: dict) -> str | None:
     if not sol:
         # Trust rule: don't ship a question without a worked solution.
         return "missing_solution"
+    # Render rule: drop any record whose displayed text contains raw LaTeX
+    # tokens outside `$...$` (e.g. `\frac`, `^{2}`, `_{0}`). These render as
+    # plain text in the app and make it look broken.
+    if _has_latex_leak(qtxt):
+        return "latex_leak_in_question"
+    if _has_latex_leak(sol):
+        return "latex_leak_in_solution"
+    for o in opts:
+        if _has_latex_leak(o):
+            return "latex_leak_in_options"
     if qt == "mcq":
         if len(opts) != 4:
             return f"options_count_{len(opts)}"

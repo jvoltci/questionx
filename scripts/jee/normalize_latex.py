@@ -44,26 +44,62 @@ _CMD_PATTERN = re.compile(
     r"(?:\s*\{[^{}]*\}){0,2}" # 0-2 {..} args
 )
 
+# Chemical-formula / sub-sup token. Matches sequences like `C_{2}H_{5}`,
+# `H_{2}O`, `(C_{2}H_{5})_{2}NH`, `x^{2}`, `Mg^{2+}`, `\mathrm{NH}_{2}`.
+# Requires at least one `_{...}` or `^{...}` group so that pure English words
+# never match. Allows optional alphabetic / parenthesised letters before, in
+# between, and after the brace groups.
+_SUBSUP_TOKEN = re.compile(
+    r"(?:[A-Za-z()])?"                                  # optional starter
+    r"[A-Za-z()0-9]*"                                   # body
+    r"(?:[_^]\{[^{}]*\}[A-Za-z()0-9+\-]*)+"             # one or more sub/sup groups + tail
+)
+
 
 def _wrap_text_region(s: str) -> str:
-    """Wrap each LaTeX command found in a non-math text region in $...$.
+    """Wrap each LaTeX-shaped token found in a non-math text region in $...$.
 
-    Adjacent commands get merged into a single $...$ block to avoid
-    visual gaps from the wrapper widget."""
-    if "\\" not in s:
+    Two token families:
+      1. `\\command{...}` — flutter_math_fork won't render unless wrapped.
+      2. `X_{n}` / `X^{n}` — subscript/superscript sequences (chemical
+         formulas, exponents). Same problem.
+
+    Adjacent wrapped tokens get merged into a single $...$ block to keep the
+    visual layout tight.
+    """
+    if "\\" not in s and "_{" not in s and "^{" not in s:
         return s
+    # Collect all match ranges (command + subsup) and merge overlaps.
+    matches: list[tuple[int, int]] = []
+    for m in _CMD_PATTERN.finditer(s):
+        matches.append((m.start(), m.end()))
+    for m in _SUBSUP_TOKEN.finditer(s):
+        # Reject pure-empty matches and ones that are JUST letters with no
+        # brace-group (the regex requires `[_^]\{`, but safety belt).
+        if m.end() > m.start() and ("_{" in m.group(0) or "^{" in m.group(0)):
+            matches.append((m.start(), m.end()))
+    if not matches:
+        return s
+    matches.sort()
+    # Merge overlapping / abutting ranges.
+    merged: list[tuple[int, int]] = []
+    for start, end in matches:
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(merged[-1][1], end))
+        else:
+            merged.append((start, end))
+    # Rebuild string with each range wrapped.
     pieces: list[str] = []
     cursor = 0
-    for m in _CMD_PATTERN.finditer(s):
-        if m.start() > cursor:
-            pieces.append(s[cursor:m.start()])
-        pieces.append("$" + m.group(0) + "$")
-        cursor = m.end()
+    for start, end in merged:
+        if start > cursor:
+            pieces.append(s[cursor:start])
+        pieces.append("$" + s[start:end] + "$")
+        cursor = end
     if cursor < len(s):
         pieces.append(s[cursor:])
     out = "".join(pieces)
-    # Merge adjacent `$...$$...$` blocks separated only by whitespace into
-    # one block. KaTeX renders the joined form better.
+    # Merge adjacent `$..$ $..$` blocks (separated only by whitespace).
     out = re.sub(r"\$(\s*)\$", r"\1", out)
     return out
 
@@ -89,6 +125,23 @@ def _drop_lone_dollar(s: str) -> str:
 
 
 _TRIPLE_DOLLAR = re.compile(r"\${3,}")
+# Match `_{...}` or `^{...}` groups where the braces contain `$` characters
+# (examside source bug: e.g. `10^{$$-$$12}`). The `$` markers inside the group
+# are spurious — strip them so the sub/sup parses as one math expression.
+_SUBSUP_WITH_DOLLAR = re.compile(r"([_^])\{([^{}]*\$[^{}]*)\}")
+
+
+def _strip_dollars_in_subsup(s: str) -> str:
+    def fix(m: re.Match) -> str:
+        cleaned = m.group(2).replace("$", "")
+        return f"{m.group(1)}{{{cleaned}}}"
+    prev = None
+    cur = s
+    # Run until fixed point (rarely more than 1 pass).
+    while prev != cur:
+        prev = cur
+        cur = _SUBSUP_WITH_DOLLAR.sub(fix, cur)
+    return cur
 
 
 def normalize(s: str | None) -> str:
@@ -97,6 +150,11 @@ def normalize(s: str | None) -> str:
     # examside occasionally fences display math with `$$$...$$$` (3+ dollars).
     # KaTeX expects `$$...$$` — collapse any run of 3+ `$` to exactly 2.
     s = _TRIPLE_DOLLAR.sub("$$", s)
+    # Pull spurious `$` chars out of `_{...}` / `^{...}` groups — these are
+    # source-data artifacts (e.g. `10^{$$-$$12}` from examside HTML conversion)
+    # that would otherwise split the sub/sup across math/text boundaries and
+    # leak raw `^{12}` into the rendered text.
+    s = _strip_dollars_in_subsup(s)
     # Fix orphan `$` first so it doesn't confuse the math-block split.
     s = _drop_lone_dollar(s)
     parts: list[str] = []
