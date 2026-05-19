@@ -156,6 +156,19 @@ class SyncService {
     return filename.toLowerCase().contains("neet") ? "NEET" : "JEE Main";
   }
 
+  /// Per-record exam-name mapping. JEE records carry `exam: "JEE_Main"` or
+  /// `"JEE_Advanced"`, so a single jee.json populates both display buckets.
+  /// Falls back to the file-level label for records lacking the field
+  /// (e.g. all NEET rows, which we keep grouped under "NEET").
+  static String _examNameForRecord(Map<String, dynamic> q, String fileLabel) {
+    final raw = q['exam'];
+    if (raw is String) {
+      if (raw == 'JEE_Advanced') return 'JEE Advanced';
+      if (raw == 'JEE_Main') return 'JEE Main';
+    }
+    return fileLabel;
+  }
+
   Future<void> _insertBatch(dynamic jsonData, String examSource) async {
     List<dynamic> list;
     if (jsonData is Map && jsonData.containsKey('questions')) {
@@ -172,7 +185,7 @@ class SyncService {
           db.questions,
           QuestionsCompanion.insert(
             id: q['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
-            examName: examSource,
+            examName: _examNameForRecord(q, examSource),
             year: q['year'] is int
                 ? q['year']
                 : int.tryParse(q['year'].toString()) ?? 2024,

@@ -7,6 +7,10 @@
 .buildlog/
 .history
 
+# Local intermediate artifacts (scraper outputs, dataset backups)
+scripts/jee/out/
+assets/*.backup.*
+
 
 
 # Flutter repo-specific

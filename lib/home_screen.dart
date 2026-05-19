@@ -154,27 +154,23 @@ class ExamSelectionScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 50),
-                  Builder(builder: (ctx) {
-                    return _ExamCard(
-                      title: "JEE Main",
-                      subtitle: "Engineering Entrance",
-                      icon: Icons.engineering,
-                      color1: const Color(0xFF3B82F6),
-                      color2: const Color(0xFF2563EB),
-                      comingSoon: true,
-                      onTap: () {
-                        AnalyticsService.logComingSoonTap("JEE Main");
-                        ScaffoldMessenger.of(ctx).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "JEE PYQs launching soon. NEET is fully available now.",
-                            ),
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                      },
-                    );
-                  }),
+                  _ExamCard(
+                    title: "JEE Main",
+                    subtitle: "Engineering Entrance",
+                    icon: Icons.engineering,
+                    color1: const Color(0xFF3B82F6),
+                    color2: const Color(0xFF2563EB),
+                    onTap: () => _selectExam(ref, "JEE Main", "Physics"),
+                  ),
+                  const SizedBox(height: 20),
+                  _ExamCard(
+                    title: "JEE Advanced",
+                    subtitle: "IIT Entrance",
+                    icon: Icons.school,
+                    color1: const Color(0xFF8B5CF6),
+                    color2: const Color(0xFF6D28D9),
+                    onTap: () => _selectExam(ref, "JEE Advanced", "Physics"),
+                  ),
                   const SizedBox(height: 20),
                   _ExamCard(
                     title: "NEET",
@@ -215,7 +211,6 @@ class _ExamCard extends StatelessWidget {
   final Color color1;
   final Color color2;
   final VoidCallback onTap;
-  final bool comingSoon;
 
   const _ExamCard({
     required this.title,
@@ -224,17 +219,13 @@ class _ExamCard extends StatelessWidget {
     required this.color1,
     required this.color2,
     required this.onTap,
-    this.comingSoon = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final opacity = comingSoon ? 0.55 : 1.0;
     return GestureDetector(
       onTap: onTap,
-      child: Opacity(
-        opacity: opacity,
-        child: Container(
+      child: Container(
           height: 100,
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -282,26 +273,6 @@ class _ExamCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (comingSoon) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              "SOON",
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        ],
                       ],
                     ),
                     Text(
@@ -321,7 +292,6 @@ class _ExamCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }
