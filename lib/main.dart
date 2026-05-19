@@ -84,7 +84,7 @@ class _PremiumSplashScreenState extends ConsumerState<PremiumSplashScreen>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
-  String _loadingText = "Initializing...";
+  late SyncService _sync;
 
   @override
   void initState() {
@@ -109,27 +109,26 @@ class _PremiumSplashScreenState extends ConsumerState<PremiumSplashScreen>
 
     _controller.forward();
 
+    _sync = SyncService(ref.read(databaseProvider));
     _initializeApp();
   }
 
   Future<void> _initializeApp() async {
-    final db = ref.read(databaseProvider);
-    final sync = SyncService(db);
     final startTime = DateTime.now();
 
     try {
-      setState(() => _loadingText = "Syncing Question Bank...");
-      await sync.initializeData();
+      await _sync.initializeData();
       await WeightageService().ensureLoaded();
     } catch (e) {
       debugPrint("Sync Error (Offline Mode): $e");
     }
 
+    // Hold the splash a moment after sync completes so the user can read the
+    // final "Ready" label, but only if the whole flow was very fast.
     final elapsedTime = DateTime.now().difference(startTime);
-    final remainingTime = const Duration(milliseconds: 2500) - elapsedTime;
-
-    if (remainingTime > Duration.zero) {
-      await Future.delayed(remainingTime);
+    final minSplashTime = const Duration(milliseconds: 1200);
+    if (elapsedTime < minSplashTime) {
+      await Future.delayed(minSplashTime - elapsedTime);
     }
 
     if (mounted) {
@@ -223,23 +222,49 @@ class _PremiumSplashScreenState extends ConsumerState<PremiumSplashScreen>
               const SizedBox(height: 60),
 
               SizedBox(
-                width: 150,
-                child: Column(
-                  children: [
-                    const LinearProgressIndicator(
-                      backgroundColor: Colors.white10,
-                      color: Color(0xFF38BDF8),
-                      minHeight: 2,
-                    ),
-                    const SizedBox(height: 15),
-                    Text(
-                      _loadingText,
-                      style: const TextStyle(
-                        color: Colors.white38,
-                        fontSize: 10,
+                width: 240,
+                child: ValueListenableBuilder<SyncProgress>(
+                  valueListenable: _sync.progress,
+                  builder: (context, p, _) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(3),
+                        child: LinearProgressIndicator(
+                          value: p.progress,
+                          backgroundColor: Colors.white10,
+                          color: const Color(0xFF38BDF8),
+                          minHeight: 6,
+                        ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              p.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(
+                                color: Colors.white54,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(
+                            "${(p.progress * 100).toInt()}%",
+                            style: GoogleFonts.inter(
+                              color: Colors.white38,
+                              fontSize: 11,
+                              fontFeatures: const [FontFeature.tabularFigures()],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

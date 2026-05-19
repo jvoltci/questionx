@@ -90,6 +90,77 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     return result ?? false;
   }
 
+  Future<void> _showReportSheet(Question q) async {
+    const reasons = <String>[
+      "Wrong answer key",
+      "Question text typo / unclear",
+      "Option text typo",
+      "Solution wrong / incomplete",
+      "Diagram missing or unclear",
+      "Other",
+    ];
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF1E293B),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                child: Text(
+                  "Report an issue",
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: Text(
+                  "We'll log the question ID and your reason so we can fix it "
+                  "in a future update. Anonymous.",
+                  style: GoogleFonts.inter(
+                    color: Colors.white54,
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+              for (final r in reasons)
+                ListTile(
+                  title: Text(r, style: const TextStyle(color: Colors.white)),
+                  onTap: () => Navigator.pop(ctx, r),
+                ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (picked == null) return;
+    await AnalyticsService.logQuestionReport(
+      questionId: q.id,
+      reason: picked,
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Thanks — '$picked' logged for ${q.id}."),
+        backgroundColor: const Color(0xFF1E293B),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   void _submitQuiz() async {
     _timer.cancel();
     setState(() => _isSubmitting = true);
@@ -191,6 +262,12 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
           ),
           actions: [
+            IconButton(
+              tooltip: "Report an issue with this question",
+              icon: const Icon(Icons.flag_outlined,
+                  color: Colors.white60, size: 20),
+              onPressed: () => _showReportSheet(q),
+            ),
             Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(

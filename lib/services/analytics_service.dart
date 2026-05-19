@@ -50,6 +50,17 @@ class AnalyticsService {
         'duration_s': durationSeconds,
       });
 
+  static Future<void> logQuestionReport({
+    required String questionId,
+    required String reason,
+    String? note,
+  }) =>
+      _log('question_reported', {
+        'qid': questionId,
+        'reason': reason,
+        if (note != null && note.isNotEmpty) 'note': note,
+      });
+
   static void recordError(Object error, StackTrace stack, {String? reason}) {
     if (kDebugMode || !_firebaseReady) return;
     FirebaseCrashlytics.instance

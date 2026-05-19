@@ -10,9 +10,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../database.dart';
 import 'diagram_storage.dart';
 
+class SyncProgress {
+  /// 0.0 → 1.0
+  final double progress;
+  /// Human-readable label shown under the bar.
+  final String label;
+  /// True when this is the final tick.
+  final bool done;
+  const SyncProgress(this.progress, this.label, {this.done = false});
+}
+
 class SyncService {
   final AppDatabase db;
   final Dio _dio = Dio();
+
+  /// Listenable progress stream consumed by the splash screen.
+  final ValueNotifier<SyncProgress> progress =
+      ValueNotifier(const SyncProgress(0, "Initializing..."));
 
   static const String _repoOwner = "jvoltci";
   static const String _repoName = "questionx";
@@ -22,18 +36,16 @@ class SyncService {
 
   SyncService(this.db);
 
+  void _emit(double p, String label, {bool done = false}) {
+    progress.value = SyncProgress(p.clamp(0.0, 1.0), label, done: done);
+  }
+
   Future<void> initializeData() async {
+    _emit(0.02, "Initializing...");
     final prefs = await SharedPreferences.getInstance();
     final currentVersion = prefs.getString(_versionKey);
 
-    // Ensure the diagrams directory exists before any UI renders. The actual
-    // JPEGs arrive via _downloadAndSync() below (from the GitHub release's
-    // data.zip), not from a bundled asset.
     await DiagramStorage.ensureReady();
-
-    // Self-heal: if a prior install recorded a version tag but the diagrams
-    // directory is empty (e.g. earlier APK had no extraction code, or sync
-    // crashed mid-write), force a re-sync regardless of the throttle.
     final diagramCount = await DiagramStorage.countFiles();
     final diagramsMissing = currentVersion != null && diagramCount == 0;
     if (diagramsMissing) {
@@ -43,7 +55,7 @@ class SyncService {
 
     try {
       if (_shouldCheckOnline(prefs) || diagramsMissing) {
-        debugPrint("🔍 Checking for updates...");
+        _emit(0.05, "Checking for updates...");
         final latestTag = await _checkForUpdates(
           diagramsMissing ? null : currentVersion,
         );
@@ -52,10 +64,9 @@ class SyncService {
         if (latestTag != null) {
           await _downloadAndSync(latestTag);
           await prefs.setString(_versionKey, latestTag);
+          _emit(1.0, "Ready", done: true);
           return;
         }
-      } else {
-        debugPrint("⏭️ Skipping online check (within throttle window).");
       }
     } catch (e) {
       debugPrint("⚠️ Online check failed ($e). Proceeding with local checks.");
@@ -63,11 +74,12 @@ class SyncService {
 
     final questionCount = await db.countQuestions();
     if (questionCount == 0) {
-      debugPrint("📦 Database empty. Loading from Bundled Assets...");
+      _emit(0.4, "Loading question bank...");
       await _loadFromAssets();
     } else {
       debugPrint("✅ Database is ready (Version: $currentVersion).");
     }
+    _emit(1.0, "Ready", done: true);
   }
 
   bool _shouldCheckOnline(SharedPreferences prefs) {
@@ -99,44 +111,63 @@ class SyncService {
     final downloadUrl =
         "https://github.com/$_repoOwner/$_repoName/releases/download/$tag/data.zip";
 
-    debugPrint("⬇️ Downloading $downloadUrl...");
-    await _dio.download(downloadUrl, zipPath);
+    // Phase 1: download (0.05 → 0.60).
+    _emit(0.05, "Downloading content...");
+    await _dio.download(
+      downloadUrl,
+      zipPath,
+      onReceiveProgress: (received, total) {
+        if (total <= 0) return;
+        final frac = received / total;
+        final mb = (received / 1024 / 1024).toStringAsFixed(1);
+        final totalMb = (total / 1024 / 1024).toStringAsFixed(0);
+        _emit(0.05 + 0.55 * frac, "Downloading content... $mb / $totalMb MB");
+      },
+    );
 
-    debugPrint("📦 Unzipping...");
     final zipFile = File(zipPath);
 
-    // 1. Extract any image files into the diagrams directory. The data.zip
-    //    layout is: `neet.json`, `jee.json`, plus `diagrams/<qid>.jpg` for
-    //    every figure-essential question.
+    // Phase 2: extract diagrams (0.60 → 0.85).
     try {
+      _emit(0.60, "Unpacking diagrams...");
       final imgCount = await DiagramStorage.unpackZipFrom(zipFile);
       if (imgCount > 0) {
         debugPrint("🖼️ Extracted $imgCount diagram(s).");
+        _emit(0.85, "Unpacked $imgCount diagrams");
+      } else {
+        _emit(0.85, "No new diagrams");
       }
     } catch (e) {
       debugPrint("⚠️ Diagram extraction failed: $e");
     }
 
-    // 2. Process the JSON datasets into the database.
+    // Phase 3: process JSON datasets into the DB (0.85 → 0.99).
+    _emit(0.85, "Indexing questions...");
     final inputStream = InputFileStream(zipPath);
     final archive = ZipDecoder().decodeBuffer(inputStream);
-    for (var file in archive.files) {
-      if (!file.isFile) continue;
-      final filename = file.name;
-      if (filename.startsWith('.') ||
-          filename.contains("__MACOSX") ||
-          !filename.endsWith(".json")) {
-        continue;
-      }
-
-      debugPrint("📄 Processing $filename...");
+    final jsonFiles = archive.files
+        .where((f) => f.isFile && f.name.endsWith(".json"))
+        .where((f) => !f.name.startsWith('.') && !f.name.contains("__MACOSX"))
+        .toList();
+    for (var i = 0; i < jsonFiles.length; i++) {
+      final file = jsonFiles[i];
       final fileContent = utf8.decode(file.content as List<int>);
       final jsonData = await compute(jsonDecode, fileContent);
-      await _insertBatch(jsonData, _examNameForFile(filename));
+      final perFile = 0.14 / jsonFiles.length;
+      _emit(0.85 + perFile * i, "Indexing ${_friendlyName(file.name)}...");
+      await _insertBatch(jsonData, _examNameForFile(file.name));
+      _emit(0.85 + perFile * (i + 1), "Indexed ${_friendlyName(file.name)}");
     }
 
     await zipFile.delete();
     debugPrint("🎉 Sync Complete!");
+  }
+
+  static String _friendlyName(String filename) {
+    final lower = filename.toLowerCase();
+    if (lower.contains("neet")) return "NEET questions";
+    if (lower.contains("jee")) return "JEE questions";
+    return filename;
   }
 
   Future<void> _loadFromAssets() async {

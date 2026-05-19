@@ -84,7 +84,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  "v1.0.0 (Premium Build)",
+                  "v1.3.0",
                   style: GoogleFonts.robotoMono(
                     fontSize: 12,
                     color: Colors.cyanAccent,
@@ -123,6 +123,44 @@ class AboutScreen extends StatelessWidget {
                   Icons.book,
                   "Mistake Notebook",
                   "Auto-track weak areas for revision.",
+                ),
+
+                const SizedBox(height: 30),
+                const Divider(color: Colors.white10),
+                const SizedBox(height: 20),
+
+                _sectionTitle("Data Sources"),
+                const SizedBox(height: 15),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white10),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _bullet(
+                        "Questions, options, and answer keys are sourced "
+                        "from examside.com — a popular community-curated JEE "
+                        "/ NEET archive built on top of the official NTA, "
+                        "IIT, and CBSE question papers.",
+                      ),
+                      _bullet(
+                        "This release covers JEE Main & Advanced 2019-2026 "
+                        "(NTA era) and NEET 2005-2026 (CBSE + NTA era). "
+                        "Pre-2019 JEE legacy papers (AIEEE, IIT-JEE) and "
+                        "AIIMS questions are held back pending verification.",
+                      ),
+                      _bullet(
+                        "Spotted a wrong answer or typo? Open any question "
+                        "in a quiz and tap the flag icon in the top bar to "
+                        "report it. We track every report and fix in the "
+                        "next data update.",
+                      ),
+                    ],
+                  ),
                 ),
 
                 const SizedBox(height: 30),
@@ -202,6 +240,31 @@ class AboutScreen extends StatelessWidget {
           fontWeight: FontWeight.bold,
           color: Colors.white,
         ),
+      ),
+    );
+  }
+
+  Widget _bullet(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 6, right: 10),
+            child: Icon(Icons.circle, size: 6, color: Color(0xFF38BDF8)),
+          ),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.inter(
+                color: Colors.white70,
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
