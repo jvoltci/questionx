@@ -1,0 +1,45 @@
+{
+  "candidate": "D_generative_LM_ceiling",
+  "model": "HuggingFaceTB/SmolLM2-135M",
+  "n_params_millions": 134.515008,
+  "fp16_size_mb": 256.5670166015625,
+  "device": "mps",
+  "dtype": "float16",
+  "tier": "SmolLM2_135M_full",
+  "top1": 0.244,
+  "n": 500,
+  "by_subject": {
+    "Biology": {
+      "correct": 64,
+      "total": 250,
+      "acc": 0.256
+    },
+    "Chemistry": {
+      "correct": 27,
+      "total": 125,
+      "acc": 0.216
+    },
+    "Physics": {
+      "correct": 31,
+      "total": 125,
+      "acc": 0.248
+    }
+  },
+  "by_bucket": {
+    "ntaA_2015_2019": {
+      "correct": 49,
+      "total": 168,
+      "acc": 0.2916666666666667
+    },
+    "ntaB_2020_2022": {
+      "correct": 38,
+      "total": 167,
+      "acc": 0.2275449101796407
+    },
+    "ntaC_2023_2025": {
+      "correct": 35,
+      "total": 165,
+      "acc": 0.21212121212121213
+    }
+  }
+}

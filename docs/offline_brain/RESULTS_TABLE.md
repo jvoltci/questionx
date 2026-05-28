@@ -17,6 +17,8 @@
 | B | Static embed (model2vec) | potion-base-8M, qopt | 8.5 MB | **26.0%** | 32.8% | 24.0% | 14.4% |
 | B | Static embed (model2vec) | potion-base-8M, opt | 8.5 MB | **26.4%** | 30.0% | 29.6% | 16.0% |
 | C | **MiniLM-L6 (ceiling)** | **uncapped, qopt — no size constraint** | **~80 MB** | **29.6%** | 34.0% | 28.8% | 21.6% |
+| D | **Generative LM (SmolLM2-135M)** | zero-shot logprob, fp16 | **256 MB (128× over)** | **24.4%** | 25.6% | 21.6% | 24.8% |
+| D | **Generative LM (SmolLM2-360M)** | zero-shot logprob, fp16 | **700 MB (350× over)** | **25.6%** | 28.0% | 23.2% | 23.2% |
 
 ## What the numbers say
 
@@ -63,3 +65,23 @@ A future "offline AI for NEET" would need either:
 - A genuinely small generative LM (Phi-3-mini, int4, ~2 GB) — out of scope of this hypothesis, but worth a separate evaluation later.
 - A bespoke distilled model trained on NEET Q→answer pairs — substantial data + training cost, multi-month not multi-day.
 - Cloud inference with offline cache — defeats "offline brain" premise.
+
+## Day-4 EXTEND: generative tiny LM ceiling
+
+User overrode the day-3 KILL with: "run a generative tiny LM. If that still doesn't lift, then KILL."
+
+Ran SmolLM2-135M and SmolLM2-360M in zero-shot logprob-pick mode (the standard MCQ eval for autoregressive LMs):
+
+| Model | Size (fp16) | Top-1 |
+|---|---|---|
+| SmolLM2-135M | 256 MB (128× the 2 MB budget) | **24.4%** |
+| SmolLM2-360M | 700 MB (350× the 2 MB budget) | **25.6%** |
+
+**Both are at-or-below random (25%).** SmolLM2-135M is slightly *below* chance. SmolLM2-360M (2.6× larger) lifts accuracy by 1.2 points — a trajectory that says even multi-GB models won't reach 85% on this task without domain-specific training.
+
+This closes the generative direction too:
+- 135M and 360M tiny LMs can do general English fluency but lack NEET-specific knowledge.
+- Their weights don't contain the dense factual recall NCERT does, AND they lack the reasoning depth a 7B+ model has.
+- Scaling tiny LMs into the "small but capable" range (1-2 B) puts us at multi-GB sizes, the opposite of "offline brain."
+
+**Final decision: KILL.** Both retrieval and generative architectures fail at every size tried. The hypothesis premise (2 MB blob → 85% NEET accuracy) was structurally wrong.
