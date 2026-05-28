@@ -1,0 +1,4 @@
+{
+  "_comment": "Acknowledge intentional content changes so qx-gate stops blocking them. Key = question id, value = the reason (for the audit trail). Copy this file to qx_gate_overrides.json and add an entry when a FAIL is a deliberate, reviewed change. Per-id only — acknowledging one question never weakens the gate for any other.",
+  "AIPMT_2009_Phy_22": "example: answer corrected C->D per official AIPMT 2009 key, verified against NTA source"
+}

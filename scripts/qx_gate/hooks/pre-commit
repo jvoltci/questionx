@@ -1,0 +1,29 @@
+#!/bin/sh
+# qx-gate pre-commit hook.
+# Blocks a commit that silently regresses verified content (flipped answer key /
+# dropped diagram) in assets/neet.json. Install with: scripts/qx_gate/install-hook.sh
+#
+# Compares the working tree against HEAD. Benign format migrations and intentional
+# trims pass; acknowledge a deliberate change by adding its id to
+# scripts/qx_gate/qx_gate_overrides.json.
+
+root="$(git rev-parse --show-toplevel)" || exit 0
+gate_dir="$root/scripts/qx_gate"
+[ -d "$gate_dir" ] || exit 0
+
+cd "$gate_dir" || exit 0
+python3 -m qx_gate check \
+  --baseline HEAD \
+  --repo "$root" \
+  --path assets/neet.json \
+  --overrides "$gate_dir/qx_gate_overrides.json"
+status=$?
+
+if [ "$status" -ne 0 ]; then
+  echo ""
+  echo "qx-gate blocked this commit: a verified answer or diagram regressed."
+  echo "If the change is intentional, add the question id(s) to"
+  echo "  scripts/qx_gate/qx_gate_overrides.json   (with a reason), then re-commit."
+  echo "To bypass once (not recommended): git commit --no-verify"
+fi
+exit "$status"

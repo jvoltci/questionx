@@ -1,0 +1,29 @@
+name: qx-gate
+
+# Blocks a PR if a content commit silently regressed the verified-content moat:
+# a human-verified answer key flipped, or a question's diagram was dropped.
+# Benign format migrations and intentional trims do NOT trigger it.
+
+on:
+  pull_request:
+    paths:
+      - "assets/neet.json"
+
+jobs:
+  content-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # need base ref history for the diff
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: qx-gate check (current PR vs base branch)
+        working-directory: scripts/qx_gate
+        run: |
+          python3 -m qx_gate check \
+            --baseline "origin/${{ github.base_ref }}" \
+            --repo ../.. \
+            --path assets/neet.json \
+            --overrides qx_gate_overrides.json
