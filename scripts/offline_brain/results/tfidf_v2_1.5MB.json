@@ -1,0 +1,45 @@
+{
+  "candidate": "A_tfidf_per_option",
+  "tier": "1.5MB",
+  "vocab_cap": 9000,
+  "n_chunks": 1100,
+  "k_retrieve": 3,
+  "size_estimate_bytes": 858867,
+  "top1": 0.288,
+  "n": 500,
+  "by_subject": {
+    "Biology": {
+      "correct": 76,
+      "total": 250,
+      "acc": 0.304
+    },
+    "Chemistry": {
+      "correct": 38,
+      "total": 125,
+      "acc": 0.304
+    },
+    "Physics": {
+      "correct": 30,
+      "total": 125,
+      "acc": 0.24
+    }
+  },
+  "by_bucket": {
+    "ntaA_2015_2019": {
+      "correct": 37,
+      "total": 168,
+      "acc": 0.22023809523809523
+    },
+    "ntaB_2020_2022": {
+      "correct": 50,
+      "total": 167,
+      "acc": 0.2994011976047904
+    },
+    "ntaC_2023_2025": {
+      "correct": 57,
+      "total": 165,
+      "acc": 0.34545454545454546
+    }
+  },
+  "per_q_path": "results/tfidf_v2_1.5MB__per_q.json"
+}

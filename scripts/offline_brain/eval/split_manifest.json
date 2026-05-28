@@ -1,0 +1,51 @@
+{
+  "seed": 1729,
+  "source_file": "assets/neet.json",
+  "source_question_count": 3856,
+  "eligible_count": 1886,
+  "holdout_count": 500,
+  "corpus_side_count": 3356,
+  "holdout_by_subject": {
+    "Biology": 250,
+    "Chemistry": 125,
+    "Physics": 125
+  },
+  "holdout_by_year": {
+    "2015": 30,
+    "2016": 32,
+    "2017": 41,
+    "2018": 30,
+    "2019": 35,
+    "2020": 2,
+    "2021": 83,
+    "2022": 82,
+    "2023": 48,
+    "2024": 52,
+    "2025": 65
+  },
+  "holdout_by_bucket": {
+    "ntaA_2015_2019": 168,
+    "ntaB_2020_2022": 167,
+    "ntaC_2023_2025": 165
+  },
+  "corpus_side_by_subject": {
+    "Physics": 842,
+    "Chemistry": 817,
+    "Biology": 1677,
+    "General Knowledge": 20
+  },
+  "constraints": {
+    "exam": "NEET",
+    "year_range": "2015-2025 inclusive",
+    "subjects": [
+      "Physics",
+      "Chemistry",
+      "Biology"
+    ],
+    "required_keys": [
+      "answer_key in ABCD",
+      "len(options)==4",
+      "question_latex truthy"
+    ]
+  }
+}

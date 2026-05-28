@@ -1,0 +1,8 @@
+.venv/
+ncert/pdfs/
+ncert/chunks.json
+ncert/download.log
+ncert/manifest.json
+results/*__per_q.json
+__pycache__/
+*.pyc

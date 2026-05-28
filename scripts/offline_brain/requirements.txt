@@ -1,0 +1,7 @@
+numpy>=1.26
+scikit-learn>=1.4
+tqdm>=4.66
+zstandard>=0.22
+pypdf>=4.0
+sentence-transformers>=2.7
+model2vec>=0.2
