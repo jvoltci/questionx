@@ -1,0 +1,47 @@
+{
+  "candidate": "B_static_embed",
+  "model": "minishlab/potion-base-2M",
+  "tier": "2.3MB",
+  "dim": 64,
+  "n_chunks": 4133,
+  "opt_mode": "qopt",
+  "k_retrieve": 3,
+  "size_bytes_int8": 2400223,
+  "top1": 0.256,
+  "n": 500,
+  "by_subject": {
+    "Biology": {
+      "correct": 70,
+      "total": 250,
+      "acc": 0.28
+    },
+    "Chemistry": {
+      "correct": 37,
+      "total": 125,
+      "acc": 0.296
+    },
+    "Physics": {
+      "correct": 21,
+      "total": 125,
+      "acc": 0.168
+    }
+  },
+  "by_bucket": {
+    "ntaA_2015_2019": {
+      "correct": 42,
+      "total": 168,
+      "acc": 0.25
+    },
+    "ntaB_2020_2022": {
+      "correct": 42,
+      "total": 167,
+      "acc": 0.25149700598802394
+    },
+    "ntaC_2023_2025": {
+      "correct": 44,
+      "total": 165,
+      "acc": 0.26666666666666666
+    }
+  },
+  "per_q_path": "static_potion-base-2M_2.3MB_qopt__per_q.json"
+}

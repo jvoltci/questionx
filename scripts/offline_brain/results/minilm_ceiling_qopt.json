@@ -1,0 +1,44 @@
+{
+  "candidate": "C_MiniLM_ceiling",
+  "model": "sentence-transformers/all-MiniLM-L6-v2",
+  "tier": "ceiling",
+  "n_chunks": 4133,
+  "opt_mode": "qopt",
+  "k_retrieve": 3,
+  "top1": 0.296,
+  "n": 500,
+  "by_subject": {
+    "Biology": {
+      "correct": 85,
+      "total": 250,
+      "acc": 0.34
+    },
+    "Chemistry": {
+      "correct": 36,
+      "total": 125,
+      "acc": 0.288
+    },
+    "Physics": {
+      "correct": 27,
+      "total": 125,
+      "acc": 0.216
+    }
+  },
+  "by_bucket": {
+    "ntaA_2015_2019": {
+      "correct": 52,
+      "total": 168,
+      "acc": 0.30952380952380953
+    },
+    "ntaB_2020_2022": {
+      "correct": 49,
+      "total": 167,
+      "acc": 0.2934131736526946
+    },
+    "ntaC_2023_2025": {
+      "correct": 47,
+      "total": 165,
+      "acc": 0.28484848484848485
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "candidate": "substring_match_baseline",
+  "top1": 0.294,
+  "n": 500,
+  "by_subject": {
+    "Biology": {
+      "correct": 88,
+      "total": 250,
+      "acc": 0.352
+    },
+    "Chemistry": {
+      "correct": 34,
+      "total": 125,
+      "acc": 0.272
+    },
+    "Physics": {
+      "correct": 25,
+      "total": 125,
+      "acc": 0.2
+    }
+  },
+  "by_bucket": {
+    "ntaA_2015_2019": {
+      "correct": 47,
+      "total": 168,
+      "acc": 0.27976190476190477
+    },
+    "ntaB_2020_2022": {
+      "correct": 52,
+      "total": 167,
+      "acc": 0.31137724550898205
+    },
+    "ntaC_2023_2025": {
+      "correct": 48,
+      "total": 165,
+      "acc": 0.2909090909090909
+    }
+  }
+}
