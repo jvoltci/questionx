@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,7 @@ import '../database.dart';
 import '../widgets/tex_view.dart';
 import '../widgets/question_diagram.dart';
 import '../services/diagram_storage.dart';
+import '../utils/answer_grading.dart';
 
 final sessionDetailsProvider =
     FutureProvider.family<List<QuestionWithAnswer>, int>((
@@ -211,7 +213,7 @@ class _ReviewCard extends StatelessWidget {
                       : (isSkipped ? Colors.grey : Colors.red),
                 ),
                 const SizedBox(height: 8),
-                _row("Correct Answer:", q.answerKey ?? "-", Colors.green),
+                _row("Correct Answer:", _correctAnswerText(q), Colors.green),
               ],
             ),
           ),
@@ -227,6 +229,16 @@ class _ReviewCard extends StatelessWidget {
             style: const TextStyle(color: Colors.white70, fontSize: 13),
           ),
         ]);
+  }
+
+  String _correctAnswerText(Question q) {
+    List<String> opts = const [];
+    try {
+      opts = List<String>.from(jsonDecode(q.optionsJson));
+    } catch (_) {}
+    final type = AnswerGrading.typeOf(options: opts, answerKey: q.answerKey);
+    final t = AnswerGrading.correctAnswerText(type: type, answerKey: q.answerKey);
+    return t.isEmpty ? "-" : t;
   }
 
   Widget _row(String label, String value, Color valColor) {

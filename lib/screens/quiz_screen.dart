@@ -12,6 +12,7 @@ import '../services/analytics_service.dart';
 import '../widgets/tex_view.dart';
 import '../widgets/question_diagram.dart';
 import '../services/diagram_storage.dart';
+import '../utils/answer_grading.dart';
 import 'result_screen.dart';
 
 class QuizScreen extends ConsumerStatefulWidget {
@@ -202,12 +203,22 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
       if (userAnswer == null) {
         skipped++;
-      } else if (userAnswer == q.answerKey) {
-        correct++;
-        isCorrect = true;
       } else {
-        wrong++;
-        await db.addMistake(q.id);
+        final type = AnswerGrading.typeOf(
+          options: _optionsOf(q),
+          answerKey: q.answerKey,
+        );
+        if (AnswerGrading.isCorrect(
+          type: type,
+          userAnswer: userAnswer,
+          answerKey: q.answerKey,
+        )) {
+          correct++;
+          isCorrect = true;
+        } else {
+          wrong++;
+          await db.addMistake(q.id);
+        }
       }
 
       answerEntries.add(
@@ -260,10 +271,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   Widget build(BuildContext context) {
     final q = widget.questions[_currentIndex];
 
-    List<String> options = [];
-    try {
-      options = List<String>.from(jsonDecode(q.optionsJson));
-    } catch (_) {}
+    final options = _optionsOf(q);
+    final qType = AnswerGrading.typeOf(options: options, answerKey: q.answerKey);
 
     return PopScope(
       canPop: false,
@@ -391,66 +400,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                         ),
                       const SizedBox(height: 20),
 
-                      ...List.generate(options.length, (index) {
-                        final optionChar = String.fromCharCode(65 + index);
-                        final isSelected =
-                            _userAnswers[_currentIndex] == optionChar;
-                        final optionText = options[index];
-
-                        return GestureDetector(
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            setState(
-                              () => _userAnswers[_currentIndex] = optionChar,
-                            );
-                          },
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 180),
-                            curve: Curves.easeOut,
-                            margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? Colors.cyan.withValues(alpha: 0.2)
-                                  : Colors.white.withValues(alpha: 0.05),
-                              border: Border.all(
-                                color: isSelected
-                                    ? Colors.cyan
-                                    : Colors.white10,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                CircleAvatar(
-                                  radius: 12,
-                                  backgroundColor: isSelected
-                                      ? Colors.cyan
-                                      : Colors.white10,
-                                  child: Text(
-                                    optionChar,
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-
-                                Expanded(
-                                  child: TexText(
-                                    optionText,
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
+                      _buildAnswerArea(qType, options),
                     ],
                   ),
                 ),
@@ -506,6 +456,179 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  List<String> _optionsOf(Question q) {
+    try {
+      return List<String>.from(jsonDecode(q.optionsJson));
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Set<String> _selectedLetters() => (_userAnswers[_currentIndex] ?? '')
+      .split(',')
+      .where((s) => s.isNotEmpty)
+      .toSet();
+
+  void _toggleLetter(String c) {
+    final s = _selectedLetters();
+    if (!s.remove(c)) s.add(c);
+    final sorted = s.toList()..sort();
+    setState(() {
+      if (sorted.isEmpty) {
+        _userAnswers.remove(_currentIndex);
+      } else {
+        _userAnswers[_currentIndex] = sorted.join(',');
+      }
+    });
+  }
+
+  Widget _buildAnswerArea(QType type, List<String> options) {
+    if (type == QType.numeric || type == QType.bonus) {
+      return _buildNumericField(type);
+    }
+    final multi = type == QType.mcqMulti;
+    final selected = multi
+        ? _selectedLetters()
+        : {if (_userAnswers[_currentIndex] != null) _userAnswers[_currentIndex]!};
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (multi)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Row(
+              children: [
+                const Icon(Icons.checklist_rounded,
+                    size: 16, color: Colors.cyanAccent),
+                const SizedBox(width: 6),
+                Text(
+                  "Select all that apply",
+                  style: GoogleFonts.inter(
+                    color: Colors.cyanAccent,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ...List.generate(options.length, (index) {
+          final optionChar = String.fromCharCode(65 + index);
+          final isSelected = selected.contains(optionChar);
+          return GestureDetector(
+            onTap: () {
+              HapticFeedback.selectionClick();
+              if (multi) {
+                _toggleLetter(optionChar);
+              } else {
+                setState(() => _userAnswers[_currentIndex] = optionChar);
+              }
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? Colors.cyan.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.05),
+                border: Border.all(
+                  color: isSelected ? Colors.cyan : Colors.white10,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor: isSelected ? Colors.cyan : Colors.white10,
+                    child: (multi && isSelected)
+                        ? const Icon(Icons.check, size: 14, color: Colors.white)
+                        : Text(
+                            optionChar,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TexText(
+                      options[index],
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildNumericField(QType type) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.keyboard_rounded,
+                size: 16, color: Colors.cyanAccent),
+            const SizedBox(width: 6),
+            Text(
+              type == QType.bonus
+                  ? "Enter your answer"
+                  : "Enter your numeric answer",
+              style: GoogleFonts.inter(
+                color: Colors.cyanAccent,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        TextFormField(
+          key: ValueKey('num_$_currentIndex'),
+          initialValue: _userAnswers[_currentIndex],
+          keyboardType:
+              const TextInputType.numberWithOptions(decimal: true, signed: true),
+          style: GoogleFonts.robotoMono(color: Colors.white, fontSize: 18),
+          decoration: InputDecoration(
+            hintText: 'e.g. 42 or 3.14',
+            hintStyle: const TextStyle(color: Colors.white30),
+            filled: true,
+            fillColor: Colors.white.withValues(alpha: 0.05),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.white10),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: Colors.cyan),
+            ),
+          ),
+          onChanged: (v) {
+            final t = v.trim();
+            if (t.isEmpty) {
+              _userAnswers.remove(_currentIndex);
+            } else {
+              _userAnswers[_currentIndex] = t;
+            }
+          },
+        ),
+      ],
     );
   }
 

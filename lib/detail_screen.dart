@@ -10,6 +10,7 @@ import 'widgets/tex_view.dart';
 import 'widgets/question_diagram.dart';
 import 'services/diagram_storage.dart';
 import 'utils/colors.dart';
+import 'utils/answer_grading.dart';
 import 'services/weightage_service.dart';
 
 class DetailScreen extends ConsumerStatefulWidget {
@@ -181,6 +182,10 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     try {
       options = jsonDecode(widget.question.optionsJson);
     } catch (_) {}
+    final qType = AnswerGrading.typeOf(
+      options: options.map((e) => e.toString()).toList(),
+      answerKey: widget.question.answerKey,
+    );
     final subjectColor = AppColors.getForSubject(widget.question.subject);
 
     final difficultyColor = _getDifficultyColor(widget.question.difficulty);
@@ -361,7 +366,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
             AnimatedSwitcher(
               duration: const Duration(milliseconds: 300),
               child: _isRevealed
-                  ? _buildSolution(subjectColor)
+                  ? _buildSolution(subjectColor, qType)
                   : _buildRevealButton(subjectColor),
             ),
             const SizedBox(height: 40),
@@ -409,7 +414,13 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
 
   Widget _buildOption(int index, String text, Color activeColor) {
     String label = String.fromCharCode(65 + index);
-    bool isCorrect = label == widget.question.answerKey;
+    // Multi-correct keys are like "A,C" — highlight every correct letter.
+    final correctSet = (widget.question.answerKey ?? '')
+        .toUpperCase()
+        .split(RegExp(r'[,\s]+'))
+        .where((x) => x.isNotEmpty)
+        .toSet();
+    bool isCorrect = correctSet.contains(label);
 
     Color borderColor = Colors.white10;
     Color bgColor = Colors.white.withValues(alpha: 0.02);
@@ -477,7 +488,11 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     );
   }
 
-  Widget _buildSolution(Color color) {
+  Widget _buildSolution(Color color, QType qType) {
+    final answerText = AnswerGrading.correctAnswerText(
+      type: qType,
+      answerKey: widget.question.answerKey,
+    );
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -489,6 +504,42 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Always show the correct answer explicitly — essential for numeric
+          // and multi-correct questions where no single option tile conveys it.
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: Colors.green.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.green.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  "Correct answer:  ",
+                  style: GoogleFonts.inter(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Expanded(
+                  child: TexText(
+                    answerText,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           Row(
             children: [
               const Icon(Icons.lightbulb, color: Color(0xFFEAB308), size: 20),
