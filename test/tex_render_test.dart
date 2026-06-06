@@ -104,6 +104,6 @@ void main() {
     }
     // ignore: avoid_print
     print('solution render breakage: $broken (residual -> readable fallback)');
-    expect(broken, lessThanOrEqualTo(730), reason: 'solution regression');
+    expect(broken, lessThanOrEqualTo(290), reason: 'solution regression');
   });
 }
