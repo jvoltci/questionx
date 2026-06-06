@@ -16,6 +16,48 @@ class TexText extends StatelessWidget {
 
   static final _mathPattern = RegExp(r'\$\$(.+?)\$\$|\$(.+?)\$', dotAll: true);
 
+  /// Convert the legacy-TeX constructs flutter_math (KaTeX subset) can't parse
+  /// into supported equivalents, so scraped MathType/Word LaTeX still renders.
+  static String _sanitize(String t) {
+    var s = t;
+    s = s.replaceAll(r'\n', ' '); // literal backslash-n artifacts in list/statement Qs
+    s = s.replaceAll(
+        RegExp(r'\\(displaystyle|scriptstyle|textstyle|scriptscriptstyle)\b'), '');
+    s = s.replaceAll(RegExp(r'\\(raise|lower)[0-9.]+ex'), '');
+    s = s.replaceAll(RegExp(r'\\kern-?[0-9.]+em'), '');
+    s = s.replaceAllMapped(RegExp(r'\\hbox\{([^{}]*)\}'), (m) => '\\text{${m[1]}}');
+    s = s.replaceAllMapped(
+        RegExp(r'\\operatorname\s*\{([^{}]*)\}'), (m) => '\\mathrm{${m[1]}}');
+    final over = RegExp(r'\{([^{}]*)\\over([^{}]*)\}');
+    for (var i = 0; i < 4 && over.hasMatch(s); i++) {
+      s = s.replaceAllMapped(over, (m) => '\\frac{${m[1]}}{${m[2]}}');
+    }
+    return s;
+  }
+
+  /// Last-resort readable plain text when a segment still won't parse — far
+  /// better than dumping raw red "\sqrt{1+\mu}" at the student.
+  static String _plainFallback(String tex) {
+    var s = tex.replaceAll(r'\n', ' ');
+    s = s.replaceAllMapped(
+        RegExp(r'\\frac\{([^{}]*)\}\{([^{}]*)\}'), (m) => '(${m[1]})/(${m[2]})');
+    s = s.replaceAllMapped(RegExp(r'\\sqrt\s*\{([^{}]*)\}'), (m) => '√(${m[1]})');
+    const sym = {
+      r'\times': '×', r'\cdot': '·', r'\pm': '±', r'\div': '÷', r'\sqrt': '√',
+      r'\theta': 'θ', r'\alpha': 'α', r'\beta': 'β', r'\gamma': 'γ', r'\mu': 'μ',
+      r'\pi': 'π', r'\omega': 'ω', r'\lambda': 'λ', r'\Delta': 'Δ', r'\sigma': 'σ',
+      r'\infty': '∞', r'\rightarrow': '→', r'\circ': '°', r'\le': '≤', r'\ge': '≥',
+      r'\sin': 'sin', r'\cos': 'cos', r'\tan': 'tan', r'\log': 'log',
+    };
+    sym.forEach((k, v) => s = s.replaceAll(k, v));
+    s = s
+        .replaceAll(RegExp(r'\\[a-zA-Z]+'), '') // strip remaining commands
+        .replaceAll(RegExp(r'[{}$]'), '')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    return s;
+  }
+
   @override
   Widget build(BuildContext context) {
     final TextStyle baseStyle =
@@ -55,11 +97,11 @@ class TexText extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
         child: Math.tex(
-          tex,
+          _sanitize(tex),
           textStyle: baseStyle.copyWith(fontFamily: 'SansSerif'),
           mathStyle: isDisplay ? MathStyle.display : MathStyle.text,
-          onErrorFallback: (err) =>
-              Text(tex, style: baseStyle.copyWith(color: Colors.red)),
+          // Never dump raw LaTeX at the student: degrade to readable plain text.
+          onErrorFallback: (err) => Text(_plainFallback(tex), style: baseStyle),
         ),
       ),
     );
