@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart';
 
@@ -21,16 +23,20 @@ class DataCrypto {
   static final Encrypter _enc =
       Encrypter(AES(_key, mode: AESMode.cbc, padding: 'PKCS7'));
 
-  /// Layout: bytes = 16-byte IV || ciphertext.
+  /// Pipeline: gzip(utf8(plain)) → AES-CBC. gzip FIRST keeps the bundled/OTA
+  /// payload small (JSON compresses ~5:1) — encrypted bytes are incompressible,
+  /// so without this the .enc would bloat the APK by ~18MB. Layout: IV(16) || ct.
   static String decryptBytes(Uint8List bytes) {
     final iv = IV(Uint8List.fromList(bytes.sublist(0, 16)));
     final ct = Encrypted(Uint8List.fromList(bytes.sublist(16)));
-    return _enc.decrypt(ct, iv: iv);
+    final gzipped = _enc.decryptBytes(ct, iv: iv);
+    return utf8.decode(gzip.decode(gzipped));
   }
 
   static Uint8List encryptString(String plain) {
+    final gzipped = gzip.encode(utf8.encode(plain));
     final iv = IV.fromSecureRandom(16);
-    final ct = _enc.encrypt(plain, iv: iv);
+    final ct = _enc.encryptBytes(gzipped, iv: iv);
     return Uint8List.fromList(<int>[...iv.bytes, ...ct.bytes]);
   }
 }
