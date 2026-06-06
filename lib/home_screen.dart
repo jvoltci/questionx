@@ -15,6 +15,7 @@ import 'screens/history_screen.dart';
 import 'screens/mistake_screen.dart';
 import 'widgets/tex_view.dart';
 import 'widgets/question_diagram.dart';
+import 'widgets/formulax_card.dart';
 import 'services/diagram_storage.dart';
 import 'utils/colors.dart';
 import 'services/analytics_service.dart';
@@ -464,9 +465,14 @@ class DashboardScreen extends ConsumerWidget {
                       return ListView.builder(
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
                         physics: const BouncingScrollPhysics(),
-                        itemCount: questions.length,
-                        itemBuilder: (ctx, index) =>
-                            QuestionCard(question: questions[index]),
+                        itemCount: questions.length + 1,
+                        itemBuilder: (ctx, index) {
+                          // Cross-promo footer at the end of the scroll.
+                          if (index == questions.length) {
+                            return const FormulaXCard();
+                          }
+                          return QuestionCard(question: questions[index]);
+                        },
                       );
                     },
                   ),

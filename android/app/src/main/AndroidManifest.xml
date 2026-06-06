@@ -38,6 +38,15 @@
             <action android:name="android.intent.action.SENDTO" />
             <data android:scheme="mailto" />
         </intent>
+        <!-- url_launcher: open Play Store listing / web links (Formula X cross-promo) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="market" />
+        </intent>
     </queries>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

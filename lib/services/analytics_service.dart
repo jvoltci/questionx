@@ -61,6 +61,9 @@ class AnalyticsService {
         if (note != null && note.isNotEmpty) 'note': note,
       });
 
+  static Future<void> logCrossPromoTap(String target) =>
+      _log('cross_promo_tap', {'target': target});
+
   static void recordError(Object error, StackTrace stack, {String? reason}) {
     if (kDebugMode || !_firebaseReady) return;
     FirebaseCrashlytics.instance
