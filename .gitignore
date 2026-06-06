@@ -128,3 +128,7 @@ db.sqlite
 **/.DS_Store
 android/app/google-services.json
 PHASE_E_REFETCH_QUEUE.json
+
+# Plaintext question banks: source/test only, ship encrypted .enc instead
+assets/jee.json
+assets/neet.json

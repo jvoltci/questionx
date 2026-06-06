@@ -8,7 +8,14 @@ import 'package:drift/drift.dart' as drift;
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../database.dart';
+import '../utils/crypto.dart';
 import 'diagram_storage.dart';
+
+/// Top-level so it can run in a background isolate via compute(): decrypt the
+/// AES blob, then JSON-decode. Keeps ~21MB of AES + parse off the UI thread.
+dynamic _decryptAndDecodeBytes(Uint8List bytes) {
+  return jsonDecode(DataCrypto.decryptBytes(bytes));
+}
 
 class SyncProgress {
   /// 0.0 → 1.0
@@ -151,17 +158,21 @@ class SyncService {
     final inputStream = InputFileStream(zipPath);
     final archive = ZipDecoder().decodeBuffer(inputStream);
     final jsonFiles = archive.files
-        .where((f) => f.isFile && f.name.endsWith(".json"))
+        .where((f) => f.isFile &&
+            (f.name.endsWith(".json") || f.name.endsWith(".json.enc")))
         .where((f) => !f.name.startsWith('.') && !f.name.contains("__MACOSX"))
         .toList();
 
     // Decode + validate the ENTIRE payload BEFORE touching the live DB. A
     // corrupt/partial download must never leave the user with an empty bank.
+    // Supports both plaintext (current release) and encrypted .json.enc payloads.
     final decoded = <MapEntry<String, List<dynamic>>>[];
     for (var i = 0; i < jsonFiles.length; i++) {
       final file = jsonFiles[i];
-      final fileContent = utf8.decode(file.content as List<int>);
-      final jsonData = await compute(jsonDecode, fileContent);
+      final raw = file.content as List<int>;
+      final jsonData = file.name.endsWith('.enc')
+          ? await compute(_decryptAndDecodeBytes, Uint8List.fromList(raw))
+          : await compute(jsonDecode, utf8.decode(raw));
       final list = _asQuestionList(jsonData);
       if (list == null || list.isEmpty) {
         throw StateError("Empty/invalid dataset in ${file.name} — aborting sync");
@@ -195,11 +206,13 @@ class SyncService {
   }
 
   Future<void> _loadFromAssets() async {
-    for (final asset in const ['assets/neet.json', 'assets/jee.json']) {
+    for (final asset in const ['assets/neet.json.enc', 'assets/jee.json.enc']) {
       try {
-        final jsonString = await rootBundle.loadString(asset);
-        if (jsonString.trim().isEmpty) continue;
-        final jsonData = await compute(jsonDecode, jsonString);
+        final bd = await rootBundle.load(asset);
+        final bytes =
+            bd.buffer.asUint8List(bd.offsetInBytes, bd.lengthInBytes);
+        // Decrypt + decode off the UI isolate.
+        final jsonData = await compute(_decryptAndDecodeBytes, bytes);
         await _insertBatch(jsonData, _examNameForFile(asset));
       } catch (e) {
         debugPrint("❌ Asset Load Error ($asset): $e");

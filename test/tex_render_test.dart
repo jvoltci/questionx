@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_math_fork/src/parser/tex/parser.dart';
 import 'package:flutter_math_fork/src/parser/tex/settings.dart';
+import 'package:questionx/utils/crypto.dart';
 
 /// Render-safety net for QuestionX (it shipped with ZERO tests). Parses every
 /// question's inline math the same way TexText does (Math.tex → TexParser) and:
@@ -31,8 +32,9 @@ void main() {
 
   test('no question contains \\begin{tabular} (Match-List regression guard)', () {
     final offenders = <String>[];
-    for (final f in ['assets/neet.json', 'assets/jee.json']) {
-      final list = json.decode(File(f).readAsStringSync()) as List<dynamic>;
+    for (final f in ['assets/neet.json.enc', 'assets/jee.json.enc']) {
+      final list = json.decode(DataCrypto.decryptBytes(File(f).readAsBytesSync()))
+          as List<dynamic>;
       for (final q in list) {
         final t = (q['question_latex'] ?? '') as String;
         if (t.contains('tabular')) offenders.add('${q['id']}');
@@ -49,8 +51,9 @@ void main() {
   test('inline math parse-failure rate stays near baseline (systemic guard)', () {
     int total = 0, failed = 0;
     final examples = <String>[];
-    for (final f in ['assets/neet.json', 'assets/jee.json']) {
-      final list = json.decode(File(f).readAsStringSync()) as List<dynamic>;
+    for (final f in ['assets/neet.json.enc', 'assets/jee.json.enc']) {
+      final list = json.decode(DataCrypto.decryptBytes(File(f).readAsBytesSync()))
+          as List<dynamic>;
       for (final q in list) {
         final texts = <String>[
           (q['question_latex'] ?? '') as String,
