@@ -5,78 +5,74 @@ import 'package:flutter_math_fork/src/parser/tex/parser.dart';
 import 'package:flutter_math_fork/src/parser/tex/settings.dart';
 import 'package:questionx/utils/crypto.dart';
 
-/// Render-safety net for QuestionX (it shipped with ZERO tests). Parses every
-/// question's inline math the same way TexText does (Math.tex → TexParser) and:
-///  1. hard-fails if any question still contains \begin{tabular} (the Match-List
-///     regression that rendered as a red raw-LaTeX dump), and
-///  2. fails if the overall math parse-failure rate exceeds a small threshold
-///     (catches a systemic break while tolerating rare scraped-data quirks).
+/// Render-safety net for QuestionX. Validates the SHIPPED (encrypted) banks the
+/// same way TexText does — sanitize() then Math.tex/TexParser — and gates the
+/// user-facing breakage so the "raw \sqrt in the question" regression can't
+/// silently return. (QuestionX shipped with zero tests; this is the floor.)
+
+// Mirror of TexText._sanitize — keep in sync.
+String sanitize(String t) {
+  var s = t;
+  s = s.replaceAll(r'\n', ' ');
+  s = s.replaceAll(RegExp(r'\\(displaystyle|scriptstyle|textstyle|scriptscriptstyle)\b'), '');
+  s = s.replaceAll(RegExp(r'\\(raise|lower)[0-9.]+ex'), '');
+  s = s.replaceAll(RegExp(r'\\kern-?[0-9.]+em'), '');
+  s = s.replaceAllMapped(RegExp(r'\\hbox\{([^{}]*)\}'), (m) => '\\text{${m[1]}}');
+  s = s.replaceAllMapped(RegExp(r'\\operatorname\s*\{([^{}]*)\}'), (m) => '\\mathrm{${m[1]}}');
+  final over = RegExp(r'\{([^{}]*)\\over([^{}]*)\}');
+  for (var i = 0; i < 4 && over.hasMatch(s); i++) {
+    s = s.replaceAllMapped(over, (m) => '\\frac{${m[1]}}{${m[2]}}');
+  }
+  return s;
+}
+
 void main() {
   final mathPattern = RegExp(r'\$\$(.+?)\$\$|\$(.+?)\$', dotAll: true);
-
-  bool parses(String tex) {
-    try {
-      TexParser(tex, const TexParserSettings()).parse();
-      return true;
-    } catch (_) {
-      return false;
-    }
-  }
-
-  Iterable<String> mathSegments(String s) sync* {
+  bool fieldOk(String s) {
     for (final m in mathPattern.allMatches(s)) {
       final t = (m.group(1) ?? m.group(2) ?? '').trim();
-      if (t.isNotEmpty) yield t;
-    }
-  }
-
-  test('no question contains \\begin{tabular} (Match-List regression guard)', () {
-    final offenders = <String>[];
-    for (final f in ['assets/neet.json.enc', 'assets/jee.json.enc']) {
-      final list = json.decode(DataCrypto.decryptBytes(File(f).readAsBytesSync()))
-          as List<dynamic>;
-      for (final q in list) {
-        final t = (q['question_latex'] ?? '') as String;
-        if (t.contains('tabular')) offenders.add('${q['id']}');
+      if (t.isEmpty) continue;
+      try {
+        TexParser(sanitize(t), const TexParserSettings()).parse();
+      } catch (_) {
+        return false;
       }
     }
-    expect(offenders, isEmpty, reason: 'tabular survives in: ${offenders.take(10)}');
+    return true;
+  }
+
+  List<dynamic> bank(String encPath) =>
+      json.decode(DataCrypto.decryptBytes(File(encPath).readAsBytesSync())) as List;
+
+  test('no question contains \\begin{tabular} (Match-List regression guard)', () {
+    final bad = <String>[];
+    for (final f in ['assets/neet.json.enc', 'assets/jee.json.enc']) {
+      for (final q in bank(f)) {
+        if (((q['question_latex'] ?? '') as String).contains('tabular')) bad.add('${q['id']}');
+      }
+    }
+    expect(bad, isEmpty, reason: 'tabular survives in: ${bad.take(10)}');
   });
 
-  // ~1.66% of math segments across the 18k scraped bank fail to parse (stray
-  // single `$`, exotic commands). That's pre-existing content noise, mostly
-  // minor (TexText renders the raw text as a fallback). This gate is a
-  // SYSTEMIC-break detector: it tolerates the baseline but trips if a change
-  // (or bad re-sync) breaks rendering broadly.
-  test('inline math parse-failure rate stays near baseline (systemic guard)', () {
-    int total = 0, failed = 0;
-    final examples = <String>[];
+  // USER-FACING gate: question text + options must render (after sanitize).
+  // Baseline after the LaTeX-repair pass: ~62 residual (rendered as readable
+  // plain-text fallback, never raw LaTeX). Threshold catches a real regression
+  // (e.g. a bad re-sync) without flapping on the known residual.
+  test('user-facing (question + options) render breakage stays bounded', () {
+    int broken = 0;
+    final ex = <String>[];
     for (final f in ['assets/neet.json.enc', 'assets/jee.json.enc']) {
-      final list = json.decode(DataCrypto.decryptBytes(File(f).readAsBytesSync()))
-          as List<dynamic>;
-      for (final q in list) {
-        final texts = <String>[
-          (q['question_latex'] ?? '') as String,
-          ...((q['options'] as List<dynamic>?) ?? []).map((e) => e.toString()),
-        ];
-        for (final txt in texts) {
-          for (final seg in mathSegments(txt)) {
-            total++;
-            if (!parses(seg)) {
-              failed++;
-              if (examples.length < 15) examples.add('${q['id']}: $seg');
-            }
-          }
+      for (final q in bank(f)) {
+        final okQ = fieldOk((q['question_latex'] ?? '') as String);
+        final okO = ((q['options'] as List?) ?? []).every((o) => fieldOk(o.toString()));
+        if (!okQ || !okO) {
+          broken++;
+          if (ex.length < 12) ex.add('${q['id']}');
         }
       }
     }
-    final rate = total == 0 ? 0.0 : failed / total;
     // ignore: avoid_print
-    print('math segments: $total, failed: $failed (${(rate * 100).toStringAsFixed(2)}%)');
-    if (examples.isNotEmpty) {
-      // ignore: avoid_print
-      print('first failures:\n${examples.join('\n')}');
-    }
-    expect(rate, lessThan(0.025), reason: '$failed/$total math segments unrenderable');
+    print('user-facing broken question/option render: $broken (residual -> readable fallback)');
+    expect(broken, lessThanOrEqualTo(80), reason: 'regression; examples: $ex');
   });
 }
