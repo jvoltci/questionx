@@ -12,6 +12,7 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 
 from .diff import snapshot, diff_snapshots, FAIL
 from .gate import evaluate
@@ -34,7 +35,22 @@ def resolve_source(source, path, repo="."):
     if os.path.isfile(source):
         with open(source, encoding="utf-8") as f:
             return _load_bundle_text(f.read())
-    out = subprocess.check_output(["git", "-C", repo, "show", f"{source}:{path}"], text=True)
+    try:
+        out = subprocess.check_output(
+            ["git", "-C", repo, "show", f"{source}:{path}"],
+            text=True, stderr=subprocess.DEVNULL,
+        )
+    except subprocess.CalledProcessError:
+        # Plaintext banks are intentionally NOT tracked (they ship encrypted as
+        # *.json.enc; repo stays public). So the git-ref baseline path no longer
+        # exists. Treat as empty baseline so commits don't crash — run the gate
+        # MANUALLY before a release against local plaintext snapshots, e.g.:
+        #   python -m qx_gate.cli check --baseline prev/neet.json --current assets/neet.json
+        sys.stderr.write(
+            f"qx-gate: baseline '{source}:{path}' not in git (plaintext untracked) "
+            "— auto-check skipped; run manually pre-release.\n"
+        )
+        return []
     return _load_bundle_text(out)
 
 
