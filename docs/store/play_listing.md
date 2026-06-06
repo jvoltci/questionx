@@ -2,8 +2,8 @@
 
 Feature graphic: `docs/store/feature_graphic.png` (1024×500).
 
-## Short description (75 chars)
-Free NEET & JEE PYQ practice — 18K+ verified questions, solutions, offline.
+## Short description (73 chars — no price/promo keywords, per Play metadata policy)
+NEET & JEE PYQ practice — 18,000+ verified questions, solutions, offline.
 
 ## Full description
 The free, ad-free NEET & JEE practice app — 18,000+ verified previous year questions, with solutions, fully offline.
