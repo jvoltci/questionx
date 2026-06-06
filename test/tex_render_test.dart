@@ -75,4 +75,22 @@ void main() {
     print('user-facing broken question/option render: $broken (residual -> readable fallback)');
     expect(broken, lessThanOrEqualTo(80), reason: 'regression; examples: $ex');
   });
+
+  // SOLUTION (reveal screen) gate. Solutions render via the same TexText path;
+  // unparseable ones degrade to readable plain text (never raw LaTeX). Baseline
+  // after the first verified solution-repair wave (470 applied): residual sits
+  // ~720, dropping further once the remaining slices are resumed. Bound catches
+  // a bad re-sync without flapping on the known residual.
+  test('solution render breakage stays bounded (fallback covers the rest)', () {
+    int broken = 0;
+    for (final f in ['assets/neet.json.enc', 'assets/jee.json.enc']) {
+      for (final q in bank(f)) {
+        final sol = (q['solution'] ?? '') as String;
+        if (sol.isNotEmpty && !fieldOk(sol)) broken++;
+      }
+    }
+    // ignore: avoid_print
+    print('solution render breakage: $broken (residual -> readable fallback)');
+    expect(broken, lessThanOrEqualTo(730), reason: 'solution regression');
+  });
 }

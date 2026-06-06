@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -54,12 +55,29 @@ class SyncService {
 
     await DiagramStorage.ensureReady();
     final diagramCount = await DiagramStorage.countFiles();
+    final questionCount = await db.countQuestions();
+
+    // FIRST LAUNCH (empty DB): open INSTANTLY from the bundled, encrypted bank.
+    // The full question text renders offline immediately — we then pull diagrams
+    // in the BACKGROUND instead of blocking the splash on a ~5MB download. The
+    // bundled questions are the source of truth here, so the background fetch
+    // grabs only the images (which aren't bundled) and never re-imports/overwrites
+    // the questions.
+    if (questionCount == 0) {
+      _emit(0.4, "Loading question bank...");
+      await _loadFromAssets();
+      _emit(1.0, "Ready", done: true);
+      unawaited(_backgroundSyncDiagrams(prefs, currentVersion));
+      return;
+    }
+
+    // SUBSEQUENT LAUNCHES: periodic online update (content + diagrams), and
+    // self-heal if the diagrams dir was wiped while a version is recorded.
     final diagramsMissing = currentVersion != null && diagramCount == 0;
     if (diagramsMissing) {
       debugPrint("🩹 Version $currentVersion recorded but diagrams dir is "
           "empty — forcing re-sync.");
     }
-
     try {
       if (_shouldCheckOnline(prefs) || diagramsMissing) {
         _emit(0.05, "Checking for updates...");
@@ -71,22 +89,47 @@ class SyncService {
         if (latestTag != null) {
           await _downloadAndSync(latestTag);
           await prefs.setString(_versionKey, latestTag);
-          _emit(1.0, "Ready", done: true);
-          return;
         }
+      } else {
+        debugPrint("✅ Database is ready (Version: $currentVersion).");
       }
     } catch (e) {
-      debugPrint("⚠️ Online check failed ($e). Proceeding with local checks.");
-    }
-
-    final questionCount = await db.countQuestions();
-    if (questionCount == 0) {
-      _emit(0.4, "Loading question bank...");
-      await _loadFromAssets();
-    } else {
-      debugPrint("✅ Database is ready (Version: $currentVersion).");
+      debugPrint("⚠️ Online check failed ($e). Proceeding with current bank.");
     }
     _emit(1.0, "Ready", done: true);
+  }
+
+  /// Cold-start background diagram fetch. Runs AFTER the splash has handed off
+  /// to the home screen (fire-and-forget), so the user is already practising
+  /// while images stream in. Pulls the release `data.zip` and extracts ONLY the
+  /// diagrams — questions stay exactly as loaded from the bundled bank, so a
+  /// stale release can never overwrite the shipped (repaired) content. Records
+  /// the version tag so later launches don't repeat this. Fully best-effort:
+  /// any failure just leaves diagrams to retry on the next launch.
+  Future<void> _backgroundSyncDiagrams(
+      SharedPreferences prefs, String? currentVersion) async {
+    try {
+      final latestTag = await _checkForUpdates(currentVersion);
+      await prefs.setInt(_lastCheckKey, DateTime.now().millisecondsSinceEpoch);
+      final tag = latestTag ?? currentVersion;
+      if (tag == null) return; // no release to pull diagrams from yet
+
+      final dir = await getApplicationDocumentsDirectory();
+      final zipPath = "${dir.path}/data.zip";
+      final downloadUrl =
+          "https://github.com/$_repoOwner/$_repoName/releases/download/$tag/data.zip";
+      await _dio.download(downloadUrl, zipPath);
+
+      final zipFile = File(zipPath);
+      final imgCount = await DiagramStorage.unpackZipFrom(zipFile);
+      debugPrint("🖼️ Background-fetched $imgCount diagram(s) for $tag.");
+      if (await zipFile.exists()) await zipFile.delete();
+
+      await prefs.setString(_versionKey, tag);
+    } catch (e) {
+      debugPrint(
+          "⚠️ Background diagram sync failed ($e) — will retry next launch.");
+    }
   }
 
   bool _shouldCheckOnline(SharedPreferences prefs) {
