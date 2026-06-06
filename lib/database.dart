@@ -181,7 +181,7 @@ class AppDatabase extends _$AppDatabase {
           ..where((t) {
             final List<Expression<bool>> predicates = [];
             if (examName != null) {
-              predicates.add(t.examName.like('%$examName%'));
+              predicates.add(t.examName.like('$examName%'));
             }
             if (years != null && years.isNotEmpty) {
               predicates.add(t.year.isIn(years));
@@ -258,7 +258,7 @@ class AppDatabase extends _$AppDatabase {
     int limit = 500,
   }) {
     final q = select(questions)
-      ..where((t) => t.examName.like('%$examName%'))
+      ..where((t) => t.examName.like('$examName%'))
       ..where((t) => t.subject.equals(subject));
     if (search != null && search.isNotEmpty) {
       final like = '%$search%';
@@ -289,7 +289,7 @@ class AppDatabase extends _$AppDatabase {
     final exp = questions.id.count();
     final query = selectOnly(questions)
       ..addColumns([exp])
-      ..where(questions.examName.like('%$examName%'));
+      ..where(questions.examName.like('$examName%'));
     final row = await query.getSingle();
     return row.read(exp) ?? 0;
   }
@@ -305,7 +305,7 @@ class AppDatabase extends _$AppDatabase {
     final exp = questions.id.count();
     final query = selectOnly(questions)..addColumns([exp]);
     final filters = <Expression<bool>>[];
-    if (examName != null) filters.add(questions.examName.like('%$examName%'));
+    if (examName != null) filters.add(questions.examName.like('$examName%'));
     if (years.isNotEmpty) filters.add(questions.year.isIn(years));
     if (subjects != null && subjects.isNotEmpty) {
       filters.add(questions.subject.isIn(subjects));
@@ -334,7 +334,7 @@ class AppDatabase extends _$AppDatabase {
     final query = selectOnly(questions, distinct: true)
       ..addColumns([questions.year]);
     if (examName != null) {
-      query.where(questions.examName.like('%$examName%'));
+      query.where(questions.examName.like('$examName%'));
     }
     final result = await query.map((row) => row.read(questions.year)!).get();
     result.sort();
@@ -349,7 +349,7 @@ class AppDatabase extends _$AppDatabase {
       ..addColumns([questions.topic]);
     final filters = <Expression<bool>>[];
     if (subject != null) filters.add(questions.subject.equals(subject));
-    if (examName != null) filters.add(questions.examName.like('%$examName%'));
+    if (examName != null) filters.add(questions.examName.like('$examName%'));
     if (filters.isNotEmpty) query.where(Expression.and(filters));
     final result = await query.map((row) => row.read(questions.topic)!).get();
     result.sort();

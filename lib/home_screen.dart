@@ -688,6 +688,7 @@ class _SearchField extends ConsumerStatefulWidget {
 
 class _SearchFieldState extends ConsumerState<_SearchField> {
   late final TextEditingController _controller;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -697,8 +698,17 @@ class _SearchFieldState extends ConsumerState<_SearchField> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _onChanged(String val) {
+    // Debounce so each keystroke doesn't fire a full DB query over 18k rows.
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 250), () {
+      ref.read(searchProvider.notifier).state = val;
+    });
   }
 
   @override
@@ -706,7 +716,7 @@ class _SearchFieldState extends ConsumerState<_SearchField> {
     final accent = widget.accentColor;
     return TextField(
       controller: _controller,
-      onChanged: (val) => ref.read(searchProvider.notifier).state = val,
+      onChanged: _onChanged,
       style: const TextStyle(color: Colors.white),
       cursorColor: accent,
       textInputAction: TextInputAction.search,
@@ -722,6 +732,7 @@ class _SearchFieldState extends ConsumerState<_SearchField> {
                   tooltip: "Clear search",
                   icon: const Icon(Icons.close_rounded, color: Colors.white60),
                   onPressed: () {
+                    _debounce?.cancel();
                     _controller.clear();
                     ref.read(searchProvider.notifier).state = "";
                   },
@@ -772,11 +783,12 @@ class QuestionCard extends StatelessWidget {
             ),
           ],
         ),
+        // Per-card BackdropFilter blur removed: it ran a real-time GPU blur on
+        // every visible card during scroll (jank on mid/low-end Android). The
+        // card already has a solid semi-opaque fill, so this looks near-identical.
         child: ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: Stack(
+          child: Stack(
               children: [
                 Positioned(
                   left: 0,
@@ -866,7 +878,6 @@ class QuestionCard extends StatelessWidget {
               ],
             ),
           ),
-        ),
       ),
     );
   }

@@ -148,22 +148,40 @@ class SyncService {
     // showing up to the user because `insertOrReplace` only touches IDs
     // present in the new payload.
     _emit(0.85, "Indexing questions...");
-    await db.deleteAllQuestions();
     final inputStream = InputFileStream(zipPath);
     final archive = ZipDecoder().decodeBuffer(inputStream);
     final jsonFiles = archive.files
         .where((f) => f.isFile && f.name.endsWith(".json"))
         .where((f) => !f.name.startsWith('.') && !f.name.contains("__MACOSX"))
         .toList();
+
+    // Decode + validate the ENTIRE payload BEFORE touching the live DB. A
+    // corrupt/partial download must never leave the user with an empty bank.
+    final decoded = <MapEntry<String, List<dynamic>>>[];
     for (var i = 0; i < jsonFiles.length; i++) {
       final file = jsonFiles[i];
       final fileContent = utf8.decode(file.content as List<int>);
       final jsonData = await compute(jsonDecode, fileContent);
-      final perFile = 0.14 / jsonFiles.length;
-      _emit(0.85 + perFile * i, "Indexing ${_friendlyName(file.name)}...");
-      await _insertBatch(jsonData, _examNameForFile(file.name));
-      _emit(0.85 + perFile * (i + 1), "Indexed ${_friendlyName(file.name)}");
+      final list = _asQuestionList(jsonData);
+      if (list == null || list.isEmpty) {
+        throw StateError("Empty/invalid dataset in ${file.name} — aborting sync");
+      }
+      decoded.add(MapEntry(_examNameForFile(file.name), list));
+      _emit(0.85 + (0.10 / jsonFiles.length) * (i + 1),
+          "Validated ${_friendlyName(file.name)}");
     }
+    if (decoded.isEmpty) {
+      throw StateError("No datasets in update payload — keeping current bank");
+    }
+
+    // Everything validated → swap atomically so a mid-write failure rolls back.
+    _emit(0.96, "Updating question bank...");
+    await db.transaction(() async {
+      await db.deleteAllQuestions();
+      for (final entry in decoded) {
+        await _insertBatch(entry.value, entry.key);
+      }
+    });
 
     await zipFile.delete();
     debugPrint("🎉 Sync Complete!");
@@ -204,6 +222,16 @@ class SyncService {
       if (raw == 'JEE_Main') return 'JEE Main';
     }
     return fileLabel;
+  }
+
+  /// Extracts the question list from either a bare List or a {"questions": [...]}
+  /// wrapper. Returns null for anything else.
+  List<dynamic>? _asQuestionList(dynamic jsonData) {
+    if (jsonData is Map && jsonData['questions'] is List) {
+      return jsonData['questions'] as List<dynamic>;
+    }
+    if (jsonData is List) return jsonData;
+    return null;
   }
 
   Future<void> _insertBatch(dynamic jsonData, String examSource) async {
