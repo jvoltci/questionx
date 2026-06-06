@@ -56195,7 +56195,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 1,
-    "question_latex": "Match List-I with List-II \n$\\begin{tabular}{|l|l|} \\hline$ List-I (Electromagnetic waves) & List-II (Wavelength) \\\\ $\\hline$ (a) AM radio waves & (i) $10^{-10}$ m \\\\ (b) Microwaves & (ii) $10^{2}$ m \\\\ (c) Infrared radiations & (iii) $10^{-2}$ m \\\\ (d) X-rays & (iv) $10^{-4}$ m \\\\ $\\hline \\end{tabular}$ \nChoose the correct answer from the options given below",
+    "question_latex": "Match List-I with List-II\nList-I (Electromagnetic waves) — List-II (Wavelength)\n(a) AM radio waves — (i) $10^{-10}$ m\n(b) Microwaves — (ii) $10^{2}$ m\n(c) Infrared radiations — (iii) $10^{-2}$ m\n(d) X-rays — (iv) $10^{-4}$ m\nChoose the correct answer from the options given below",
     "options": [
       "(a) - (iv), (b) - (iii), (c) - (ii), (d) - (i)",
       "(a) - (ii), (b) - (iii), (c) - (iv), (d) - (i)",
@@ -56831,7 +56831,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 36,
-    "question_latex": "Match List-l with List-II \n$\\begin{tabular}{|l|l|} \\hline$ List-I & List-II \\\\ $\\hline$ (a) Gravitational constant (G) & (i) $[L^{2}T^{-2}]$ \\\\ (b) Gravitational potential energy & (ii) $[M^{-1}L^{3}T^{-2}]$ \\\\ (c) Gravitational potential & (iii) $[LT^{-2}]$ \\\\ (d) Gravitational intensity & (iv) $[ML^{2}T^{-2}]$ \\\\ $\\hline \\end{tabular}$",
+    "question_latex": "Match List-l with List-II\nList-I — List-II\n(a) Gravitational constant (G) — (i) $[L^{2}T^{-2}]$\n(b) Gravitational potential energy — (ii) $[M^{-1}L^{3}T^{-2}]$\n(c) Gravitational potential — (iii) $[LT^{-2}]$\n(d) Gravitational intensity — (iv) $[ML^{2}T^{-2}]$",
     "options": [
       "(a) - (ii), (b) - (i), (c) - (iv), (d) - (iii)",
       "(a) - (ii), (b) - (iv), (c) - (i), (d) - (iii)",
@@ -57178,7 +57178,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 55,
-    "question_latex": "Match List-I with List-II.\n$\\begin{tabular}{|l|l|} \\hline$ List-I (Drug class) & List-II (Drug molecule) \\\\ $\\hline$ (a) Antacids & (i) Salvarsan \\\\ (b) Antihistamines & (ii) Morphine \\\\ (c) Analgesics & (iii) Cimetidine \\\\ (d) Antimicrobials & (iv) Seldane \\\\ $\\hline \\end{tabular}$",
+    "question_latex": "Match List-I with List-II.\nList-I (Drug class) — List-II (Drug molecule)\n(a) Antacids — (i) Salvarsan\n(b) Antihistamines — (ii) Morphine\n(c) Analgesics — (iii) Cimetidine\n(d) Antimicrobials — (iv) Seldane",
     "options": [
       "(a) - (iii), (b) - (ii), (c) - (iv), (d) - (i)",
       "(a) - (iii), (b) - (iv), (c) - (ii), (d) - (i)",
@@ -57196,7 +57196,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 56,
-    "question_latex": "Match List-I with List-II.\n$\\begin{tabular}{|l|l|} \\hline$ List-I (Hydrides) & List-II (Nature) \\\\ $\\hline$ (a) MgH$_2$ & (i) Electron precise \\\\ (b) GeH$_4$ & (ii) Electron deficient \\\\ (c) B$_2$H$_6$ & (iii) Electron rich \\\\ (d) HF & (iv) Ionic \\\\ $\\hline \\end{tabular}$",
+    "question_latex": "Match List-I with List-II.\nList-I (Hydrides) — List-II (Nature)\n(a) MgH$_2$ — (i) Electron precise\n(b) GeH$_4$ — (ii) Electron deficient\n(c) B$_2$H$_6$ — (iii) Electron rich\n(d) HF — (iv) Ionic",
     "options": [
       "(a) - (iv), (b) - (i), (c) - (ii), (d) - (iii)",
       "(a) - (iii), (b) - (i), (c) - (ii), (d) - (iv)",
@@ -57557,7 +57557,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 76,
-    "question_latex": "Match List-I with List-II \n$\\begin{tabular}{|l|l|} \\hline$ List-I & List-II \\\\ $\\hline$ (a) Li & (i) absorbent for carbon dioxide \\\\ (b) Na & (ii) electrochemical cells \\\\ (c) KOH & (iii) coolant in fast breeder reactors \\\\ (d) Cs & (iv) photoelectric cell \\\\ $\\hline \\end{tabular}$",
+    "question_latex": "Match List-I with List-II\nList-I — List-II\n(a) Li — (i) absorbent for carbon dioxide\n(b) Na — (ii) electrochemical cells\n(c) KOH — (iii) coolant in fast breeder reactors\n(d) Cs — (iv) photoelectric cell",
     "options": [
       "(a) - (iv), (b) - (i), (c) - (iii), (d) - (ii)",
       "(a) - (iii), (b) - (iv), (c) - (ii), (d) - (i)",
@@ -57701,7 +57701,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 84,
-    "question_latex": "Match List-I with List-II. \n$\\begin{tabular}{|l|l|} \\hline$ List-I (Products formed) & List-II (Reaction of carbonyl compound with) \\\\ $\\hline$ (a) Cyanohydrin & (i) $NH_2OH$ \\\\ (b) Acetal & (ii) $RNH_2$ \\\\ (c) Schiff's base & (iii) alcohol \\\\ (d) Oxime & (iv) HCN \\\\ $\\hline \\end{tabular}$",
+    "question_latex": "Match List-I with List-II.\nList-I (Products formed) — List-II (Reaction of carbonyl compound with)\n(a) Cyanohydrin — (i) $NH_2OH$\n(b) Acetal — (ii) $RNH_2$\n(c) Schiff's base — (iii) alcohol\n(d) Oxime — (iv) HCN",
     "options": [
       "(a) - (iii), (b) - (iv), (c) - (ii), (d) - (i)",
       "(a) - (ii), (b) - (iii), (c) - (iv), (d) - (i)",
@@ -57918,7 +57918,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 96,
-    "question_latex": "Match List-I with List-II. \n$\\begin{tabular}{|l|l|} \\hline$ List-I (Ores) & List-II (Composition) \\\\ $\\hline$ (a) Haematite & (i) $Fe_{3}O_{4}$ \\\\ (b) Magnetite & (ii) $ZnCO_{3}$ \\\\ (c) Calamine & (iii) $Fe_{2}O_{3}$ \\\\ (d) Kaolinite & (iv) $[Al_{2}(OH)_{4}Si_{2}O_{5}]$ \\\\ $\\hline \\end{tabular}$",
+    "question_latex": "Match List-I with List-II.\nList-I (Ores) — List-II (Composition)\n(a) Haematite — (i) $Fe_{3}O_{4}$\n(b) Magnetite — (ii) $ZnCO_{3}$\n(c) Calamine — (iii) $Fe_{2}O_{3}$\n(d) Kaolinite — (iv) $[Al_{2}(OH)_{4}Si_{2}O_{5}]$",
     "options": [
       "(a)-(i), (b)-(ii), (c)-(iii), (d)-(iv)",
       "(a)-(iii), (b)-(i), (c)-(ii), (d)-(iv)",
@@ -58134,7 +58134,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 108,
-    "question_latex": "Match List-I with List-II \n$\\begin{tabular}{|l|l|} \\hline$ List-I & List-II \\\\ $\\hline$ (a) Manganese & (i) Activates the enzyme catalase \\\\ (b) Magnesium & (ii) Required for pollen germination \\\\ (c) Boron & (iii) Activates enzymes of respiration \\\\ (d) Iron & (iv) Functions in splitting of water during photosynthesis \\\\ $\\hline \\end{tabular}$ \nChoose the correct answer from the options given below:",
+    "question_latex": "Match List-I with List-II\nList-I — List-II\n(a) Manganese — (i) Activates the enzyme catalase\n(b) Magnesium — (ii) Required for pollen germination\n(c) Boron — (iii) Activates enzymes of respiration\n(d) Iron — (iv) Functions in splitting of water during photosynthesis\nChoose the correct answer from the options given below:",
     "options": [
       "(a)-(iii), (b)-(iv), (c)-(i), (d)-(ii)",
       "(a)-(iv), (b)-(iii), (c)-(ii), (d)-(i)",
@@ -58675,7 +58675,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 139,
-    "question_latex": "Match the plant with the kind of life cycle it exhibits: \n$\\begin{tabular}{|l|l|} \\hline$ List-I & List-II \\\\ $\\hline$ (a) Spirogyra & (i) Dominant diploid sporophyte vascular plant, with highly reduced male or female gametophyte \\\\ (b) Fern & (ii) Dominant haploid free-living gametophyte \\\\ (c) Funaria & (iii) Dominant diploid sporophyte alternating with reduced gametophyte called prothallus \\\\ (d) Cycas & (iv) Dominant haploid leafy gametophyte alternating with partially dependent multicellular sporophyte \\\\ $\\hline \\end{tabular}$ \nChoose the correct answer from the options given below:",
+    "question_latex": "Match the plant with the kind of life cycle it exhibits:\nList-I — List-II\n(a) Spirogyra — (i) Dominant diploid sporophyte vascular plant, with highly reduced male or female gametophyte\n(b) Fern — (ii) Dominant haploid free-living gametophyte\n(c) Funaria — (iii) Dominant diploid sporophyte alternating with reduced gametophyte called prothallus\n(d) Cycas — (iv) Dominant haploid leafy gametophyte alternating with partially dependent multicellular sporophyte\nChoose the correct answer from the options given below:",
     "options": [
       "(a)-(iv), (b)-(i), (c)-(ii), (d)-(iii)",
       "(a)-(ii), (b)-(iii), (c)-(iv), (d)-(i)",
@@ -58693,7 +58693,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 140,
-    "question_latex": "Match List-I with List-II. \n$\\begin{tabular}{|l|l|} \\hline$ List-I & List-II \\\\ $\\hline$ (a) Metacentric chromosome & (i) Centromere situated close to the end forming one extremely short and one very long arms \\\\ (b) Acrocentric chromosome & (ii) Centromere at the terminal end \\\\ (c) Submetacentric & (iii) Centromere in the middle forming two equal arms of chromosomes \\\\ (d) Telocentric chromosome & (iv) Centromere slightly away from the middle forming one shorter arm and one longer arm \\\\ $\\hline \\end{tabular}$ \nChoose the correct answer from the options given below:",
+    "question_latex": "Match List-I with List-II.\nList-I — List-II\n(a) Metacentric chromosome — (i) Centromere situated close to the end forming one extremely short and one very long arms\n(b) Acrocentric chromosome — (ii) Centromere at the terminal end\n(c) Submetacentric — (iii) Centromere in the middle forming two equal arms of chromosomes\n(d) Telocentric chromosome — (iv) Centromere slightly away from the middle forming one shorter arm and one longer arm\nChoose the correct answer from the options given below:",
     "options": [
       "(a)-(iii), (b)-(i), (c)-(iv), (d)-(ii)",
       "(a)-(i), (b)-(iii), (c)-(ii), (d)-(iv)",
@@ -59576,7 +59576,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 190,
-    "question_latex": "Match List-I with List-II \n$\\begin{tabular}{|l|l|} \\hline$ List-I (Biological Molecules) & List-II (Biological functions) \\\\ $\\hline$ (a) Glycogen & (i) Hormone \\\\ (b) Globulin & (ii) Biocatalyst \\\\ (c) Steroids & (iii) Antibody \\\\ (d) Thrombin & (iv) Storage product \\\\ $\\hline \\end{tabular}$",
+    "question_latex": "Match List-I with List-II\nList-I (Biological Molecules) — List-II (Biological functions)\n(a) Glycogen — (i) Hormone\n(b) Globulin — (ii) Biocatalyst\n(c) Steroids — (iii) Antibody\n(d) Thrombin — (iv) Storage product",
     "options": [
       "(a)-(iii), (b)-(ii), (c)-(iv), (d)-(i)",
       "(a)-(iv), (b)-(ii), (c)-(i), (d)-(iii)",
@@ -59702,7 +59702,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 197,
-    "question_latex": "Match List-I with List-II \n$\\begin{tabular}{|l|l|} \\hline$ List-I & List-II \\\\ $\\hline$ (a) Bronchioles & (i) Dense Regular Connective Tissue \\\\ (b) Goblet Cell & (ii) Loose Connective Tissue \\\\ (c) Tendons & (iii) Glandular Tissue \\\\ (d) Adipose Tissue & (iv) Ciliated Epithelium \\\\ $\\hline \\end{tabular}$",
+    "question_latex": "Match List-I with List-II\nList-I — List-II\n(a) Bronchioles — (i) Dense Regular Connective Tissue\n(b) Goblet Cell — (ii) Loose Connective Tissue\n(c) Tendons — (iii) Glandular Tissue\n(d) Adipose Tissue — (iv) Ciliated Epithelium",
     "options": [
       "(a)-(iv), (b)-(iii), (c)-(i), (d)-(ii)",
       "(a)-(i), (b)-(ii), (c)-(iii), (d)-(iv)",
@@ -59720,7 +59720,7 @@
     "exam": "NEET",
     "year": 2022,
     "question_number": 198,
-    "question_latex": "Match List-I with List-II with respect to methods of Contraception and their respective actions. \n$\\begin{tabular}{|l|l|} \\hline$ List-I & List-II \\\\ $\\hline$ (a) Diaphragms & (i) Inhibit ovulation and Implantation \\\\ (b) Contraceptive Pills & (ii) Increase phagocytosis of sperm within Uterus \\\\ (c) Intra Uterine Devices & (iii) Absence of Menstrual cycle and ovulation following parturition \\\\ (d) Lactational Amenorrhea & (iv) They cover the cervix blocking the entry of sperms \\\\ $\\hline \\end{tabular}$",
+    "question_latex": "Match List-I with List-II with respect to methods of Contraception and their respective actions.\nList-I — List-II\n(a) Diaphragms — (i) Inhibit ovulation and Implantation\n(b) Contraceptive Pills — (ii) Increase phagocytosis of sperm within Uterus\n(c) Intra Uterine Devices — (iii) Absence of Menstrual cycle and ovulation following parturition\n(d) Lactational Amenorrhea — (iv) They cover the cervix blocking the entry of sperms",
     "options": [
       "(a)-(iv), (b)-(i), (c)-(iii), (d)-(ii)",
       "(a)-(iv), (b)-(i), (c)-(ii), (d)-(iii)",
