@@ -60,11 +60,10 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            // Never silently fall back to the debug key for a release build.
+            // If key.properties is absent the release stays UNSIGNED (Play / install
+            // will reject it) instead of shipping a debug-signed "release".
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 }

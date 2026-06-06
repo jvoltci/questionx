@@ -121,3 +121,10 @@ app.*.symbols
 !**/ios/**/default.perspectivev3
 !/packages/flutter_tools/test/data/dart_dependencies_test/**/.packages
 !/dev/ci/**/Gemfile.lock
+# Dev artifacts & hygiene (ship-fix audit)
+db.sqlite
+*.sqlite
+.DS_Store
+**/.DS_Store
+android/app/google-services.json
+PHASE_E_REFETCH_QUEUE.json
