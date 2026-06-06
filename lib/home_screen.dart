@@ -126,7 +126,17 @@ class ExamSelectionScreen extends ConsumerWidget {
   ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('selected_exam', exam);
-    ref.read(subjectFilterProvider.notifier).state = defaultSubject;
+
+    // Keep the current subject if the new exam also has it (Physics/Chemistry are
+    // shared); only fall back to the default when it isn't (Biology is NEET-only,
+    // Mathematics is JEE-only).
+    final current = ref.read(subjectFilterProvider);
+    final subjects = exam.contains("NEET")
+        ? const ["Biology", "Physics", "Chemistry"]
+        : const ["Mathematics", "Physics", "Chemistry"];
+    ref.read(subjectFilterProvider.notifier).state =
+        subjects.contains(current) ? current : defaultSubject;
+
     ref.read(selectedExamProvider.notifier).state = exam;
     unawaited(AnalyticsService.logExamSelected(exam));
   }
