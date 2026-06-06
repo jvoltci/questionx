@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
@@ -57,21 +56,33 @@ class SyncService {
     final diagramCount = await DiagramStorage.countFiles();
     final questionCount = await db.countQuestions();
 
-    // FIRST LAUNCH (empty DB): open INSTANTLY from the bundled, encrypted bank.
-    // The full question text renders offline immediately — we then pull diagrams
-    // in the BACKGROUND instead of blocking the splash on a ~5MB download. The
-    // bundled questions are the source of truth here, so the background fetch
-    // grabs only the images (which aren't bundled) and never re-imports/overwrites
-    // the questions.
+    // FIRST LAUNCH (empty DB): the bundled, encrypted bank is the VERIFIED
+    // content shipped with this build, so it is authoritative — load it from
+    // assets and do NOT let an older OTA release overwrite it. We still fetch
+    // the release's diagrams here (blocking) so figures are on disk before the
+    // home screen opens. (Previously first launch imported questions straight
+    // from the OTA zip, which silently shipped stale content over the bundled
+    // bank.)
     if (questionCount == 0) {
-      _emit(0.4, "Loading question bank...");
+      _emit(0.30, "Loading question bank...");
       await _loadFromAssets();
+      try {
+        _emit(0.45, "Downloading diagrams...");
+        final tag = await _checkForUpdates(null); // latest release tag
+        if (tag != null) {
+          await _downloadDiagramsOnly(tag);
+          await prefs.setString(_versionKey, tag);
+        }
+        await prefs.setInt(_lastCheckKey, DateTime.now().millisecondsSinceEpoch);
+      } catch (e) {
+        debugPrint("⚠️ First-launch diagram fetch failed ($e). Text is fully "
+            "usable; diagrams will retry on the next launch.");
+      }
       _emit(1.0, "Ready", done: true);
-      unawaited(_backgroundSyncDiagrams(prefs, currentVersion));
       return;
     }
 
-    // SUBSEQUENT LAUNCHES: periodic online update (content + diagrams), and
+    // SUBSEQUENT LAUNCHES: periodic OTA update (content + diagrams) and a
     // self-heal if the diagrams dir was wiped while a version is recorded.
     final diagramsMissing = currentVersion != null && diagramCount == 0;
     if (diagramsMissing) {
@@ -97,39 +108,6 @@ class SyncService {
       debugPrint("⚠️ Online check failed ($e). Proceeding with current bank.");
     }
     _emit(1.0, "Ready", done: true);
-  }
-
-  /// Cold-start background diagram fetch. Runs AFTER the splash has handed off
-  /// to the home screen (fire-and-forget), so the user is already practising
-  /// while images stream in. Pulls the release `data.zip` and extracts ONLY the
-  /// diagrams — questions stay exactly as loaded from the bundled bank, so a
-  /// stale release can never overwrite the shipped (repaired) content. Records
-  /// the version tag so later launches don't repeat this. Fully best-effort:
-  /// any failure just leaves diagrams to retry on the next launch.
-  Future<void> _backgroundSyncDiagrams(
-      SharedPreferences prefs, String? currentVersion) async {
-    try {
-      final latestTag = await _checkForUpdates(currentVersion);
-      await prefs.setInt(_lastCheckKey, DateTime.now().millisecondsSinceEpoch);
-      final tag = latestTag ?? currentVersion;
-      if (tag == null) return; // no release to pull diagrams from yet
-
-      final dir = await getApplicationDocumentsDirectory();
-      final zipPath = "${dir.path}/data.zip";
-      final downloadUrl =
-          "https://github.com/$_repoOwner/$_repoName/releases/download/$tag/data.zip";
-      await _dio.download(downloadUrl, zipPath);
-
-      final zipFile = File(zipPath);
-      final imgCount = await DiagramStorage.unpackZipFrom(zipFile);
-      debugPrint("🖼️ Background-fetched $imgCount diagram(s) for $tag.");
-      if (await zipFile.exists()) await zipFile.delete();
-
-      await prefs.setString(_versionKey, tag);
-    } catch (e) {
-      debugPrint(
-          "⚠️ Background diagram sync failed ($e) — will retry next launch.");
-    }
   }
 
   bool _shouldCheckOnline(SharedPreferences prefs) {
@@ -239,6 +217,39 @@ class SyncService {
 
     await zipFile.delete();
     debugPrint("🎉 Sync Complete!");
+  }
+
+  /// Downloads the release `data.zip` and extracts ONLY the diagrams — the
+  /// question bank is left untouched (used on first launch, where the bundled
+  /// bank is authoritative). Same download/extract primitives as
+  /// [_downloadAndSync], minus the DB re-import.
+  Future<void> _downloadDiagramsOnly(String tag) async {
+    final dir = await getApplicationDocumentsDirectory();
+    final zipPath = "${dir.path}/data.zip";
+    final downloadUrl =
+        "https://github.com/$_repoOwner/$_repoName/releases/download/$tag/data.zip";
+
+    await _dio.download(
+      downloadUrl,
+      zipPath,
+      onReceiveProgress: (received, total) {
+        if (total <= 0) return;
+        final frac = received / total;
+        final mb = (received / 1024 / 1024).toStringAsFixed(1);
+        final totalMb = (total / 1024 / 1024).toStringAsFixed(0);
+        _emit(0.45 + 0.45 * frac, "Downloading diagrams... $mb / $totalMb MB");
+      },
+    );
+
+    final zipFile = File(zipPath);
+    try {
+      _emit(0.92, "Unpacking diagrams...");
+      final imgCount = await DiagramStorage.unpackZipFrom(zipFile);
+      debugPrint("🖼️ First-launch: extracted $imgCount diagram(s).");
+    } catch (e) {
+      debugPrint("⚠️ Diagram extraction failed: $e");
+    }
+    if (await zipFile.exists()) await zipFile.delete();
   }
 
   static String _friendlyName(String filename) {

@@ -54,6 +54,19 @@ void main() {
     expect(bad, isEmpty, reason: 'tabular survives in: ${bad.take(10)}');
   });
 
+  test('no question_latex contains leftover CSS/HTML (Match-List regression guard)', () {
+    final css = RegExp(
+        r'border-collapse|border-spacing|data-theme|\.tg[\s.{]|'
+        r'text-align\s*:|background-color\s*:|font-family\s*:|<style');
+    final bad = <String>[];
+    for (final f in ['assets/neet.json.enc', 'assets/jee.json.enc']) {
+      for (final q in bank(f)) {
+        if (css.hasMatch((q['question_latex'] ?? '') as String)) bad.add('${q['id']}');
+      }
+    }
+    expect(bad, isEmpty, reason: 'raw CSS/HTML leaked into: ${bad.take(10)}');
+  });
+
   // USER-FACING gate: question text + options must render (after sanitize).
   // Baseline after the LaTeX-repair pass: ~62 residual (rendered as readable
   // plain-text fallback, never raw LaTeX). Threshold catches a real regression
