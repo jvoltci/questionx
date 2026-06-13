@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -225,9 +226,39 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
                   style: TextStyle(color: Colors.white),
                 ),
               ),
+              PopupMenuItem(
+                value: 'copy_id',
+                child: Row(
+                  children: [
+                    const Icon(Icons.copy_rounded,
+                        size: 16, color: Colors.white54),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        widget.question.id,
+                        style: const TextStyle(
+                          color: Colors.white54,
+                          fontFamily: 'monospace',
+                          fontSize: 12,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
             onSelected: (val) {
               if (val == 'report') _reportQuestion();
+              if (val == 'copy_id') {
+                Clipboard.setData(ClipboardData(text: widget.question.id));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('ID copied: ${widget.question.id}'),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              }
             },
           ),
         ],

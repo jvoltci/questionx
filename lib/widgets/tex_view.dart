@@ -28,12 +28,21 @@ class TexText extends StatelessWidget {
     s = s.replaceAllMapped(RegExp(r'\\hbox\{([^{}]*)\}'), (m) => '\\text{${m[1]}}');
     s = s.replaceAllMapped(
         RegExp(r'\\operatorname\s*\{([^{}]*)\}'), (m) => '\\mathrm{${m[1]}}');
-    final over = RegExp(r'\{([^{}]*)\\over([^{}]*)\}');
+    // {a \over b} -> \frac{a}{b}. The negative lookahead is critical: without
+    // it, the bare `\over` primitive also matched the `\over` *inside* commands
+    // like \overrightarrow / \overline / \overbrace, turning `{\overrightarrow R }`
+    // into `\frac{}{rightarrow R }` — i.e. a vector rendered as a fraction bar
+    // over the literal text "rightarrowR". `\over` must be a standalone token.
+    final over = RegExp(r'\{([^{}]*)\\over(?![a-zA-Z])([^{}]*)\}');
     for (var i = 0; i < 4 && over.hasMatch(s); i++) {
       s = s.replaceAllMapped(over, (m) => '\\frac{${m[1]}}{${m[2]}}');
     }
     return s;
   }
+
+  /// Test-only access to the sanitizer (it's the part most prone to regressions).
+  @visibleForTesting
+  static String sanitizeForTest(String t) => _sanitize(t);
 
   /// Last-resort readable plain text when a segment still won't parse — far
   /// better than dumping raw red "\sqrt{1+\mu}" at the student.

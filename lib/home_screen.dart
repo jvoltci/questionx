@@ -53,6 +53,13 @@ final filteredQuestionsProvider = FutureProvider.autoDispose<List<Question>>((
   final subject = ref.watch(subjectFilterProvider);
   final search = ref.watch(searchProvider);
 
+  // A pasted question ID (e.g. from a bug report) jumps straight to its
+  // question across ALL exams/subjects — ignoring the current tab — so you can
+  // locate exactly the question a report names. Normal text search is untouched.
+  if (looksLikeQuestionId(search)) {
+    return db.findByIdFragment(search);
+  }
+
   if (exam == null) return [];
 
   return db.searchQuestions(

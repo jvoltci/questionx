@@ -268,6 +268,19 @@ class AppDatabase extends _$AppDatabase {
     return q.get();
   }
 
+  /// Global lookup by question ID — deliberately IGNORES exam/subject scope so a
+  /// question ID pasted from a bug report (e.g. `JEE_Main_2020_Jan07_S2_Phy_22`)
+  /// resolves from any bank, regardless of which tab is open. Substring match so
+  /// a partial ID still narrows down. See [looksLikeQuestionId].
+  Future<List<Question>> findByIdFragment(String fragment, {int limit = 50}) {
+    final f = fragment.trim();
+    final q = select(questions)
+      ..where((t) => t.id.like('%$f%'))
+      ..orderBy([(t) => OrderingTerm(expression: t.id)])
+      ..limit(limit);
+    return q.get();
+  }
+
   /// Wipe the entire questions table. Called at the start of an OTA sync so
   /// that records DROPPED in the new release stop appearing to the user
   /// (insertOrReplace would only touch IDs present in the new payload).
@@ -369,4 +382,17 @@ class QuestionWithAnswer {
   final Question question;
   final SessionAnswer answer;
   QuestionWithAnswer({required this.question, required this.answer});
+}
+
+/// Heuristic: does [term] look like a question ID rather than free-text search?
+/// Every bank ID begins with an exam token + underscore
+/// (`JEE_Main_…`, `JEE_Adv_…`, `NEET_…`, `AIPMT_…`, `CBSE_…`), so we match that
+/// prefix scheme. Used by the home search to switch a pasted ID into a global
+/// [AppDatabase.findByIdFragment] lookup. Kept pure + top-level so it's unit
+/// testable without the DB or widgets.
+bool looksLikeQuestionId(String term) {
+  final t = term.trim().toUpperCase();
+  if (t.isEmpty || t.contains(' ')) return false;
+  const prefixes = ['JEE_MAIN_', 'JEE_ADV_', 'NEET_', 'AIPMT_', 'CBSE_'];
+  return prefixes.any(t.startsWith);
 }
