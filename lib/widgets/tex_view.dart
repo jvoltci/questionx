@@ -37,12 +37,55 @@ class TexText extends StatelessWidget {
     for (var i = 0; i < 4 && over.hasMatch(s); i++) {
       s = s.replaceAllMapped(over, (m) => '\\frac{${m[1]}}{${m[2]}}');
     }
+    // Legacy/plain-TeX constructs flutter_math rejects outright (verified to
+    // recover 177 scraped questions/solutions with zero regressions):
+    //  - \begin{gathered} isn't a known env; \begin{aligned} renders the same
+    //    line-stacked layout (gathered content has no & alignment markers).
+    s = s
+        .replaceAll(r'\begin{gathered}', r'\begin{aligned}')
+        .replaceAll(r'\end{gathered}', r'\end{aligned}');
+    //  - \limits/\nolimits are positioning hints flutter_math can't take here
+    //    (and the data often misplaces them, e.g. \int_\limits0).
+    s = s.replaceAll(RegExp(r'\\(no)?limits(?![a-zA-Z])'), '');
+    //  - \tag{..} (equation numbering) is unsupported and purely decorative.
+    s = s.replaceAll(RegExp(r'\\tag\s*\{[^{}]*\}'), '');
+    //  - symbol aliases flutter_math lacks.
+    s = s.replaceAll(RegExp(r'\\AA(?![a-zA-Z])'), 'Å');
+    s = s.replaceAll(RegExp(r'\\cdotp(?![a-zA-Z])'), r'\cdot');
+    //  - plain-TeX \matrix{..} → the \begin{matrix}..\end{matrix} form.
+    s = _convertMatrix(s);
     return s;
   }
 
   /// Test-only access to the sanitizer (it's the part most prone to regressions).
   @visibleForTesting
   static String sanitizeForTest(String t) => _sanitize(t);
+
+  /// Plain-TeX `\matrix{..}` / `\pmatrix` / `\bmatrix` → the `\begin{env}..\end{env}`
+  /// form flutter_math understands. Brace-depth matched because a regex can't
+  /// balance the nested `{}` inside matrix cells.
+  static String _convertMatrix(String s) {
+    for (final name in const ['pmatrix', 'bmatrix', 'matrix']) {
+      final open = RegExp('\\\\$name\\s*\\{');
+      for (var guard = 0; guard < 50; guard++) {
+        final m = open.firstMatch(s);
+        if (m == null) break;
+        var depth = 1, i = m.end;
+        while (i < s.length && depth > 0) {
+          if (s[i] == '{') {
+            depth++;
+          } else if (s[i] == '}') {
+            depth--;
+          }
+          i++;
+        }
+        final inner = s.substring(m.end, i - 1);
+        s = '${s.substring(0, m.start)}\\begin{$name}$inner\\end{$name}'
+            '${s.substring(i)}';
+      }
+    }
+    return s;
+  }
 
   /// Last-resort readable plain text when a segment still won't parse — far
   /// better than dumping raw red "\sqrt{1+\mu}" at the student.

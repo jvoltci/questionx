@@ -33,4 +33,26 @@ void main() {
       expect(out, isNot(contains(r'\over ')));
     });
   });
+
+  group('TexText._sanitize legacy-TeX recovery', () {
+    test('gathered -> aligned', () {
+      final out = TexText.sanitizeForTest(r'\begin{gathered}a\\b\end{gathered}');
+      expect(out, contains(r'\begin{aligned}'));
+      expect(out, isNot(contains('gathered')));
+    });
+
+    test('plain-TeX \\matrix{..} -> \\begin{matrix}..\\end{matrix}', () {
+      final out = TexText.sanitizeForTest(r'\matrix{1 & 2 \cr 3 & 4}');
+      expect(out, contains(r'\begin{matrix}'));
+      expect(out, contains(r'\end{matrix}'));
+      expect(out, isNot(contains(r'\matrix{')));
+    });
+
+    test('strips \\limits / \\tag, maps \\AA and \\cdotp', () {
+      expect(TexText.sanitizeForTest(r'\int_\limits0^1'), isNot(contains(r'\limits')));
+      expect(TexText.sanitizeForTest(r'x=1\tag{3}'), isNot(contains(r'\tag')));
+      expect(TexText.sanitizeForTest(r'\text{5 \AA}'), contains('Å'));
+      expect(TexText.sanitizeForTest(r'a\cdotp b'), contains(r'\cdot'));
+    });
+  });
 }

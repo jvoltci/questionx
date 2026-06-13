@@ -4,27 +4,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_math_fork/src/parser/tex/parser.dart';
 import 'package:flutter_math_fork/src/parser/tex/settings.dart';
 import 'package:questionx/utils/crypto.dart';
+import 'package:questionx/widgets/tex_view.dart';
 
 /// Render-safety net for QuestionX. Validates the SHIPPED (encrypted) banks the
 /// same way TexText does — sanitize() then Math.tex/TexParser — and gates the
 /// user-facing breakage so the "raw \sqrt in the question" regression can't
 /// silently return. (QuestionX shipped with zero tests; this is the floor.)
 
-// Mirror of TexText._sanitize — keep in sync.
-String sanitize(String t) {
-  var s = t;
-  s = s.replaceAll(r'\n', ' ');
-  s = s.replaceAll(RegExp(r'\\(displaystyle|scriptstyle|textstyle|scriptscriptstyle)\b'), '');
-  s = s.replaceAll(RegExp(r'\\(raise|lower)[0-9.]+ex'), '');
-  s = s.replaceAll(RegExp(r'\\kern-?[0-9.]+em'), '');
-  s = s.replaceAllMapped(RegExp(r'\\hbox\{([^{}]*)\}'), (m) => '\\text{${m[1]}}');
-  s = s.replaceAllMapped(RegExp(r'\\operatorname\s*\{([^{}]*)\}'), (m) => '\\mathrm{${m[1]}}');
-  final over = RegExp(r'\{([^{}]*)\\over([^{}]*)\}');
-  for (var i = 0; i < 4 && over.hasMatch(s); i++) {
-    s = s.replaceAllMapped(over, (m) => '\\frac{${m[1]}}{${m[2]}}');
-  }
-  return s;
-}
+// Use the REAL sanitizer (no mirror to drift out of sync).
+String sanitize(String t) => TexText.sanitizeForTest(t);
 
 void main() {
   final mathPattern = RegExp(r'\$\$(.+?)\$\$|\$(.+?)\$', dotAll: true);
@@ -68,9 +56,10 @@ void main() {
   });
 
   // USER-FACING gate: question text + options must render (after sanitize).
-  // Baseline after the LaTeX-repair pass: ~62 residual (rendered as readable
-  // plain-text fallback, never raw LaTeX). Threshold catches a real regression
-  // (e.g. a bad re-sync) without flapping on the known residual.
+  // Residual = 17 after the sanitizer pass added \over-lookahead + gathered/
+  // \matrix/\limits/\tag/\AA/\cdotp handling (was ~62). The rest are genuinely
+  // truncated/garbled source (e.g. a bare "\left") that degrade to readable
+  // plain text. Threshold catches a real regression without flapping.
   test('user-facing (question + options) render breakage stays bounded', () {
     int broken = 0;
     final ex = <String>[];
@@ -86,14 +75,14 @@ void main() {
     }
     // ignore: avoid_print
     print('user-facing broken question/option render: $broken (residual -> readable fallback)');
-    expect(broken, lessThanOrEqualTo(80), reason: 'regression; examples: $ex');
+    expect(broken, lessThanOrEqualTo(25), reason: 'regression; examples: $ex');
   });
 
   // SOLUTION (reveal screen) gate. Solutions render via the same TexText path;
-  // unparseable ones degrade to readable plain text (never raw LaTeX). Baseline
-  // after the first verified solution-repair wave (470 applied): residual sits
-  // ~720, dropping further once the remaining slices are resumed. Bound catches
-  // a bad re-sync without flapping on the known residual.
+  // unparseable ones degrade to readable plain text (never raw LaTeX). Residual
+  // = 64 after the sanitizer pass (was ~284); the rest are genuinely garbled
+  // source (truncated envs, stray $, mhchem \ce, etc.). Bound catches a bad
+  // re-sync without flapping on the known residual.
   test('solution render breakage stays bounded (fallback covers the rest)', () {
     int broken = 0;
     for (final f in ['assets/neet.json.enc', 'assets/jee.json.enc']) {
@@ -104,6 +93,6 @@ void main() {
     }
     // ignore: avoid_print
     print('solution render breakage: $broken (residual -> readable fallback)');
-    expect(broken, lessThanOrEqualTo(290), reason: 'solution regression');
+    expect(broken, lessThanOrEqualTo(75), reason: 'solution regression');
   });
 }
