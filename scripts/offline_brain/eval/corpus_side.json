@@ -31640,8 +31640,8 @@
     "id": "AIPMT_2013_Bio_152",
     "question_number": 152,
     "exam": "AIPMT",
-    "question_latex": "Which of the following correctly identifies a structure of the human urinary system together with its characteristic and/or function?",
-    "question_svg": null,
+    "question_latex": "Figure shows human urinary system with structures labelled A to D. Select option which correctly identifies them and gives their characteristics and/ or functions",
+    "question_svg": "AIPMT_2013_Bio_152.jpg",
     "options": [
       "A-Adrenal gland-located at the anterior part of Kidney. Secrete Catecholamines which stimulate glycogen breakdown",
       "B-Pelvis-broad funnel shaped space inner to hilum, directly connected to loops of Henle.",
