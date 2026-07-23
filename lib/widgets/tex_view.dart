@@ -7,14 +7,107 @@ class TexText extends StatelessWidget {
   final TextStyle? style;
   final Color textColor;
 
+  /// Set to false to disable the double-tap → fullscreen zoom gesture
+  /// (used internally by the fullscreen view to prevent recursion).
+  final bool enableFullscreen;
+
   const TexText(
     this.text, {
     super.key,
     this.style,
     this.textColor = Colors.white,
+    this.enableFullscreen = true,
   });
 
   static final _mathPattern = RegExp(r'\$\$(.+?)\$\$|\$(.+?)\$', dotAll: true);
+
+  // ---------------------------------------------------------------------------
+  // Chemistry reaction merger
+  // ---------------------------------------------------------------------------
+
+  /// Pre-process text to merge fragmented chemical-reaction lines into single
+  /// display-math blocks and collapse excessive newlines.
+  ///
+  /// Scraped chemistry data often stores reactions like:
+  ///   `M(s) + $${1\over2}$$ $O_2(g)$ $$\to$$ MO(s)`
+  /// creating 7+ alternating Wrap children with mixed fonts/sizing.
+  /// This collapses each such line into one `$$...$$` display block.
+  @visibleForTesting
+  static String mergeChemReactions(String input) {
+    // Collapse \n\n+ → \n for compact rendering on small screens.
+    var s = input.replaceAll(RegExp(r'\n{2,}'), '\n');
+
+    final lines = s.split('\n');
+    final out = <String>[];
+    for (final line in lines) {
+      if (_isFragmentedReaction(line)) {
+        out.add(_mergeReactionLine(line));
+      } else {
+        out.add(line);
+      }
+    }
+    return out.join('\n');
+  }
+
+  /// A line is a "fragmented reaction" if it has a math-wrapped arrow AND
+  /// chemical notation AND enough segments that merging improves rendering.
+  static bool _isFragmentedReaction(String line) {
+    // Must have a reaction arrow inside math delimiters.
+    if (!RegExp(r'\$\$\s*\\(?:to|rightarrow)\s*\$\$').hasMatch(line)) {
+      return false;
+    }
+    // Must show chemical notation: state symbols, subscripts, or ion charges.
+    if (!RegExp(r'\([slg]\)|\(aq\)|_\{|\^\{[0-9]*[+-]').hasMatch(line)) {
+      return false;
+    }
+    // Must have ≥ 4 non-empty segments to benefit from merging.
+    int count = 0;
+    int last = 0;
+    for (final m in _mathPattern.allMatches(line)) {
+      if (m.start > last && line.substring(last, m.start).trim().isNotEmpty) {
+        count++;
+      }
+      count++;
+      last = m.end;
+    }
+    if (last < line.length && line.substring(last).trim().isNotEmpty) count++;
+    return count >= 4;
+  }
+
+  /// Merge all segments on a reaction line into a single `$$...$$` block.
+  /// Plain text → `\text{...}`, math → unwrapped raw TeX.
+  static String _mergeReactionLine(String line) {
+    final buf = StringBuffer();
+    int last = 0;
+    for (final m in _mathPattern.allMatches(line)) {
+      if (m.start > last) {
+        final plain = line.substring(last, m.start);
+        if (plain.trim().isNotEmpty) {
+          buf.write('\\text{${_texEscape(plain)}}');
+        }
+      }
+      // Unwrap: group(1) is display $$..$$, group(2) is inline $..$
+      final tex = (m.group(1) ?? m.group(2) ?? '').trim();
+      if (tex.isNotEmpty) buf.write(' $tex ');
+      last = m.end;
+    }
+    if (last < line.length) {
+      final tail = line.substring(last);
+      if (tail.trim().isNotEmpty) {
+        buf.write('\\text{${_texEscape(tail)}}');
+      }
+    }
+    return '\$\$$buf\$\$';
+  }
+
+  /// Escape characters with special meaning inside LaTeX `\text{...}`.
+  static String _texEscape(String s) {
+    return s.replaceAll('{', r'\{').replaceAll('}', r'\}');
+  }
+
+  // ---------------------------------------------------------------------------
+  // LaTeX sanitizer
+  // ---------------------------------------------------------------------------
 
   /// Convert the legacy-TeX constructs flutter_math (KaTeX subset) can't parse
   /// into supported equivalents, so scraped MathType/Word LaTeX still renders.
@@ -110,16 +203,24 @@ class TexText extends StatelessWidget {
     return s;
   }
 
+  // ---------------------------------------------------------------------------
+  // Build
+  // ---------------------------------------------------------------------------
+
   @override
   Widget build(BuildContext context) {
     final TextStyle baseStyle =
         style ?? GoogleFonts.inter(color: textColor, fontSize: 15, height: 1.6);
 
+    // Pre-process: merge fragmented chemistry reactions into single math blocks
+    // and collapse excessive newlines.
+    final processed = mergeChemReactions(text);
+
     final widgets = <Widget>[];
     int last = 0;
-    for (final m in _mathPattern.allMatches(text)) {
+    for (final m in _mathPattern.allMatches(processed)) {
       if (m.start > last) {
-        final plain = text.substring(last, m.start);
+        final plain = processed.substring(last, m.start);
         if (plain.isNotEmpty) widgets.add(Text(plain, style: baseStyle));
       }
       final isDisplay = m.group(1) != null;
@@ -127,18 +228,29 @@ class TexText extends StatelessWidget {
       if (tex.isNotEmpty) widgets.add(_mathBox(tex, baseStyle, isDisplay));
       last = m.end;
     }
-    if (last < text.length) {
-      final tail = text.substring(last);
+    if (last < processed.length) {
+      final tail = processed.substring(last);
       if (tail.isNotEmpty) widgets.add(Text(tail, style: baseStyle));
     }
 
-    return Wrap(
+    Widget content = Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       alignment: WrapAlignment.start,
       runSpacing: 6,
       spacing: 4,
       children: widgets,
     );
+
+    // Double-tap opens a fullscreen, pinch-to-zoom view of the content.
+    if (enableFullscreen) {
+      content = GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onDoubleTap: () => _showFullscreen(context, processed, baseStyle),
+        child: content,
+      );
+    }
+
+    return content;
   }
 
   Widget _mathBox(String tex, TextStyle baseStyle, bool isDisplay) {
@@ -155,6 +267,118 @@ class TexText extends StatelessWidget {
           // Never dump raw LaTeX at the student: degrade to readable plain text.
           onErrorFallback: (err) => Text(_plainFallback(tex), style: baseStyle),
         ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fullscreen zoom
+  // ---------------------------------------------------------------------------
+
+  void _showFullscreen(
+      BuildContext context, String processedText, TextStyle baseStyle) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierDismissible: true,
+        barrierColor: const Color(0xE6000000), // ~90% black
+        pageBuilder: (ctx, _, __) => _TexFullscreenView(
+          text: processedText,
+          baseStyle: baseStyle,
+        ),
+        transitionsBuilder: (ctx, animation, _, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
+  }
+}
+
+/// Fullscreen overlay with pinch-to-zoom for equation / question text.
+class _TexFullscreenView extends StatelessWidget {
+  final String text;
+  final TextStyle baseStyle;
+
+  const _TexFullscreenView({required this.text, required this.baseStyle});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xF2080E1C), // 95% opacity dark blue
+      body: Stack(
+        children: [
+          // Zoomable content
+          Center(
+            child: InteractiveViewer(
+              minScale: 0.5,
+              maxScale: 5.0,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 80),
+                child: TexText(
+                  text,
+                  style: baseStyle.copyWith(
+                    fontSize: 20,
+                    color: Colors.white,
+                    height: 1.8,
+                  ),
+                  textColor: Colors.white,
+                  enableFullscreen: false, // prevent recursion
+                ),
+              ),
+            ),
+          ),
+
+          // Close button
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1E293B),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.close_rounded,
+                        color: Colors.white70, size: 24),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+          // Hint
+          SafeArea(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 28),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: const Color(0x33FFFFFF),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.pinch_rounded, color: Colors.white54, size: 16),
+                      SizedBox(width: 6),
+                      Text(
+                        'Pinch to zoom',
+                        style: TextStyle(color: Colors.white54, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
