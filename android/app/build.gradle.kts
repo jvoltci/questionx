@@ -58,6 +58,12 @@ android {
         }
     }
 
+    packaging {
+        jniLibs {
+            doNotStrip.add("**/*.so")
+        }
+    }
+
     buildTypes {
         release {
             // Never silently fall back to the debug key for a release build.
