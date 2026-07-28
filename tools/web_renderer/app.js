@@ -2,7 +2,7 @@
 (function () {
   const P = window.QXPipeline;
   const C = window.QXCrypto;
-  const PAGE_SIZE = 100;
+  const PAGE_SIZE = 20;
   const GITHUB_OWNER = 'jvoltci';
   const GITHUB_REPO = 'questionx';
   const FLAG_KEY = 'qx_flags_v1';
