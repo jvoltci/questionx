@@ -36,7 +36,7 @@ def needs_reformat(text):
     """True if the text has raw table structure that needs reformatting."""
     if not is_match_list(text):
         return False
-    return bool(re.search(r'\n\s*\(a\)', text) and re.search(r'\(i\)', text))
+    return bool(re.search(r'\n\s*\(a\)', text, re.IGNORECASE) and re.search(r'\(i\)', text, re.IGNORECASE))
 
 
 def reformat_match_list(text):
