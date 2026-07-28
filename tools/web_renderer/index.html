@@ -101,6 +101,7 @@
   <div class="titlerow">
     <h1>QuestionX · render check</h1>
     <span id="status">starting…</span>
+    <button id="hard-refresh" style="margin-left:auto;font-size:11px;padding:4px 10px;background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#FCA5A5" onclick="caches.keys().then(k=>Promise.all(k.map(c=>caches.delete(c)))).finally(()=>location.reload(true))">🔄 hard refresh</button>
   </div>
   <div id="release-info" class="release-info" style="display:none">checking release…</div>
   <div id="parity" class="parity">running parity self-test…</div>
