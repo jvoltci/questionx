@@ -6,6 +6,7 @@
   const GITHUB_OWNER = 'jvoltci';
   const GITHUB_REPO = 'questionx';
   const FLAG_KEY = 'qx_flags_v1';
+  const BOOKMARK_KEY = 'qx_bookmark_v1';
 
   // Try diagram images from multiple paths (first hit wins).
   const DIAGRAM_PATHS = [
@@ -307,6 +308,82 @@
     const old = btn.textContent; btn.textContent = 'copied ✓'; setTimeout(() => btn.textContent = old, 1200);
   }
 
+  // ---- bookmark / resume ----
+  function saveBookmark() {
+    const bm = {
+      filters: {
+        exam: $('f-exam').value,
+        subject: $('f-subject').value,
+        year: $('f-year').value,
+        search: $('f-search').value,
+        flagged: $('f-flagged').checked,
+        diagram: $('f-diagram').checked,
+        solDiagram: $('f-sol-diagram').checked,
+      },
+      page: state.page,
+      scrollY: window.scrollY,
+      savedAt: new Date().toISOString(),
+    };
+    localStorage.setItem(BOOKMARK_KEY, JSON.stringify(bm));
+    const btn = $('bm-save');
+    const old = btn.textContent;
+    btn.textContent = '✓ saved';
+    setTimeout(() => btn.textContent = old, 1500);
+    updateBookmarkBar();
+  }
+
+  function restoreBookmark() {
+    const raw = localStorage.getItem(BOOKMARK_KEY);
+    if (!raw) return false;
+    try {
+      const bm = JSON.parse(raw);
+      if (bm.filters) {
+        $('f-exam').value = bm.filters.exam || '';
+        $('f-subject').value = bm.filters.subject || '';
+        $('f-year').value = bm.filters.year || '';
+        $('f-search').value = bm.filters.search || '';
+        $('f-flagged').checked = !!bm.filters.flagged;
+        $('f-diagram').checked = !!bm.filters.diagram;
+        $('f-sol-diagram').checked = !!bm.filters.solDiagram;
+      }
+      applyFilters();
+      if (typeof bm.page === 'number') {
+        state.page = bm.page;
+        render();
+      }
+      if (typeof bm.scrollY === 'number') {
+        setTimeout(() => window.scrollTo(0, bm.scrollY), 100);
+      }
+      return true;
+    } catch (e) {
+      console.warn('Bookmark restore failed:', e);
+      return false;
+    }
+  }
+
+  function clearBookmark() {
+    localStorage.removeItem(BOOKMARK_KEY);
+    updateBookmarkBar();
+  }
+
+  function updateBookmarkBar() {
+    const raw = localStorage.getItem(BOOKMARK_KEY);
+    const info = $('bm-info');
+    if (raw) {
+      try {
+        const bm = JSON.parse(raw);
+        const when = new Date(bm.savedAt).toLocaleString('en-IN', {
+          day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+        });
+        const filterDesc = [bm.filters.exam, bm.filters.subject, bm.filters.year]
+          .filter(Boolean).join(' / ') || 'all';
+        info.textContent = `📌 ${filterDesc} · p${(bm.page || 0) + 1} · ${when}`;
+      } catch { info.textContent = '📌 saved'; }
+    } else {
+      info.textContent = 'no bookmark';
+    }
+  }
+
   // ---- wire up ----
   window.addEventListener('DOMContentLoaded', () => {
     showParity();
@@ -318,6 +395,16 @@
     $('copy-ids').onclick = (e) => copyText([...state.flags].join('\n'), e.target);
     $('copy-json').onclick = (e) => copyText(JSON.stringify([...state.flags].map((id) => state.byId.get(id)).filter(Boolean), null, 2), e.target);
     $('clear-flags').onclick = () => { if (confirm('Clear all ' + state.flags.size + ' flags?')) { state.flags.clear(); localStorage.setItem(FLAG_KEY, '[]'); renderFlagBar(); applyFilters(); } };
-    load().catch((e) => { $('status').textContent = 'ERROR: ' + e.message + ' — did you start serve.sh from the repo root?'; });
+    // Bookmark buttons
+    $('bm-save').onclick = saveBookmark;
+    $('bm-restore').onclick = restoreBookmark;
+    $('bm-clear').onclick = clearBookmark;
+    updateBookmarkBar();
+    // Load data, then auto-restore bookmark if one exists
+    load().then(() => {
+      if (localStorage.getItem(BOOKMARK_KEY)) {
+        restoreBookmark();
+      }
+    }).catch((e) => { $('status').textContent = 'ERROR: ' + e.message + ' — did you start serve.sh from the repo root?'; });
   });
 })();
