@@ -88,6 +88,12 @@
     background:var(--card);border:1px solid var(--warn);border-radius:12px;padding:8px 12px;
     box-shadow:0 8px 24px rgba(0,0,0,.5)}
   #flagbar .n{font-weight:700;color:#FCD34D}
+
+  #bookmarkbar{position:fixed;left:16px;bottom:16px;z-index:20;display:flex;gap:8px;align-items:center;
+    background:var(--card);border:1px solid var(--accent);border-radius:12px;padding:8px 12px;
+    box-shadow:0 8px 24px rgba(0,0,0,.5);font-size:13px}
+  #bookmarkbar button{font-size:12px;padding:4px 10px}
+  #bm-info{color:var(--muted);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -121,6 +127,13 @@
   <button id="copy-ids">copy IDs</button>
   <button id="copy-json">copy JSON</button>
   <button id="clear-flags">clear</button>
+</div>
+
+<div id="bookmarkbar">
+  <button id="bm-save">📌 save position</button>
+  <button id="bm-restore">↩ resume</button>
+  <span id="bm-info">no bookmark</span>
+  <button id="bm-clear" style="font-size:11px;padding:3px 6px;opacity:.6">✕</button>
 </div>
 
 <script src="crypto.js"></script>
