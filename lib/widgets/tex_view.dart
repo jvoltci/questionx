@@ -210,13 +210,25 @@ class TexText extends StatelessWidget {
   /// Pattern: lines containing ` | ` that represent match-list table rows.
   static final _pipeRow = RegExp(r'\s+\|\s+');
 
-  /// True if `line` is a match-list table row like "(a) desc  |  (i) desc".
   static bool _isTableRow(String line) {
     final trimmed = line.trim();
     if (!_pipeRow.hasMatch(trimmed)) return false;
-    // Must start with a label marker or be the header row
-    return RegExp(r'^\([a-eA-E]\)\s|^List|^Column', caseSensitive: false)
-        .hasMatch(trimmed);
+    
+    // Fast path: standard match-list labels
+    if (RegExp(r'^\([a-eA-E]\)\s|^List|^Column', caseSensitive: false).hasMatch(trimmed)) {
+      return true;
+    }
+    
+    // Check if it's a data row (e.g. "0 | 0 | 0" or "22.2 cm | 32.2 cm")
+    // A row is valid if ALL of its pipe-separated parts are short (< 50 chars)
+    final parts = trimmed.split(_pipeRow);
+    if (parts.length >= 2) {
+      if (parts.every((p) => p.trim().length <= 50)) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   /// Render a single cell's content (may contain LaTeX math).
