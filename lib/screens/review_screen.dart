@@ -228,6 +228,14 @@ class _ReviewCard extends StatelessWidget {
             q.solution ?? "No explanation.",
             style: const TextStyle(color: Colors.white70, fontSize: 13),
           ),
+          if (q.solutionSvg != null) ...[
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => QuestionDiagram.openFullscreen(
+                  context, q.solutionSvg!),
+              child: QuestionDiagram(value: q.solutionSvg!),
+            ),
+          ],
         ]);
   }
 

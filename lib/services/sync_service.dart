@@ -329,6 +329,7 @@ class SyncService {
             optionsJson: jsonEncode(q['options']),
             answerKey: drift.Value(q['answer_key']),
             solution: drift.Value(q['solution']),
+            solutionSvg: drift.Value(q['solution_svg']),
           ),
           mode: drift.InsertMode.insertOrReplace,
         );

@@ -594,6 +594,16 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
               height: 1.6,
             ),
           ),
+          if (widget.question.solutionSvg != null) ...[
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () => QuestionDiagram.openFullscreen(
+                  context, widget.question.solutionSvg!),
+              child: QuestionDiagram(
+                value: widget.question.solutionSvg!,
+              ),
+            ),
+          ],
         ],
       ),
     );

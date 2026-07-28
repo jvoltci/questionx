@@ -20,6 +20,7 @@ class Questions extends Table {
   TextColumn get optionsJson => text()();
   TextColumn get answerKey => text().nullable()();
   TextColumn get solution => text().nullable()();
+  TextColumn get solutionSvg => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -57,7 +58,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -85,6 +86,9 @@ class AppDatabase extends _$AppDatabase {
             "CREATE INDEX questions_index ON questions (exam_name, subject, topic)",
           ),
         );
+      }
+      if (from < 6) {
+        await m.addColumn(questions, questions.solutionSvg);
       }
     },
   );
