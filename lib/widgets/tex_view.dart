@@ -204,6 +204,109 @@ class TexText extends StatelessWidget {
   }
 
   // ---------------------------------------------------------------------------
+  // Match-list table detection
+  // ---------------------------------------------------------------------------
+
+  /// Pattern: lines containing ` | ` that represent match-list table rows.
+  static final _pipeRow = RegExp(r'\s+\|\s+');
+
+  /// True if `line` is a match-list table row like "(a) desc  |  (i) desc".
+  static bool _isTableRow(String line) {
+    final trimmed = line.trim();
+    if (!_pipeRow.hasMatch(trimmed)) return false;
+    // Must start with a label marker or be the header row
+    return RegExp(r'^\([a-eA-E]\)\s|^List|^Column', caseSensitive: false)
+        .hasMatch(trimmed);
+  }
+
+  /// Render a single cell's content (may contain LaTeX math).
+  Widget _buildCell(String cellText, TextStyle baseStyle) {
+    final trimmed = cellText.trim();
+    if (trimmed.isEmpty) return const SizedBox.shrink();
+
+    final cellWidgets = <Widget>[];
+    int last = 0;
+    for (final m in _mathPattern.allMatches(trimmed)) {
+      if (m.start > last) {
+        final plain = trimmed.substring(last, m.start);
+        if (plain.isNotEmpty) cellWidgets.add(Text(plain, style: baseStyle));
+      }
+      final isDisplay = m.group(1) != null;
+      final tex = (m.group(1) ?? m.group(2) ?? '').trim();
+      if (tex.isNotEmpty) cellWidgets.add(_mathBox(tex, baseStyle, isDisplay));
+      last = m.end;
+    }
+    if (last < trimmed.length) {
+      final tail = trimmed.substring(last);
+      if (tail.isNotEmpty) cellWidgets.add(Text(tail, style: baseStyle));
+    }
+
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 4,
+      runSpacing: 4,
+      children: cellWidgets,
+    );
+  }
+
+  /// Build the match-list as a styled table widget.
+  Widget _buildMatchTable(
+      List<String> tableLines, TextStyle baseStyle, BuildContext context) {
+    const headerBg = Color(0xFF1E293B);
+    const rowBg = Color(0xFF0F172A);
+    const borderColor = Color(0xFF334155);
+    final labelStyle = baseStyle.copyWith(
+      fontWeight: FontWeight.w600,
+      color: const Color(0xFF94A3B8),
+      fontSize: 12,
+    );
+
+    final rows = <TableRow>[];
+    for (var i = 0; i < tableLines.length; i++) {
+      final parts = tableLines[i].split(_pipeRow);
+      if (parts.length < 2) continue;
+
+      final isHeader = tableLines[i].trim().startsWith(RegExp(r'List|Column', caseSensitive: false));
+      final bg = isHeader ? headerBg : rowBg;
+      final cellStyle = isHeader ? labelStyle : baseStyle;
+
+      rows.add(TableRow(
+        decoration: BoxDecoration(
+          color: bg,
+          border: Border(
+            bottom: BorderSide(color: borderColor, width: 0.5),
+          ),
+        ),
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: _buildCell(parts[0], cellStyle),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            child: _buildCell(parts[1], cellStyle),
+          ),
+        ],
+      ));
+    }
+
+    if (rows.isEmpty) return const SizedBox.shrink();
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Table(
+        border: TableBorder.all(color: borderColor, width: 0.5),
+        columnWidths: const {
+          0: FlexColumnWidth(1),
+          1: FlexColumnWidth(1),
+        },
+        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+        children: rows,
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Build
   // ---------------------------------------------------------------------------
 
@@ -216,6 +319,69 @@ class TexText extends StatelessWidget {
     // and collapse excessive newlines.
     final processed = mergeChemReactions(text);
 
+    // Check if this text contains a match-list table (lines with | separator).
+    final lines = processed.split('\n');
+    final hasTable = lines.any(_isTableRow);
+
+    Widget content;
+    if (hasTable) {
+      // Split into segments: normal text and table rows.
+      final segments = <Widget>[];
+      final normalBuffer = <String>[];
+      final tableBuffer = <String>[];
+
+      void flushNormal() {
+        if (normalBuffer.isEmpty) return;
+        final text = normalBuffer.join('\n').trim();
+        if (text.isNotEmpty) {
+          segments.add(_buildInlineContent(text, baseStyle));
+        }
+        normalBuffer.clear();
+      }
+
+      void flushTable() {
+        if (tableBuffer.isEmpty) return;
+        segments.add(Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: _buildMatchTable(tableBuffer, baseStyle, context),
+        ));
+        tableBuffer.clear();
+      }
+
+      for (final line in lines) {
+        if (_isTableRow(line)) {
+          flushNormal();
+          tableBuffer.add(line);
+        } else {
+          flushTable();
+          normalBuffer.add(line);
+        }
+      }
+      flushNormal();
+      flushTable();
+
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: segments,
+      );
+    } else {
+      content = _buildInlineContent(processed, baseStyle);
+    }
+
+    // Double-tap opens a fullscreen, pinch-to-zoom view of the content.
+    if (enableFullscreen) {
+      content = GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onDoubleTap: () => _showFullscreen(context, processed, baseStyle),
+        child: content,
+      );
+    }
+
+    return content;
+  }
+
+  /// Build standard inline content (text + math in a Wrap).
+  Widget _buildInlineContent(String processed, TextStyle baseStyle) {
     final widgets = <Widget>[];
     int last = 0;
     for (final m in _mathPattern.allMatches(processed)) {
@@ -233,24 +399,13 @@ class TexText extends StatelessWidget {
       if (tail.isNotEmpty) widgets.add(Text(tail, style: baseStyle));
     }
 
-    Widget content = Wrap(
+    return Wrap(
       crossAxisAlignment: WrapCrossAlignment.center,
       alignment: WrapAlignment.start,
       runSpacing: 6,
       spacing: 4,
       children: widgets,
     );
-
-    // Double-tap opens a fullscreen, pinch-to-zoom view of the content.
-    if (enableFullscreen) {
-      content = GestureDetector(
-        behavior: HitTestBehavior.translucent,
-        onDoubleTap: () => _showFullscreen(context, processed, baseStyle),
-        child: content,
-      );
-    }
-
-    return content;
   }
 
   Widget _mathBox(String tex, TextStyle baseStyle, bool isDisplay) {
