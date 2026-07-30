@@ -58,18 +58,29 @@ android {
         }
     }
 
-    packaging {
-        jniLibs {
-            doNotStrip.add("**/*.so")
-        }
-    }
-
     buildTypes {
         release {
             // Never silently fall back to the debug key for a release build.
             // If key.properties is absent the release stays UNSIGNED (Play / install
             // will reject it) instead of shipping a debug-signed "release".
             signingConfig = signingConfigs.findByName("release")
+
+            ndk {
+                // Flutter ships libflutter.so UNSTRIPPED (~140 MB per ABI) and
+                // relies on AGP to strip the copy that ships and move the symbols
+                // into BUNDLE-METADATA as libflutter.so.sym. AGP only extracts
+                // those symbols when a debugSymbolLevel is declared, and
+                // `flutter build appbundle` looks for exactly that file to decide
+                // whether stripping succeeded.
+                //
+                // Do NOT "fix" a strip warning with
+                // `packaging { jniLibs { doNotStrip.add("**/*.so") } }` — that was
+                // tried in da8e9bc and does the opposite of what is wanted: it
+                // keeps every debug symbol in the shipped AAB (147 MB, arm64
+                // libflutter.so reporting "with debug_info, not stripped") while
+                // still producing no .sym, so the check fails anyway.
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
         }
     }
 }
