@@ -620,10 +620,13 @@ class _WeightageChip extends StatelessWidget {
     final (label, icon, color) = switch (tier) {
       WeightageTier.high =>
         ("HIGH YIELD", Icons.local_fire_department, const Color(0xFFEF4444)),
+      // "YIELD" must stay in every label: this chip shows topic exam-weightage
+      // and sits directly under the difficulty badge, so a bare "MEDIUM"/"LOW"
+      // reads as difficulty and contradicts an "Easy" question.
       WeightageTier.medium =>
-        ("MEDIUM", Icons.flash_on, const Color(0xFFF59E0B)),
+        ("MEDIUM YIELD", Icons.flash_on, const Color(0xFFF59E0B)),
       WeightageTier.low =>
-        ("LOW", Icons.remove_circle_outline, const Color(0xFF64748B)),
+        ("LOW YIELD", Icons.remove_circle_outline, const Color(0xFF64748B)),
       WeightageTier.unknown => ("", Icons.help_outline, Colors.transparent),
     };
     return Container(
