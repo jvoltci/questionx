@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'tex_normalize.dart';
+
 class TexText extends StatelessWidget {
   final String text;
   final TextStyle? style;
@@ -34,8 +36,14 @@ class TexText extends StatelessWidget {
   /// This collapses each such line into one `$$...$$` display block.
   @visibleForTesting
   static String mergeChemReactions(String input) {
+    // Repair malformed source LaTeX before anything else looks at the
+    // delimiters: stray `$` runs from the scrape would otherwise let a math span
+    // swallow the surrounding prose. Doing this at render time (rather than as a
+    // migration over assets/*.json) means any bank added or re-scraped later is
+    // fixed automatically — see lib/widgets/tex_normalize.dart.
+    var s = normalizeForRender(input);
     // Collapse \n\n+ → \n for compact rendering on small screens.
-    var s = input.replaceAll(RegExp(r'\n{2,}'), '\n');
+    s = s.replaceAll(RegExp(r'\n{2,}'), '\n');
 
     final lines = s.split('\n');
     final out = <String>[];
@@ -235,30 +243,7 @@ class TexText extends StatelessWidget {
   Widget _buildCell(String cellText, TextStyle baseStyle) {
     final trimmed = cellText.trim();
     if (trimmed.isEmpty) return const SizedBox.shrink();
-
-    final cellWidgets = <Widget>[];
-    int last = 0;
-    for (final m in _mathPattern.allMatches(trimmed)) {
-      if (m.start > last) {
-        final plain = trimmed.substring(last, m.start);
-        if (plain.isNotEmpty) cellWidgets.add(Text(plain, style: baseStyle));
-      }
-      final isDisplay = m.group(1) != null;
-      final tex = (m.group(1) ?? m.group(2) ?? '').trim();
-      if (tex.isNotEmpty) cellWidgets.add(_mathBox(tex, baseStyle, isDisplay));
-      last = m.end;
-    }
-    if (last < trimmed.length) {
-      final tail = trimmed.substring(last);
-      if (tail.isNotEmpty) cellWidgets.add(Text(tail, style: baseStyle));
-    }
-
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 4,
-      runSpacing: 4,
-      children: cellWidgets,
-    );
+    return _buildInlineContent(trimmed, baseStyle);
   }
 
   /// Build the match-list as a styled table widget.
@@ -392,46 +377,103 @@ class TexText extends StatelessWidget {
     return content;
   }
 
-  /// Build standard inline content (text + math in a Wrap).
+  /// True when a math segment is a standalone equation that deserves its own
+  /// line rather than flowing inside a sentence.
+  ///
+  /// The banks use `$$..$$` and `$..$` interchangeably for *inline* symbols
+  /// (`3 k$$\Omega$$`, `2.56 $$\mu$$F`, `45$$^\circ$$`), so the delimiter itself
+  /// says nothing about display-vs-inline — we classify on the TeX content.
+  @visibleForTesting
+  static bool isBlockMath(String tex) {
+    if (tex.contains(r'\begin{')) return true; // aligned / matrix / cases / array
+    if (tex.contains(r'\\')) return true; // explicit row breaks
+    return tex.length > 100; // long derivation step, not a sentence fragment
+  }
+
+  /// Build a run of prose + math. Inline math is emitted as a [WidgetSpan] so it
+  /// flows in the paragraph; standalone equations break out as block widgets.
+  ///
+  /// This must NOT be a `Wrap` of `Text`/math widgets: `Wrap` children are
+  /// atomic boxes, so a multi-line `Text` fills its whole run and forces the
+  /// next math child onto a new line — putting every `Ω`, `μ`, `λ` on a line of
+  /// its own and shattering ~78% of the JEE bank mid-sentence.
   Widget _buildInlineContent(String processed, TextStyle baseStyle) {
-    final widgets = <Widget>[];
-    int last = 0;
-    for (final m in _mathPattern.allMatches(processed)) {
-      if (m.start > last) {
-        final plain = processed.substring(last, m.start);
-        if (plain.isNotEmpty) widgets.add(Text(plain, style: baseStyle));
-      }
-      final isDisplay = m.group(1) != null;
-      final tex = (m.group(1) ?? m.group(2) ?? '').trim();
-      if (tex.isNotEmpty) widgets.add(_mathBox(tex, baseStyle, isDisplay));
-      last = m.end;
-    }
-    if (last < processed.length) {
-      final tail = processed.substring(last);
-      if (tail.isNotEmpty) widgets.add(Text(tail, style: baseStyle));
+    final blocks = <Widget>[];
+    final spans = <InlineSpan>[];
+
+    void flushSpans() {
+      if (spans.isEmpty) return;
+      blocks.add(Text.rich(
+        TextSpan(children: List<InlineSpan>.of(spans)),
+        style: baseStyle,
+      ));
+      spans.clear();
     }
 
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      alignment: WrapAlignment.start,
-      runSpacing: 6,
-      spacing: 4,
-      children: widgets,
+    void addPlain(String s) {
+      if (s.isEmpty) return;
+      spans.add(TextSpan(text: s, style: baseStyle));
+    }
+
+    int last = 0;
+    for (final m in _mathPattern.allMatches(processed)) {
+      final tex = (m.group(1) ?? m.group(2) ?? '').trim();
+      var plain = m.start > last ? processed.substring(last, m.start) : '';
+      last = m.end;
+      if (tex.isEmpty) {
+        addPlain(plain);
+        continue;
+      }
+
+      if (isBlockMath(tex)) {
+        // Drop the whitespace that only existed to separate the equation from
+        // surrounding prose, then break the paragraph.
+        addPlain(plain.replaceFirst(RegExp(r'[ \t]*\n?[ \t]*$'), ''));
+        flushSpans();
+        blocks.add(_blockMathBox(tex, baseStyle));
+      } else {
+        addPlain(plain);
+        spans.add(_inlineMathSpan(tex, baseStyle));
+      }
+    }
+    if (last < processed.length) addPlain(processed.substring(last));
+    flushSpans();
+
+    if (blocks.length == 1) return blocks.first;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: blocks,
     );
   }
 
-  Widget _mathBox(String tex, TextStyle baseStyle, bool isDisplay) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      constraints: const BoxConstraints(maxWidth: double.infinity),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
+  /// Math that flows inside a sentence, on the surrounding text's baseline.
+  InlineSpan _inlineMathSpan(String tex, TextStyle baseStyle) {
+    return WidgetSpan(
+      // Baseline alignment keeps `Ω`/`X_L`/`10^{-8}` sitting on the text line
+      // instead of floating; `middle` would visibly bob for sub/superscripts.
+      alignment: PlaceholderAlignment.baseline,
+      baseline: TextBaseline.alphabetic,
+      child: Math.tex(
+        _sanitize(tex),
+        textStyle: baseStyle.copyWith(fontFamily: 'SansSerif'),
+        mathStyle: MathStyle.text,
+        // Never dump raw LaTeX at the student: degrade to readable plain text.
+        onErrorFallback: (err) => Text(_plainFallback(tex), style: baseStyle),
+      ),
+    );
+  }
+
+  /// A standalone equation: own line, horizontally scrollable with a fade hint
+  /// so a wide derivation step doesn't silently clip at the screen edge.
+  Widget _blockMathBox(String tex, TextStyle baseStyle) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: _ScrollFade(
         child: Math.tex(
           _sanitize(tex),
           textStyle: baseStyle.copyWith(fontFamily: 'SansSerif'),
-          mathStyle: isDisplay ? MathStyle.display : MathStyle.text,
-          // Never dump raw LaTeX at the student: degrade to readable plain text.
+          mathStyle: MathStyle.display,
           onErrorFallback: (err) => Text(_plainFallback(tex), style: baseStyle),
         ),
       ),
@@ -457,6 +499,64 @@ class TexText extends StatelessWidget {
           return FadeTransition(opacity: animation, child: child);
         },
       ),
+    );
+  }
+}
+
+/// Horizontally scrollable box that fades its right edge while more content
+/// remains off-screen, so a wide equation reads as scrollable instead of
+/// looking truncated.
+class _ScrollFade extends StatefulWidget {
+  final Widget child;
+  const _ScrollFade({required this.child});
+
+  @override
+  State<_ScrollFade> createState() => _ScrollFadeState();
+}
+
+class _ScrollFadeState extends State<_ScrollFade> {
+  final _controller = ScrollController();
+  bool _more = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller.addListener(_sync);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+  }
+
+  void _sync() {
+    if (!_controller.hasClients) return;
+    final p = _controller.position;
+    final more = p.maxScrollExtent - p.pixels > 1.0;
+    if (more != _more && mounted) setState(() => _more = more);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_sync);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scroller = SingleChildScrollView(
+      controller: _controller,
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: widget.child,
+    );
+    if (!_more) return scroller;
+    return ShaderMask(
+      shaderCallback: (rect) => LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: const [Colors.white, Colors.white, Colors.transparent],
+        stops: [0, 1 - (24 / rect.width).clamp(0.02, 0.5), 1],
+      ).createShader(rect),
+      blendMode: BlendMode.dstIn,
+      child: scroller,
     );
   }
 }
