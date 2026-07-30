@@ -19,8 +19,22 @@ The fixes:
     so the renderer treats it as inline math.
   - If a string has an odd number of standalone `$`, strip the last lone `$`.
 
-Idempotent: running the pass twice is a no-op since wrapped commands
-already sit inside `$...$`.
+## Ordering requirement
+
+Run `repair_dollars.py` after this pass, always. `_wrap_text_region` works on one
+text region at a time, so a token it wraps at a region edge lands next to the
+delimiter of the neighbouring math block. `_fuse_across_boundaries` cleans up the
+runs that are still recognisable as one expression, but on input that was already
+mangled upstream (bare `\\mathrm{X}` next to a stray `$`, truth-table cells with
+loose `Z_{1}`) the wrap is ambiguous and can still leave an odd delimiter count.
+`repair_dollars.py` is the outcome-guarded backstop for exactly that residue.
+
+NOT idempotent on already-normalized text, despite what an earlier version of
+this docstring claimed. Wrapping is not a fixed point when the input already
+contains partial wrapping — ~138 fields change again on a second pass. Treat this
+as a one-shot migration over fresh scrape output, not a repeatable cleanup, and
+rely on the `no new swallowed-prose spans` gate in test/tex_render_test.dart to
+catch a bad run.
 """
 from __future__ import annotations
 
@@ -144,6 +158,30 @@ def _strip_dollars_in_subsup(s: str) -> str:
     return cur
 
 
+def _fuse_across_boundaries(s: str) -> str:
+    """Merge a wrapped token that abuts the math block next to it.
+
+    `_wrap_text_region` runs on each text region in isolation, so a token at the
+    very start (or end) of a region abuts the `$$` of the neighbouring math
+    block: `"$$\\omega$$" + "$_{r}$"` -> `"$$\\omega$$$_{r}$"`. Those are one
+    expression, so fuse them into a single block instead of leaving a stray run
+    of delimiters behind.
+
+    Without this the run survives to the output, and wherever it makes the
+    effective delimiter count odd the widget opens a span that swallows the prose
+    up to the next `$$` — see scripts/jee/repair_dollars.py.
+    """
+    prev = None
+    while prev != s:
+        prev = s
+        # `$$A$$` `$B$` -> `$$AB$$`   (and the `$A$` `$$B$$` mirror image)
+        s = re.sub(r"\$\$([^$]*)\$\$\$([^$]*)\$(?!\$)", r"$$\1\2$$", s)
+        s = re.sub(r"(?<!\$)\$([^$]*)\$\$\$([^$]*)\$\$", r"$$\1\2$$", s)
+        # `$A$` `$B$` written as `$A$$B$` -> `$AB$`
+        s = re.sub(r"(?<!\$)\$([^$]*)\$\$([^$]*)\$(?!\$)", r"$$\1\2$$", s)
+    return s
+
+
 def normalize(s: str | None) -> str:
     if not s:
         return s or ""
@@ -166,7 +204,13 @@ def normalize(s: str | None) -> str:
         cursor = m.end()
     if cursor < len(s):
         parts.append(_wrap_text_region(s[cursor:]))
-    return "".join(parts)
+    out = "".join(parts)
+    # Wrapping happens per text region, so delimiter runs can only appear now, at
+    # the seams. Clean them here — collapsing at the top of the pass (above) runs
+    # before any wrapping and therefore never sees them. This is also what makes
+    # the pass genuinely idempotent.
+    out = _fuse_across_boundaries(out)
+    return _TRIPLE_DOLLAR.sub("$$", out)
 
 
 def process(path: Path) -> dict:
