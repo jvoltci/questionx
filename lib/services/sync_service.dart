@@ -84,11 +84,8 @@ class SyncService {
 
     // SUBSEQUENT LAUNCHES: periodic OTA update (content + diagrams) and a
     // self-heal if the diagrams dir was wiped while a version is recorded.
-    final diagramsMissing = currentVersion != null && diagramCount == 0;
-    if (diagramsMissing) {
-      debugPrint("🩹 Version $currentVersion recorded but diagrams dir is "
-          "empty — forcing re-sync.");
-    }
+    final diagramsMissing =
+        currentVersion != null && await _diagramsIncomplete(diagramCount);
     try {
       if (_shouldCheckOnline(prefs) || diagramsMissing) {
         _emit(0.05, "Checking for updates...");
@@ -108,6 +105,41 @@ class SyncService {
       debugPrint("⚠️ Online check failed ($e). Proceeding with current bank.");
     }
     _emit(1.0, "Ready", done: true);
+  }
+
+  /// Whether the on-disk diagram set is missing figures this bank references.
+  ///
+  /// The old test was `diagramCount == 0`, which only caught a completely wiped
+  /// directory. It could not catch a `data.zip` that shipped a *partial* set:
+  /// v1.7.3 and v1.7.4 contained all 6,150 JEE figures and zero NEET ones, so
+  /// every NEET question with a diagram rendered "Error loading diagram" while
+  /// the count sat at 6,150 and looked perfectly healthy. A count comparison
+  /// cannot catch it either — the artifact ships more images (6,310) than the
+  /// banks actually reference (4,348).
+  ///
+  /// So check identity instead, on an exam-stratified sample: cheap (a few dozen
+  /// stat calls), and it flags the realistic failure of losing a whole family.
+  Future<bool> _diagramsIncomplete(int diagramCount) async {
+    if (diagramCount == 0) {
+      debugPrint("🩹 Diagrams directory is empty — forcing re-sync.");
+      return true;
+    }
+    try {
+      final sample = await db.sampleDiagramFilenames();
+      if (sample.isEmpty) return false;
+      final absent = <String>[];
+      for (final name in sample) {
+        if (await DiagramStorage.fileFor(name) == null) absent.add(name);
+      }
+      if (absent.isEmpty) return false;
+      debugPrint("🩹 ${absent.length}/${sample.length} sampled diagrams absent "
+          "(e.g. ${absent.take(3).join(', ')}) — forcing re-sync.");
+      return true;
+    } catch (e) {
+      // Never let a health check block startup.
+      debugPrint("⚠️ Diagram completeness check failed ($e).");
+      return false;
+    }
   }
 
   bool _shouldCheckOnline(SharedPreferences prefs) {

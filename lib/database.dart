@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:path_provider/path_provider.dart';
@@ -56,6 +57,11 @@ class Mistakes extends Table {
 @DriftDatabase(tables: [Questions, PracticeSessions, SessionAnswers, Mistakes])
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
+
+  /// In-memory instance for tests, so query logic can be exercised without
+  /// touching the on-device database file.
+  @visibleForTesting
+  AppDatabase.forTesting(super.executor);
 
   @override
   int get schemaVersion => 6;
@@ -297,6 +303,38 @@ class AppDatabase extends _$AppDatabase {
     final query = selectOnly(questions)..addColumns([exp]);
     final row = await query.getSingle();
     return row.read(exp) ?? 0;
+  }
+
+  /// A sample of diagram filenames the bank references, spread across exams.
+  ///
+  /// SyncService checks these against the files actually on disk to decide
+  /// whether the diagram set is intact. Stratifying by exam is the point: a
+  /// broken `data.zip` typically loses one whole family (v1.7.4 shipped every
+  /// JEE figure and no NEET one), and a flat sample of 4,348 references is
+  /// ~97% JEE, so it would almost always miss that.
+  ///
+  /// Legacy inline `<svg>` blobs are excluded — they render from the record and
+  /// need no file on disk.
+  Future<List<String>> sampleDiagramFilenames({int perExam = 25}) async {
+    final exams = await (selectOnly(questions, distinct: true)
+          ..addColumns([questions.examName]))
+        .map((r) => r.read(questions.examName))
+        .get();
+
+    final out = <String>[];
+    for (final exam in exams.whereType<String>()) {
+      final rows = await (selectOnly(questions, distinct: true)
+            ..addColumns([questions.questionSvg])
+            ..where(questions.examName.equals(exam) &
+                questions.questionSvg.isNotNull() &
+                questions.questionSvg.isNotValue('') &
+                questions.questionSvg.like('<%').not())
+            ..limit(perExam))
+          .map((r) => r.read(questions.questionSvg))
+          .get();
+      out.addAll(rows.whereType<String>());
+    }
+    return out;
   }
 
   /// Count rows whose `examName` matches the given label (LIKE semantics, same
