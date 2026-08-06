@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../database.dart';
 import '../utils/crypto.dart';
+import '../content_version.dart';
 import 'diagram_storage.dart';
 
 /// Top-level so it can run in a background isolate via compute(): decrypt the
@@ -38,6 +39,8 @@ class SyncService {
   static const String _repoOwner = "jvoltci";
   static const String _repoName = "questionx";
   static const String _versionKey = "db_version_tag";
+  /// Fingerprint of the bundled banks that were last imported into the DB.
+  static const String _contentKey = "bundled_content_version";
   static const String _lastCheckKey = "db_last_check_ms";
   static const Duration _checkInterval = Duration(hours: 6);
 
@@ -56,26 +59,46 @@ class SyncService {
     final diagramCount = await DiagramStorage.countFiles();
     final questionCount = await db.countQuestions();
 
-    // FIRST LAUNCH (empty DB): the bundled, encrypted bank is the VERIFIED
-    // content shipped with this build, so it is authoritative — load it from
-    // assets and do NOT let an older OTA release overwrite it. We still fetch
-    // the release's diagrams here (blocking) so figures are on disk before the
-    // home screen opens. (Previously first launch imported questions straight
+    // The bundled, encrypted bank is the VERIFIED content shipped with this
+    // build, so it is authoritative — load it from assets and do NOT let an
+    // older OTA release overwrite it. (Previously first launch imported straight
     // from the OTA zip, which silently shipped stale content over the bundled
     // bank.)
-    if (questionCount == 0) {
+    //
+    // Import on an empty database, and ALSO whenever this build carries
+    // different questions from the ones already imported. Without the second
+    // case the bundled bank was read only into an empty database, so an APK
+    // carrying corrected questions changed nothing for anyone who already had
+    // the app installed: NEET_2024_Zoo_184 was fixed in v1.7.6 and still showed
+    // the old, garbled text after upgrading, because the database kept its copy
+    // until an OTA release happened to fire.
+    final importedContent = prefs.getString(_contentKey);
+    final contentChanged =
+        questionCount > 0 && importedContent != kBundledContentVersion;
+    if (contentChanged) {
+      debugPrint("📦 Bundled content changed "
+          "($importedContent -> $kBundledContentVersion) — re-importing.");
+    }
+
+    if (questionCount == 0 || contentChanged) {
       _emit(0.30, "Loading question bank...");
       await _loadFromAssets();
+      await prefs.setString(_contentKey, kBundledContentVersion);
       try {
-        _emit(0.45, "Downloading diagrams...");
-        final tag = await _checkForUpdates(null); // latest release tag
-        if (tag != null) {
-          await _downloadDiagramsOnly(tag);
-          await prefs.setString(_versionKey, tag);
+        // Only fetch figures when they are actually absent. On a content
+        // re-import the user already has them on disk, and data.zip is ~78 MB.
+        if (await _diagramsIncomplete(diagramCount)) {
+          _emit(0.45, "Downloading diagrams...");
+          final tag = await _checkForUpdates(null); // latest release tag
+          if (tag != null) {
+            await _downloadDiagramsOnly(tag);
+            await prefs.setString(_versionKey, tag);
+          }
+          await prefs.setInt(
+              _lastCheckKey, DateTime.now().millisecondsSinceEpoch);
         }
-        await prefs.setInt(_lastCheckKey, DateTime.now().millisecondsSinceEpoch);
       } catch (e) {
-        debugPrint("⚠️ First-launch diagram fetch failed ($e). Text is fully "
+        debugPrint("⚠️ Diagram fetch failed ($e). Text is fully "
             "usable; diagrams will retry on the next launch.");
       }
       _emit(1.0, "Ready", done: true);
