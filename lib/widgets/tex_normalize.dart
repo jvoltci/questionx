@@ -239,6 +239,24 @@ bool _isDamaged(String s) {
   return total.isOdd || _swallowedCount(s) > 0;
 }
 
+/// A line break the scrape wrapped into math: `Match List I with List II$\nList$
+/// I: A. ...`, where `\n` is a literal backslash-n, not a newline.
+///
+/// `_sanitize` turns literal `\n` into a space, so the marker rendered as an
+/// italic maths word mid-sentence and the line break was lost entirely — every
+/// match-list and multi-statement question collapsed into one run-on paragraph
+/// (179 questions, 530 spans; NEET_2024_Zoo_184 was reported as "unclear"
+/// largely because of this).
+///
+/// `\n` is not a LaTeX command, so a span beginning with one is always this
+/// artifact and never real maths.
+final _wrappedNewline = RegExp(r'\$((?:\\n)+)([A-Za-z][A-Za-z \-]{0,20})\$');
+
+String _unwrapNewlines(String s) => s.replaceAllMapped(
+      _wrappedNewline,
+      (m) => '\n' * (m.group(1)!.length ~/ 2) + m.group(2)!,
+    );
+
 /// A bare `$` inside a math span.
 ///
 /// This can never be valid: `$` is not a character math mode accepts (it would
@@ -454,7 +472,8 @@ String normalizeForRender(String raw) {
   if (hit != null) return hit;
   var s = raw;
   for (var i = 0; i < 4; i++) {
-    final next = textifyProse(repairDelimiters(_stripInnerDollars(s)));
+    final next =
+        textifyProse(repairDelimiters(_stripInnerDollars(_unwrapNewlines(s))));
     if (next == s) break;
     s = next;
   }
