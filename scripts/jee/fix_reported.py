@@ -122,6 +122,104 @@ FIXES = [
         # statements hold -> "Both ... are true" = stored answer_key "D".
         "both comparison chains deleted by the scrape's HTML tag stripper",
     ),
+    # ---- not user-reported; found by scanning for the same tag-stripper bug ----
+    (
+        "jee",
+        "JEE_Main_2024_Jan30_S2_Chem_22",
+        {
+            "question_latex": (
+                "Choose the correct statements about the hydrides of group 15 "
+                "elements.\n\n"
+                "A. The stability of the hydrides decreases in the order "
+                "$$\\mathrm{NH}_3 > \\mathrm{PH}_3 > \\mathrm{AsH}_3 > "
+                "\\mathrm{SbH}_3 > \\mathrm{BiH}_3$$.\n\n"
+                "B. The reducing ability of the hydrides increases in the order "
+                "$$\\mathrm{NH}_3 < \\mathrm{PH}_3 < \\mathrm{AsH}_3 < "
+                "\\mathrm{SbH}_3 < \\mathrm{BiH}_3$$.\n\n"
+                "C. Among the hydrides, $$\\mathrm{NH}_3$$ is strong reducing "
+                "agent while $$\\mathrm{BiH}_3$$ is mild reducing agent.\n\n"
+                "D. The basicity of the hydrides increases in the order "
+                "$$\\mathrm{NH}_3 < \\mathrm{PH}_3 < \\mathrm{AsH}_3 < "
+                "\\mathrm{SbH}_3 < \\mathrm{BiH}_3$$.\n\n"
+                "Choose the most appropriate from the options given below :"
+            ),
+        },
+        # Statements B and D were cut at their first `<`, so B ended at "NH_3"
+        # and ran into "C. Among the hydrides", and D ran into "Choose the most".
+        # Verified: cracku.in and infinitylearn.com both quote all four
+        # statements verbatim for NTA JEE Main 30 Jan 2024 Shift 2.
+        # Check: down the group the M-H bond weakens, so stability falls
+        # (A true) and reducing power rises (B true); C is the reverse of B so it
+        # is false; basicity falls down the group, so "increases NH3 < ... < BiH3"
+        # is false. A and B only = stored answer_key "C".
+        "statements B and D truncated at their first `<`",
+    ),
+    (
+        "jee",
+        "JEE_Main_2026_Jan22_S2_Chem_19",
+        {
+            "question_latex": (
+                "Given below are two statements :\n\n"
+                "Statement I : $$\\mathrm{C} < \\mathrm{O} < \\mathrm{N} < "
+                "\\mathrm{F}$$ is the correct order in terms of first ionization "
+                "enthalpy values.\n\n"
+                "Statement II : $$\\mathrm{S} > \\mathrm{Se} > \\mathrm{Te} > "
+                "\\mathrm{Po} > \\mathrm{O}$$ is the correct order in terms of "
+                "the magnitude of electron gain enthalpy values.\n\n"
+                "In the light of the above statements, choose the correct answer "
+                "from the options given below :"
+            ),
+        },
+        # Statement I was cut at its first `<`, leaving only "C" before it ran
+        # into "Statement II".
+        # Verified: competishun.com indexes this exact question, and its URL
+        # encodes the statement as `mathrmcmathrmomathrmnmathrmf` = C < O < N < F.
+        # Check: first ionization enthalpy (kJ/mol) C 1086 < O 1314 < N 1402 <
+        # F 1681 -- N above O because of its half-filled 2p3 shell, which is the
+        # exception the stored solution spends its length explaining. Statement I
+        # true. Electron gain enthalpy magnitudes S 200 > Se 195 > Te 190 >
+        # Po 174 > O 141, so Statement II is true too. Both true = stored
+        # answer_key "D".
+        "statement I truncated at its first `<`",
+    ),
+    (
+        "jee",
+        "JEE_Main_2025_Jan24_S1_Chem_5",
+        {
+            "question_latex": (
+                "Which of the following statement is true with respect to "
+                "$$\\mathrm{H}_2 \\mathrm{O}, \\mathrm{NH}_3$$ and "
+                "$$\\mathrm{CH}_4$$ ?\n\n"
+                "A. The central atoms of all the molecules are "
+                "$$\\mathrm{sp}^3$$ hybridized.\n\n"
+                "B. The $$\\mathrm{H}-\\mathrm{O}-\\mathrm{H}, "
+                "\\mathrm{H}-\\mathrm{N}-\\mathrm{H}$$ and "
+                "$$\\mathrm{H}-\\mathrm{C}-\\mathrm{H}$$ angles in the above "
+                "molecules are $$104.5^{\\circ}, 107.5^{\\circ}$$ and "
+                "$$109.5^{\\circ}$$, respectively.\n\n"
+                "C. The increasing order of dipole moment is "
+                "$$\\mathrm{CH}_4 < \\mathrm{NH}_3 < \\mathrm{H}_2 "
+                "\\mathrm{O}$$.\n\n"
+                "D. Both $$\\mathrm{H}_2 \\mathrm{O}$$ and $$\\mathrm{NH}_3$$ "
+                "are Lewis acids and $$\\mathrm{CH}_4$$ is a Lewis base.\n\n"
+                "E. A solution of $$\\mathrm{NH}_3$$ in $$\\mathrm{H}_2 "
+                "\\mathrm{O}$$ is basic. In this solution $$\\mathrm{NH}_3$$ and "
+                "$$\\mathrm{H}_2 \\mathrm{O}$$ act as Lowry-Bronsted acid and "
+                "base respectively.\n\n"
+                "Choose the correct answer from the options given below:"
+            ),
+        },
+        # Statement C was cut at its `<` and ran into "D. Both ...", and the
+        # wrapper had additionally scattered stray `$` through D and E
+        # (`$$\mathrm{H}$_2 $\mathrm{O}$$`).
+        # Check: this record's OWN stored solution states "Dipole moment
+        # H2O > NH3 > CH4", which fixes the increasing order as
+        # CH4 < NH3 < H2O, and concludes "Hence, A, B & C are correct" --
+        # i.e. C is true and D, E are false, matching the stored answer_key "C"
+        # ("A, B and C Only"). D is false because H2O and NH3 are Lewis bases,
+        # and E is false because NH3 is the Bronsted base, not the acid.
+        "statement C truncated at its `<`; stray `$` through D and E",
+    ),
 ]
 
 
