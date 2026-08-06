@@ -1,0 +1,8 @@
+What's new in v1.7.7
+
+• Questions read properly again — symbols like Ω, μ and λ now sit inside the sentence instead of jumping to their own line
+• Match-lists and two-statement questions no longer run together as one paragraph
+• NEET diagrams load again
+• Fixed several questions with cut-off or missing text, including three you reported
+
+Thanks for the feedback — keep reporting issues with the flag icon on any question.
