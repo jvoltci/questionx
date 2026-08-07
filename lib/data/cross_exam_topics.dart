@@ -10,9 +10,9 @@
 /// computed once at runtime by [neetTopicToJeeTopics].
 ///
 /// NEET and JEE Main share roughly 85–90% of their Physics and Chemistry
-/// syllabi, so every JEE topic here has a NEET counterpart. Two are marginal and
-/// noted inline rather than dropped, because their questions are still useful
-/// practice on material NEET does examine.
+/// syllabi, so nearly every JEE topic has a NEET counterpart. The three that do
+/// not are listed in [kJeeTopicsOutOfNeetScope] with the reason, rather than
+/// quietly missing.
 ///
 /// Names on both sides must match the banks exactly — `cross_exam_topics_test`
 /// fails the build if a JEE topic is missing from this map or a NEET name here
@@ -80,7 +80,6 @@ const Map<String, List<String>> kJeeToNeetPhysics = {
     'System of Particles and Rotational Motion',
   ],
   'Motion In A Straight Line': ['Motion in a Straight Line', 'Kinematics'],
-  'Communication Systems': ['Communication Systems'],
   'Motion In A Plane': ['Motion in a Plane', 'Kinematics'],
   'Circular Motion': ['Circular Motion'],
   'Magnetic Properties Of Matter': ['Magnetism', 'Magnetism and Matter'],
@@ -88,9 +87,6 @@ const Map<String, List<String>> kJeeToNeetPhysics = {
   'Magnetism': ['Magnetism', 'Magnetism and Matter'],
   'Motion': ['Kinematics', 'Motion in a Straight Line'],
   'Impulse And Momentum': ['Laws of Motion'],
-  // Marginal: NEET does not test experimental skills as its own unit, but the
-  // questions are error-analysis, which NEET examines under Units & Measurements.
-  'Practical Physics': ['Units and Measurements'],
 };
 
 /// JEE topic -> NEET topics covering the same syllabus.
@@ -233,17 +229,31 @@ const Map<String, List<String>> kJeeToNeetChemistry = {
   'Solid State': ['Solid State', 'Physical Chemistry - Solid State'],
   'Gaseous State': ['States of Matter', 'Physical Chemistry - States of Matter'],
   'Polymers': ['Polymers', 'Organic Chemistry - Polymers'],
+  // Purification and separation only. NEET examines those under "Organic
+  // Chemistry - Some Basic Principles and Techniques"; it does not examine
+  // detection of elements, so the qualitative-analysis topics are left out.
   'Practical Organic Chemistry': [
     'Practical Chemistry',
     'Purification',
     'Organic Chemistry - Purification',
-    'Organic Chemistry - Analysis',
-    'Qualitative Analysis',
-    'Organic Chemistry - Qualitative Analysis',
   ],
-  // Marginal: NEET has no salt-analysis unit, but these test ionic reactions
-  // and precipitate colours, which it examines under p-block and d-block.
-  'Salt Analysis': ['Qualitative Analysis', 'Practical Chemistry'],
+};
+
+/// JEE topics deliberately left unmapped, with the reason.
+///
+/// These are not naming gaps — the material itself is not NEET's. Surfacing them
+/// would put a student in front of questions their exam cannot ask, which is
+/// precisely the trust problem the badge and the off-by-default switch exist to
+/// avoid. The coverage test checks mapped + excluded covers every JEE topic, so
+/// dropping one here is a deliberate, recorded decision rather than an omission.
+const Map<String, String> kJeeTopicsOutOfNeetScope = {
+  'Communication Systems':
+      'removed from the NCERT class 12 syllabus in the 2023 rationalisation and '
+          'dropped from both NEET and JEE; the NEET bank keeps one legacy question',
+  'Practical Physics':
+      'experimental skills (vernier, screw gauge). NEET does not examine these',
+  'Salt Analysis':
+      'identification of cations and anions. NEET has no salt-analysis unit',
 };
 
 /// Every mapping, both subjects.

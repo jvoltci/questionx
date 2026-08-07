@@ -31,20 +31,36 @@ void main() {
     jee = bank('assets/jee.json.enc');
   });
 
-  test('every JEE Physics topic is mapped', () {
-    final unmapped =
-        topicsOf(jee, 'phys').difference(kJeeToNeetPhysics.keys.toSet());
-    expect(unmapped, isEmpty,
-        reason: 'these JEE Physics topics would never reach a NEET student — '
-            'add them to kJeeToNeetPhysics: $unmapped');
+  test('every JEE Physics topic is mapped or explicitly out of scope', () {
+    final accounted = kJeeToNeetPhysics.keys.toSet()
+      ..addAll(kJeeTopicsOutOfNeetScope.keys);
+    final unaccounted = topicsOf(jee, 'phys').difference(accounted);
+    expect(unaccounted, isEmpty,
+        reason: 'these JEE Physics topics would silently never reach a NEET '
+            'student — map them, or record why not in '
+            'kJeeTopicsOutOfNeetScope: $unaccounted');
   });
 
-  test('every JEE Chemistry topic is mapped', () {
-    final unmapped =
-        topicsOf(jee, 'chem').difference(kJeeToNeetChemistry.keys.toSet());
-    expect(unmapped, isEmpty,
-        reason: 'these JEE Chemistry topics would never reach a NEET student — '
-            'add them to kJeeToNeetChemistry: $unmapped');
+  test('every JEE Chemistry topic is mapped or explicitly out of scope', () {
+    final accounted = kJeeToNeetChemistry.keys.toSet()
+      ..addAll(kJeeTopicsOutOfNeetScope.keys);
+    final unaccounted = topicsOf(jee, 'chem').difference(accounted);
+    expect(unaccounted, isEmpty,
+        reason: 'these JEE Chemistry topics would silently never reach a NEET '
+            'student — map them, or record why not in '
+            'kJeeTopicsOutOfNeetScope: $unaccounted');
+  });
+
+  test('out-of-scope topics are excluded, not merely forgotten', () {
+    for (final t in kJeeTopicsOutOfNeetScope.keys) {
+      expect(kJeeToNeetTopics.containsKey(t), isFalse,
+          reason: '$t is both mapped and excluded');
+      expect(kJeeTopicsOutOfNeetScope[t], isNotEmpty,
+          reason: '$t is excluded without a recorded reason');
+    }
+    // The material genuinely is not NEET's; these must not surface.
+    expect(jeeTopicsFor(['Communication Systems'], 'Physics'), isEmpty);
+    expect(jeeTopicsFor(['Qualitative Analysis'], 'Chemistry'), isEmpty);
   });
 
   test('every NEET topic named in the map exists in the bank', () {
