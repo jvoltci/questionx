@@ -180,18 +180,43 @@ class AppDatabase extends _$AppDatabase {
     }).toList();
   }
 
+  /// [crossExamTopics] pulls in JEE questions covering the same syllabus as the
+  /// selected NEET topics — see `lib/data/cross_exam_topics.dart`. The exam
+  /// filter then matches EITHER the requested exam on the selected topics, OR
+  /// JEE on the mapped ones, so a NEET student practising "Thermodynamics" also
+  /// gets JEE's "Heat And Thermodynamics".
+  ///
+  /// The subject/year filters still apply to both sides, which is what keeps a
+  /// Biology session clean without special-casing.
   Future<List<Question>> getCustomQuestions({
     String? examName,
     List<int>? years,
     List<String>? subjects,
     List<String>? topics,
+    List<String>? crossExamTopics,
     int limit = 500,
   }) async {
+    final ownTopics = topics ?? const <String>[];
+    final mappedTopics = crossExamTopics ?? const <String>[];
+    final crossing = mappedTopics.isNotEmpty && examName != null;
+
     final rows = await (select(questions)
           ..where((t) {
             final List<Expression<bool>> predicates = [];
             if (examName != null) {
-              predicates.add(t.examName.like('$examName%'));
+              final own = t.examName.like('$examName%');
+              if (crossing) {
+                // Own exam on the selected topics, OR JEE on the mapped ones.
+                // Topic membership is folded into each side so the two cannot
+                // cross-contaminate: a JEE row has to match a MAPPED topic, not
+                // one of the NEET topic names.
+                final ownSide =
+                    ownTopics.isEmpty ? own : own & t.topic.isIn(ownTopics);
+                predicates.add(ownSide |
+                    (t.examName.like('JEE%') & t.topic.isIn(mappedTopics)));
+              } else {
+                predicates.add(own);
+              }
             }
             if (years != null && years.isNotEmpty) {
               predicates.add(t.year.isIn(years));
@@ -199,8 +224,9 @@ class AppDatabase extends _$AppDatabase {
             if (subjects != null && subjects.isNotEmpty) {
               predicates.add(t.subject.isIn(subjects));
             }
-            if (topics != null && topics.isNotEmpty) {
-              predicates.add(t.topic.isIn(topics));
+            // When crossing, topic membership is already encoded per-side above.
+            if (!crossing && ownTopics.isNotEmpty) {
+              predicates.add(t.topic.isIn(ownTopics));
             }
             return predicates.isEmpty
                 ? const Constant(true)
@@ -351,21 +377,38 @@ class AppDatabase extends _$AppDatabase {
 
   /// Count rows matching an arbitrary filter set — mirrors getCustomQuestions
   /// but returns only the count, for the live "X questions match" indicator.
+  /// Mirrors [getCustomQuestions]'s filtering, including [crossExamTopics], so
+  /// the count shown next to the switch matches what a practice run returns.
   Future<int> countCustomQuestions({
     String? examName,
     List<int> years = const [],
     List<String>? subjects,
     List<String> topics = const [],
+    List<String> crossExamTopics = const [],
   }) async {
     final exp = questions.id.count();
     final query = selectOnly(questions)..addColumns([exp]);
     final filters = <Expression<bool>>[];
-    if (examName != null) filters.add(questions.examName.like('$examName%'));
+    final crossing = crossExamTopics.isNotEmpty && examName != null;
+    if (examName != null) {
+      final own = questions.examName.like('$examName%');
+      if (crossing) {
+        final ownSide =
+            topics.isEmpty ? own : own & questions.topic.isIn(topics);
+        filters.add(ownSide |
+            (questions.examName.like('JEE%') &
+                questions.topic.isIn(crossExamTopics)));
+      } else {
+        filters.add(own);
+      }
+    }
     if (years.isNotEmpty) filters.add(questions.year.isIn(years));
     if (subjects != null && subjects.isNotEmpty) {
       filters.add(questions.subject.isIn(subjects));
     }
-    if (topics.isNotEmpty) filters.add(questions.topic.isIn(topics));
+    if (!crossing && topics.isNotEmpty) {
+      filters.add(questions.topic.isIn(topics));
+    }
     if (filters.isNotEmpty) query.where(Expression.and(filters));
     final row = await query.getSingle();
     return row.read(exp) ?? 0;

@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:questionx/data/cross_exam_topics.dart';
 import 'package:questionx/services/pdf_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../home_screen.dart';
 import '../main.dart';
 import 'quiz_screen.dart';
@@ -28,6 +30,60 @@ final availableTopicsProvider =
       .getAvailableTopics(subject, examName: exam);
 });
 
+/// Whether to pull in JEE questions covering the same syllabus.
+///
+/// Off by default and persisted, so a student sets it once. Only meaningful for
+/// NEET Physics/Chemistry — see [crossExamTopicsProvider].
+const String kCrossExamPrefKey = 'practice_include_jee';
+
+/// Starts false and loads the stored value in the background, so a slow disk
+/// read can never flash the switch on for a student who did not choose it.
+class CrossExamEnabled extends Notifier<bool> {
+  @override
+  bool build() {
+    _restore();
+    return false;
+  }
+
+  Future<void> _restore() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stored = prefs.getBool(kCrossExamPrefKey) ?? false;
+    if (stored != state) state = stored;
+  }
+
+  Future<void> set(bool value) async {
+    state = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(kCrossExamPrefKey, value);
+  }
+}
+
+final crossExamEnabledProvider =
+    NotifierProvider<CrossExamEnabled, bool>(CrossExamEnabled.new);
+
+/// True when the switch is worth showing at all: a NEET student on a subject
+/// that has a JEE counterpart.
+final crossExamOfferedProvider = Provider.autoDispose<bool>((ref) {
+  final exam = ref.watch(selectedExamProvider);
+  final subject = ref.watch(selectedSubjectProvider);
+  return (exam?.toUpperCase().startsWith('NEET') ?? false) &&
+      subject != null &&
+      supportsCrossExam(subject);
+});
+
+/// The JEE topics to fold in, or empty when the feature is off/unavailable.
+final crossExamTopicsProvider = Provider.autoDispose<List<String>>((ref) {
+  if (!ref.watch(crossExamOfferedProvider)) return const [];
+  if (!ref.watch(crossExamEnabledProvider)) return const [];
+  final subject = ref.watch(selectedSubjectProvider)!;
+  final topics = ref.watch(selectedTopicsProvider);
+  // No topic chosen means "whole subject", so map every NEET topic in it.
+  final source = topics.isNotEmpty
+      ? topics
+      : (ref.watch(availableTopicsProvider).value ?? const <String>[]);
+  return jeeTopicsFor(source, subject);
+});
+
 /// Live count of questions matching the current filter selection. Drives the
 /// match-count chip near the Start Practice button.
 final liveMatchCountProvider = FutureProvider.autoDispose<int>((ref) async {
@@ -40,7 +96,44 @@ final liveMatchCountProvider = FutureProvider.autoDispose<int>((ref) async {
         years: years,
         subjects: subject != null ? [subject] : null,
         topics: topics,
+        crossExamTopics: ref.watch(crossExamTopicsProvider),
       );
+});
+
+/// How many questions the current selection yields WITHOUT the JEE pool, and
+/// WITH it. Drives both the switch subtitle and the thin-pool prompt.
+final crossExamCountsProvider =
+    FutureProvider.autoDispose<({int own, int withJee})>((ref) async {
+  final db = ref.read(databaseProvider);
+  final exam = ref.watch(selectedExamProvider);
+  final years = ref.watch(selectedYearsProvider);
+  final subject = ref.watch(selectedSubjectProvider);
+  final topics = ref.watch(selectedTopicsProvider);
+  final args = (
+    examName: exam,
+    years: years,
+    subjects: subject != null ? <String>[subject] : null,
+    topics: topics,
+  );
+  final own = await db.countCustomQuestions(
+    examName: args.examName,
+    years: args.years,
+    subjects: args.subjects,
+    topics: args.topics,
+  );
+  if (!ref.watch(crossExamOfferedProvider)) return (own: own, withJee: own);
+  final subj = subject!;
+  final source = topics.isNotEmpty
+      ? topics
+      : (ref.watch(availableTopicsProvider).value ?? const <String>[]);
+  final withJee = await db.countCustomQuestions(
+    examName: args.examName,
+    years: args.years,
+    subjects: args.subjects,
+    topics: args.topics,
+    crossExamTopics: jeeTopicsFor(source, subj),
+  );
+  return (own: own, withJee: withJee);
 });
 
 List<Map<String, Object>> _subjectsForExam(String? exam) {
@@ -102,6 +195,7 @@ class PracticeConfigScreen extends ConsumerWidget {
 
                       _buildSectionTitle("3. Select Topics (Optional)"),
                       _buildTopicSelector(ref),
+                      const _CrossExamCard(),
                     ],
                   ),
                 ),
@@ -654,6 +748,7 @@ class PracticeConfigScreen extends ConsumerWidget {
           years: years,
           subjects: subject != null ? [subject] : null,
           topics: topics,
+          crossExamTopics: ref.read(crossExamTopicsProvider),
           limit: 100,
         );
 
@@ -694,6 +789,7 @@ class PracticeConfigScreen extends ConsumerWidget {
           years: years,
           subjects: subject != null ? [subject] : null,
           topics: topics,
+          crossExamTopics: ref.read(crossExamTopicsProvider),
           limit: 500,
         );
 
@@ -714,5 +810,113 @@ class PracticeConfigScreen extends ConsumerWidget {
         MaterialPageRoute(builder: (_) => QuizScreen(questions: questions)),
       );
     }
+  }
+}
+
+/// Offers the JEE pool to a NEET student practising Physics or Chemistry.
+///
+/// Two jobs. The switch is for students who go looking. The prompt above it is
+/// for everyone else: NEET's own topic taxonomy is so fragmented that the median
+/// Chemistry topic holds two questions, and a student who lands on one of those
+/// would otherwise just see an empty-looking practice set with no idea that
+/// hundreds of on-syllabus questions are sitting unused on their phone.
+///
+/// It stays a prompt rather than a default so nobody is quietly given questions
+/// from an exam they are not sitting.
+class _CrossExamCard extends ConsumerWidget {
+  const _CrossExamCard();
+
+  static const _thinPool = 10;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(crossExamOfferedProvider)) return const SizedBox.shrink();
+    final enabled = ref.watch(crossExamEnabledProvider);
+    final counts = ref.watch(crossExamCountsProvider).value;
+    final own = counts?.own;
+    final withJee = counts?.withJee;
+    final adds = (own != null && withJee != null) ? withJee - own : null;
+
+    final showNudge =
+        !enabled && own != null && own < _thinPool && (adds ?? 0) > 0;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (showNudge) ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF59E0B).withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                    color: const Color(0xFFF59E0B).withValues(alpha: 0.35)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.lightbulb_outline_rounded,
+                      color: Color(0xFFF59E0B), size: 20),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      own == 0
+                          ? "No NEET questions on this selection. "
+                              "$adds JEE questions cover the same syllabus."
+                          : "Only $own NEET question${own == 1 ? '' : 's'} here. "
+                              "$adds more cover the same syllabus.",
+                      style: GoogleFonts.inter(
+                          color: Colors.white70, fontSize: 12, height: 1.4),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () =>
+                        ref.read(crossExamEnabledProvider.notifier).set(true),
+                    style: TextButton.styleFrom(
+                        foregroundColor: const Color(0xFFF59E0B),
+                        padding: const EdgeInsets.symmetric(horizontal: 10)),
+                    child: const Text("Add"),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              value: enabled,
+              activeThumbColor: const Color(0xFF38BDF8),
+              onChanged: (v) =>
+                  ref.read(crossExamEnabledProvider.notifier).set(v),
+              title: Text(
+                "Include JEE questions",
+                style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(
+                adds == null
+                    ? "Same syllabus, more practice"
+                    : enabled
+                        ? "Same syllabus — $adds of these $withJee are from JEE"
+                        : "Same syllabus, more practice — adds $adds",
+                style: GoogleFonts.inter(
+                    color: Colors.white54, fontSize: 11, height: 1.4),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../main.dart';
 import '../database.dart';
 import '../services/analytics_service.dart';
+import '../widgets/source_exam_badge.dart';
 import '../widgets/tex_view.dart';
 import '../widgets/question_diagram.dart';
 import '../services/diagram_storage.dart';
@@ -340,6 +341,10 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      if (SourceExamBadge.isMixedSet(widget.questions)) ...[
+                        SourceExamBadge(q.examName),
+                        const SizedBox(height: 10),
+                      ],
                       TexText(
                         q.questionLatex,
                         style: const TextStyle(
