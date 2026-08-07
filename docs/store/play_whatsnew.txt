@@ -1,8 +1,10 @@
-What's new in v1.7.7
+What's new in v1.8.0
 
-• Questions read properly again — symbols like Ω, μ and λ now sit inside the sentence instead of jumping to their own line
-• Match-lists and two-statement questions no longer run together as one paragraph
-• NEET diagrams load again
-• Fixed several questions with cut-off or missing text, including three you reported
+• NEW — practising NEET Physics or Chemistry? Switch on "Include JEE questions"
+  in practice setup. Same syllabus, far more practice: Physics 967 to 6,108
+  questions, Chemistry 942 to 5,321. Every JEE question is clearly labelled, and
+  it stays off until you turn it on.
+• Fixed questions with cut-off or missing text, including ones you reported
+• NEET diagrams load reliably again
 
-Thanks for the feedback — keep reporting issues with the flag icon on any question.
+Keep reporting issues with the flag icon — most of this release came from you.

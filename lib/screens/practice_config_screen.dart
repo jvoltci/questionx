@@ -39,9 +39,13 @@ const String kCrossExamPrefKey = 'practice_include_jee';
 /// Starts false and loads the stored value in the background, so a slow disk
 /// read can never flash the switch on for a student who did not choose it.
 class CrossExamEnabled extends Notifier<bool> {
+  /// Completes once the stored value has been applied. Exposed so tests can
+  /// await the restore instead of racing it with a sleep.
+  late final Future<void> restored;
+
   @override
   bool build() {
-    _restore();
+    restored = _restore();
     return false;
   }
 
@@ -60,6 +64,41 @@ class CrossExamEnabled extends Notifier<bool> {
 
 final crossExamEnabledProvider =
     NotifierProvider<CrossExamEnabled, bool>(CrossExamEnabled.new);
+
+/// Whether the student has ever engaged with the switch.
+///
+/// Drives a one-time NEW pill. Existing users have stopped reading this screen,
+/// so a new control appearing on it is effectively invisible to exactly the
+/// people most likely to want it. Cleared on first interaction either way —
+/// a badge that says NEW for months is just noise.
+const String kCrossExamSeenKey = 'practice_include_jee_seen';
+
+class CrossExamSeen extends Notifier<bool> {
+  /// Completes once the stored value has been applied. See [CrossExamEnabled].
+  late final Future<void> restored;
+
+  @override
+  bool build() {
+    restored = _restore();
+    return true; // assume seen until prefs say otherwise, so it never flashes
+  }
+
+  Future<void> _restore() async {
+    final prefs = await SharedPreferences.getInstance();
+    final seen = prefs.getBool(kCrossExamSeenKey) ?? false;
+    if (seen != state) state = seen;
+  }
+
+  Future<void> markSeen() async {
+    if (state) return;
+    state = true;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(kCrossExamSeenKey, true);
+  }
+}
+
+final crossExamSeenProvider =
+    NotifierProvider<CrossExamSeen, bool>(CrossExamSeen.new);
 
 /// True when the switch is worth showing at all: a NEET student on a subject
 /// that has a JEE counterpart.
@@ -872,8 +911,10 @@ class _CrossExamCard extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   TextButton(
-                    onPressed: () =>
-                        ref.read(crossExamEnabledProvider.notifier).set(true),
+                    onPressed: () {
+                      ref.read(crossExamSeenProvider.notifier).markSeen();
+                      ref.read(crossExamEnabledProvider.notifier).set(true);
+                    },
                     style: TextButton.styleFrom(
                         foregroundColor: const Color(0xFFF59E0B),
                         padding: const EdgeInsets.symmetric(horizontal: 10)),
@@ -895,14 +936,44 @@ class _CrossExamCard extends ConsumerWidget {
               contentPadding: EdgeInsets.zero,
               value: enabled,
               activeThumbColor: const Color(0xFF38BDF8),
-              onChanged: (v) =>
-                  ref.read(crossExamEnabledProvider.notifier).set(v),
-              title: Text(
-                "Include JEE questions",
-                style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600),
+              onChanged: (v) {
+                ref.read(crossExamSeenProvider.notifier).markSeen();
+                ref.read(crossExamEnabledProvider.notifier).set(v);
+              },
+              title: Row(
+                children: [
+                  Flexible(
+                    child: Text(
+                      "Include JEE questions",
+                      style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                  if (!ref.watch(crossExamSeenProvider)) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF22C55E).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(5),
+                        border: Border.all(
+                            color: const Color(0xFF22C55E)
+                                .withValues(alpha: 0.45)),
+                      ),
+                      child: Text(
+                        "NEW",
+                        style: GoogleFonts.inter(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.6,
+                            color: const Color(0xFF22C55E)),
+                      ),
+                    ),
+                  ],
+                ],
               ),
               subtitle: Text(
                 adds == null
