@@ -1,10 +1,10 @@
-What's new in v1.8.2
+What's new in v1.9.0
 
-• Fixed: no longer gets stuck on "Checking for updates" without internet. Works
-  fully offline.
-• Fixed PDF export: integer questions no longer print empty (A) (B) (C) (D)
-  slots, and option text no longer comes out garbled.
-• NEW — for NEET Physics/Chemistry, turn on "Include JEE questions" in practice
-  setup. Same syllabus, far more practice. Off until you enable it.
+• NEW — choose your test length: 10, 25, 50, 75, or Full Mock, which matches the
+  real paper (NEET 180, JEE 75 with 25 per subject). No more starting a test and
+  finding 375 questions in it.
+• Fixed PDFs: maths renders offline instead of showing raw dollar signs, and
+  integer questions no longer print empty (A) (B) (C) (D) slots.
+• Fixed: no longer stuck on "Checking for updates" without internet.
 
-Keep using the flag icon. This whole release came from your reports.
+Keep using the flag icon. This release is entirely your reports.

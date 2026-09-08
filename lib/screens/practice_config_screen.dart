@@ -1,9 +1,11 @@
+import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:questionx/data/cross_exam_topics.dart';
+import 'package:questionx/database.dart';
 import 'package:questionx/services/pdf_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../home_screen.dart';
@@ -175,6 +177,40 @@ final crossExamCountsProvider =
   return (own: own, withJee: withJee);
 });
 
+/// How many questions a practice run should contain.
+///
+/// There was no control at all before this: every run took whatever matched, up
+/// to a hard cap of 500. A user started a test, did not realise it held 375
+/// questions, and had no way to tell beforehand.
+///
+/// `null` means "every matching question" and stays available, but the default
+/// is a sitting-sized set so nobody is surprised again.
+const List<int> kLengthPresets = [10, 25, 50, 75];
+const int kDefaultLength = 25;
+
+/// Sentinel for the exam-accurate full paper. Not a count, because the real
+/// pattern is a per-subject split rather than a single number.
+const int kFullMockLength = -1;
+
+/// The real paper: total, and how it divides across subjects.
+({int total, Map<String, int> perSubject}) mockPatternFor(String? exam) {
+  if (exam != null && exam.toUpperCase().contains('JEE')) {
+    // JEE Main: 75 questions, 25 per subject.
+    return (
+      total: 75,
+      perSubject: {'Physics': 25, 'Chemistry': 25, 'Mathematics': 25},
+    );
+  }
+  // NEET: 180 questions, Biology double-weighted.
+  return (
+    total: 180,
+    perSubject: {'Physics': 45, 'Chemistry': 45, 'Biology': 90},
+  );
+}
+
+final selectedLengthProvider =
+    StateProvider.autoDispose<int?>((ref) => kDefaultLength);
+
 List<Map<String, Object>> _subjectsForExam(String? exam) {
   if (exam != null && exam.toUpperCase().contains("JEE")) {
     return const [
@@ -188,6 +224,54 @@ List<Map<String, Object>> _subjectsForExam(String? exam) {
     {'name': "Chemistry", 'icon': Icons.science_rounded},
     {'name': "Biology", 'icon': Icons.spa_rounded},
   ];
+}
+
+/// Assembles the question set for a run: applies the chosen length, and for a
+/// full mock draws each subject's real share.
+///
+/// Shuffles before trimming. Without that, "25 questions" would hand back the
+/// same first 25 rows every time and the length control would turn a large bank
+/// into a small fixed one.
+Future<List<Question>> buildPracticeSet({
+  required AppDatabase db,
+  required String? exam,
+  required List<int> years,
+  required String? subject,
+  required List<String> topics,
+  required List<String> crossExamTopics,
+  required int? length,
+  int? seed,
+}) async {
+  final rng = Random(seed);
+
+  Future<List<Question>> fetch(String? subj, {required int limit}) async {
+    final rows = await db.getCustomQuestions(
+      examName: exam,
+      years: years,
+      subjects: subj != null ? [subj] : null,
+      topics: topics,
+      crossExamTopics: crossExamTopics,
+      limit: 2000,
+    );
+    rows.shuffle(rng);
+    return rows.length <= limit ? rows : rows.sublist(0, limit);
+  }
+
+  if (length == kFullMockLength) {
+    final pattern = mockPatternFor(exam);
+    // A subject already chosen means the student wants that subject's share of
+    // the paper, not the whole thing.
+    if (subject != null) {
+      return fetch(subject, limit: pattern.perSubject[subject] ?? pattern.total);
+    }
+    final out = <Question>[];
+    for (final entry in pattern.perSubject.entries) {
+      out.addAll(await fetch(entry.key, limit: entry.value));
+    }
+    return out;
+  }
+
+  return fetch(subject, limit: length ?? 100000);
 }
 
 class PracticeConfigScreen extends ConsumerWidget {
@@ -235,6 +319,10 @@ class PracticeConfigScreen extends ConsumerWidget {
                       _buildSectionTitle("3. Select Topics (Optional)"),
                       _buildTopicSelector(ref),
                       const _CrossExamCard(),
+                      const SizedBox(height: 32),
+
+                      _buildSectionTitle("4. Test Length"),
+                      const _LengthSelector(),
                     ],
                   ),
                 ),
@@ -780,16 +868,15 @@ class PracticeConfigScreen extends ConsumerWidget {
       ),
     );
 
-    final questions = await ref
-        .read(databaseProvider)
-        .getCustomQuestions(
-          examName: exam,
-          years: years,
-          subjects: subject != null ? [subject] : null,
-          topics: topics,
-          crossExamTopics: ref.read(crossExamTopicsProvider),
-          limit: 100,
-        );
+    final questions = await buildPracticeSet(
+      db: ref.read(databaseProvider),
+      exam: exam,
+      years: years,
+      subject: subject,
+      topics: topics,
+      crossExamTopics: ref.read(crossExamTopicsProvider),
+      length: ref.read(selectedLengthProvider),
+    );
 
     if (!context.mounted) return;
     if (questions.isEmpty) {
@@ -821,16 +908,15 @@ class PracticeConfigScreen extends ConsumerWidget {
     final topics = ref.read(selectedTopicsProvider);
     final exam = ref.read(selectedExamProvider);
 
-    final questions = await ref
-        .read(databaseProvider)
-        .getCustomQuestions(
-          examName: exam,
-          years: years,
-          subjects: subject != null ? [subject] : null,
-          topics: topics,
-          crossExamTopics: ref.read(crossExamTopicsProvider),
-          limit: 500,
-        );
+    final questions = await buildPracticeSet(
+      db: ref.read(databaseProvider),
+      exam: exam,
+      years: years,
+      subject: subject,
+      topics: topics,
+      crossExamTopics: ref.read(crossExamTopicsProvider),
+      length: ref.read(selectedLengthProvider),
+    );
 
     if (questions.isEmpty) {
       if (context.mounted) {
@@ -988,6 +1074,117 @@ class _CrossExamCard extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Picks how many questions a run contains.
+///
+/// Before this there was no control at all: a run took everything that matched,
+/// so a student could start what looked like a quick test and be handed 375
+/// questions with no warning. The count now sits next to the choice, and the
+/// full-mock option mirrors the real paper rather than being another number.
+class _LengthSelector extends ConsumerWidget {
+  const _LengthSelector();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    const accent = Color(0xFF38BDF8);
+    final selected = ref.watch(selectedLengthProvider);
+    final exam = ref.watch(selectedExamProvider);
+    final subject = ref.watch(selectedSubjectProvider);
+    final available = ref.watch(liveMatchCountProvider).value;
+    final pattern = mockPatternFor(exam);
+    final isJee = exam != null && exam.toUpperCase().contains('JEE');
+
+    void pick(int? v) =>
+        ref.read(selectedLengthProvider.notifier).state = v;
+
+    Widget chip(String label, int? value, {bool wide = false}) {
+      final on = selected == value;
+      return GestureDetector(
+        onTap: () => pick(value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(
+              horizontal: wide ? 18 : 20, vertical: 12),
+          decoration: BoxDecoration(
+            color: on
+                ? accent.withValues(alpha: 0.15)
+                : Colors.white.withValues(alpha: 0.03),
+            borderRadius: BorderRadius.circular(30),
+            border: Border.all(
+                color: on ? accent : Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Text(
+            label,
+            style: GoogleFonts.inter(
+              color: on ? accent : Colors.white70,
+              fontSize: 14,
+              fontWeight: on ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // What the student will actually get, stated plainly.
+    final String hint;
+    if (selected == kFullMockLength) {
+      hint = subject != null
+          ? "${pattern.perSubject[subject] ?? pattern.total} questions, "
+              "$subject's share of a real ${isJee ? 'JEE Main' : 'NEET'} paper"
+          : "${pattern.total} questions, split like a real "
+              "${isJee ? 'JEE Main' : 'NEET'} paper "
+              "(${pattern.perSubject.entries.map((e) => '${e.value} ${e.key.substring(0, 3)}').join(' · ')})";
+    } else if (selected == null) {
+      hint = available == null
+          ? "Every question that matches your filters"
+          : "Every match: $available questions";
+    } else {
+      hint = available != null && available < selected
+          ? "Only $available match your filters, so you'll get $available"
+          : "$selected questions, picked at random from $available matches"
+              .replaceAll(' from null matches', '');
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            for (final n in kLengthPresets) chip("$n", n),
+            chip("Full Mock", kFullMockLength, wide: true),
+            chip("All", null),
+          ],
+        ),
+        const SizedBox(height: 14),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              selected == kFullMockLength
+                  ? Icons.workspace_premium_rounded
+                  : Icons.info_outline_rounded,
+              size: 15,
+              color: selected == kFullMockLength ? accent : Colors.white38,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                hint,
+                style: GoogleFonts.inter(
+                  color: selected == kFullMockLength ? accent : Colors.white54,
+                  fontSize: 12,
+                  height: 1.45,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }
