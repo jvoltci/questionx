@@ -1,10 +1,10 @@
-What's new in v1.8.1
+What's new in v1.8.2
 
 • Fixed: no longer gets stuck on "Checking for updates" without internet. Works
   fully offline.
-• NEW — practising NEET Physics or Chemistry? Turn on "Include JEE questions" in
-  practice setup. Same syllabus, far more practice: Physics 967 to 6,108
-  questions, Chemistry 942 to 5,321. Off until you enable it.
-• Fixed cut-off question text and missing diagrams you reported
+• Fixed PDF export: integer questions no longer print empty (A) (B) (C) (D)
+  slots, and option text no longer comes out garbled.
+• NEW — for NEET Physics/Chemistry, turn on "Include JEE questions" in practice
+  setup. Same syllabus, far more practice. Off until you enable it.
 
-Keep using the flag icon. Most of this release came from your reports.
+Keep using the flag icon. This whole release came from your reports.
