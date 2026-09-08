@@ -30,7 +30,28 @@ class SyncProgress {
 
 class SyncService {
   final AppDatabase db;
-  final Dio _dio = Dio();
+  /// Timeouts are mandatory here, not optional tuning.
+  ///
+  /// A bare `Dio()` has NO connect timeout, so it inherits the OS behaviour: an
+  /// Android TCP connect to an unreachable host retries SYNs for a minute or
+  /// more, and behind a captive portal or on a dying signal it can stall
+  /// indefinitely. The splash awaits this call, so the app sat on "Checking for
+  /// updates..." forever with no way past it — reported from the field, and the
+  /// surrounding try/catch could not help because nothing ever threw.
+  ///
+  /// `receiveTimeout` is Dio's per-chunk idle limit, not a total budget, so a
+  /// slow 78 MB download on 2G still succeeds; only a genuinely stalled socket
+  /// trips it.
+  final Dio _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 8),
+    receiveTimeout: const Duration(seconds: 30),
+    sendTimeout: const Duration(seconds: 30),
+  ));
+
+  /// Hard ceiling on the release-metadata lookup. Cheap call, so if it has not
+  /// answered in this long the network is not usable and offline is the correct
+  /// assumption.
+  static const Duration _checkDeadline = Duration(seconds: 10);
 
   /// Listenable progress stream consumed by the splash screen.
   final ValueNotifier<SyncProgress> progress =
@@ -43,6 +64,10 @@ class SyncService {
   static const String _contentKey = "bundled_content_version";
   static const String _lastCheckKey = "db_last_check_ms";
   static const Duration _checkInterval = Duration(hours: 6);
+
+  /// Test hook: the network options above are load-bearing, not tuning.
+  @visibleForTesting
+  BaseOptions get httpOptions => _dio.options;
 
   SyncService(this.db);
 
@@ -175,7 +200,7 @@ class SyncService {
   Future<String?> _checkForUpdates(String? currentVersion) async {
     const url =
         "https://api.github.com/repos/$_repoOwner/$_repoName/releases/latest";
-    final response = await _dio.get(url);
+    final response = await _dio.get(url).timeout(_checkDeadline);
 
     if (response.statusCode == 200) {
       final latestTag = response.data['tag_name'];
