@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show visibleForTesting;
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import '../database.dart';
@@ -122,6 +123,8 @@ class PdfService {
       """);
     }
 
+    final katexHead = await _buildKatexHead();
+
     return """
     <!DOCTYPE html>
     <html>
@@ -129,18 +132,7 @@ class PdfService {
       <meta charset="UTF-8">
       <title>$title</title>
       
-      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
-      <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
-      <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-        onload="renderMathInElement(document.body, {
-          delimiters: [
-            {left: '\$\$', right: '\$\$', display: true},
-            {left: '\$', right: '\$', display: false},
-            {left: '\\\\(', right: '\\\\)', display: false},
-            {left: '\\\\[', right: '\\\\]', display: true}
-          ],
-          throwOnError: false
-        });"></script>
+      $katexHead
 
       <style>
         /* Use system fonts to avoid network hangs */
@@ -191,6 +183,17 @@ class PdfService {
 
       <div class="container">
         $bodyHtml
+      <script>
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '\$\$', right: '\$\$', display: true},
+            {left: '\$', right: '\$', display: false},
+            {left: '\\\\(', right: '\\\\)', display: false},
+            {left: '\\\\[', right: '\\\\]', display: true}
+          ],
+          throwOnError: false
+        });
+      </script>
       </div>
     </body>
     </html>
@@ -198,6 +201,46 @@ class PdfService {
   }
 
   // Helper to ensure LaTeX format is friendly to KaTeX auto-render
+  static String? _katexHead;
+
+  /// Inlines the bundled KaTeX so the export renders with no network.
+  ///
+  /// This used to be three CDN <script>/<link> tags. Generating a paper offline
+  /// therefore produced raw "\$...\$" text for every formula, because nothing was
+  /// there to typeset it — reported by a user who works offline, and the reason
+  /// dollar signs persisted after the LaTeX itself was already being repaired.
+  ///
+  /// The web fonts are base64'd into the stylesheet: the HTML is handed to the
+  /// print engine as a bare string with no base URL, so a relative
+  /// `url(fonts/...)` cannot resolve. Only woff2 is shipped; the .woff and .ttf
+  /// fallbacks in KaTeX's stylesheet would triple the size for engines that do
+  /// not need them.
+  static Future<String> _buildKatexHead() async {
+    final cached = _katexHead;
+    if (cached != null) return cached;
+
+    var css = await rootBundle.loadString('assets/katex/katex.min.css');
+    final fontNames = RegExp(r'url\(fonts/([\w-]+)\.woff2\)')
+        .allMatches(css)
+        .map((m) => m.group(1)!)
+        .toSet();
+    for (final name in fontNames) {
+      final bytes = await rootBundle.load('assets/katex/fonts/$name.woff2');
+      final b64 = base64Encode(bytes.buffer
+          .asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
+      css = css.replaceAll(
+          'url(fonts/$name.woff2)', 'url(data:font/woff2;base64,$b64)');
+    }
+    // Drop the fallbacks we do not ship, so the engine never chases a dead URL.
+    css = css.replaceAll(RegExp(r',url\(fonts/[\w-]+\.(?:woff|ttf)\)[^;}]*'), '');
+
+    final js = await rootBundle.loadString('assets/katex/katex.min.js');
+    final auto = await rootBundle.loadString('assets/katex/auto-render.min.js');
+    return _katexHead = '<style>$css</style>'
+        '<script>$js</script>'
+        '<script>$auto</script>';
+  }
+
   static String _cleanForKaTeX(String text) {
     if (text.isEmpty) return "";
     // Run the SAME repair the on-screen renderer uses. Without this the PDF got

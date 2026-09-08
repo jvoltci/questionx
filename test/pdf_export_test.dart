@@ -29,7 +29,44 @@ Question q({
       answerKey: Value(answerKey).present ? answerKey : null,
     );
 
+/// Only the rendered questions. The bundled KaTeX source is ~600 KB of minified
+/// JS that happens to contain literals like "(C)", so asserting against the whole
+/// document gives false matches.
+String body(String html) {
+  final start = html.indexOf('<div class="question-box">');
+  final end = html.lastIndexOf('</div>');
+  return start == -1 ? '' : html.substring(start, end == -1 ? html.length : end);
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('PDF export needs no network', () async {
+    // The real cause of "options show dollar signs": KaTeX was pulled from
+    // jsdelivr, so generating a paper offline left every formula as raw
+    // "\$...\$" because nothing was there to typeset it. Repairing the LaTeX
+    // beforehand did not help, and could not.
+    final html = await PdfService.generateHtmlForTest(
+      [q(id: 'k', stem: r'Speed is $20 \mathrm{~cm}/\mathrm{s}$', optionsJson: r'["$2\,\Omega$"]', answerKey: 'A')],
+      'T',
+      'Physics',
+    );
+    expect(html, isNot(contains('cdn.jsdelivr')),
+        reason: 'a remote asset makes offline export print raw LaTeX');
+    // Note: KaTeX's source contains w3.org MathML/SVG namespace URIs. Those are
+    // identifiers, never fetched, so a blanket "no http" assertion is wrong.
+    expect(html, isNot(contains('src="http')),
+        reason: 'no remotely-loaded script');
+    expect(html, isNot(contains('href="http')),
+        reason: 'no remotely-loaded stylesheet');
+    expect(html, contains('renderMathInElement(document.body'),
+        reason: 'nothing typesets the maths without this call');
+    expect(RegExp(r'url\(fonts/').hasMatch(html), isFalse,
+        reason: 'relative font URLs cannot resolve in a bare HTML string');
+    expect(RegExp(r'data:font/woff2').allMatches(html).length, greaterThan(10),
+        reason: 'KaTeX fonts must be embedded, not linked');
+  });
+
   test('an integer question prints no empty option slots', () async {
     final html = await PdfService.generateHtmlForTest(
       [q(id: 'n1', stem: 'Value of x is ____', optionsJson: '[]', answerKey: '5')],
@@ -37,10 +74,10 @@ void main() {
       'Physics',
     );
     for (final l in ['(A)', '(B)', '(C)', '(D)']) {
-      expect(html, isNot(contains(l)),
+      expect(body(html), isNot(contains(l)),
           reason: 'numeric question must not print an empty $l slot');
     }
-    expect(html, contains('Answer:'), reason: 'give it a space to write in');
+    expect(body(html), contains('Answer:'), reason: 'give it a space to write in');
   });
 
   test('a 4-option MCQ still prints all four', () async {
@@ -57,7 +94,7 @@ void main() {
       'Physics',
     );
     for (final l in ['(A)', '(B)', '(C)', '(D)']) {
-      expect(html, contains(l));
+      expect(body(html), contains(l));
     }
   });
 
@@ -67,9 +104,9 @@ void main() {
       'T',
       'Physics',
     );
-    expect(html, contains('(A)'));
-    expect(html, contains('(B)'));
-    expect(html, isNot(contains('(C)')));
+    expect(body(html), contains('(A)'));
+    expect(body(html), contains('(B)'));
+    expect(body(html), isNot(contains('(C)')));
   });
 
   test('stray dollar-sign damage is repaired before export', () async {
@@ -86,7 +123,7 @@ void main() {
       'T',
       'Physics',
     );
-    expect(html, isNot(contains(r'$$$')),
+    expect(body(html), isNot(contains(r'$$$')),
         reason: 'a triple-dollar run reaching KaTeX renders as garbage');
   });
 }
