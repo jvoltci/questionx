@@ -1,7 +1,10 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import '../database.dart';
+import '../utils/answer_grading.dart';
+import '../widgets/tex_normalize.dart';
 import 'diagram_storage.dart';
 
 class PdfService {
@@ -22,6 +25,16 @@ class PdfService {
       name: 'QuestionX_Exam_${DateTime.now().millisecondsSinceEpoch}.pdf',
     );
   }
+
+  /// Test hook: the exported HTML is what students actually receive, so it is
+  /// worth asserting on directly.
+  @visibleForTesting
+  static Future<String> generateHtmlForTest(
+    List<Question> questions,
+    String title,
+    String subject,
+  ) =>
+      _generateHtml(questions, title, subject);
 
   static Future<String> _generateHtml(
     List<Question> questions,
@@ -65,6 +78,32 @@ class PdfService {
         }
       }
 
+      // Only render the options that exist. The old template always emitted
+      // four slots and fell back to an empty string, so every integer/numeric
+      // question printed a bare "(A) (B) (C) (D)" with nothing beside the
+      // labels. Roughly a quarter of the JEE bank is numeric, so this was on a
+      // lot of exported papers. Those get a ruled answer space instead.
+      final isNumeric = AnswerGrading.typeOf(
+            options: options,
+            answerKey: q.answerKey,
+          ) ==
+          QType.numeric;
+
+      final String answerBlock;
+      if (isNumeric) {
+        answerBlock = '<div class="numeric-answer">Answer: '
+            '<span class="rule"></span></div>';
+      } else {
+        final buf = StringBuffer('<div class="options-grid">');
+        for (var o = 0; o < options.length; o++) {
+          final label = String.fromCharCode(65 + o);
+          buf.write('<div class="opt"><span class="opt-label">($label)</span> '
+              '${_cleanForKaTeX(options[o])}</div>');
+        }
+        buf.write('</div>');
+        answerBlock = buf.toString();
+      }
+
       bodyHtml.write("""
         <div class="question-box">
           <div class="q-header">
@@ -78,12 +117,7 @@ class PdfService {
 
           $svgHtml
 
-          <div class="options-grid">
-            <div class="opt"><span class="opt-label">(A)</span> ${_cleanForKaTeX(options.isNotEmpty ? options[0] : '')}</div>
-            <div class="opt"><span class="opt-label">(B)</span> ${_cleanForKaTeX(options.length > 1 ? options[1] : '')}</div>
-            <div class="opt"><span class="opt-label">(C)</span> ${_cleanForKaTeX(options.length > 2 ? options[2] : '')}</div>
-            <div class="opt"><span class="opt-label">(D)</span> ${_cleanForKaTeX(options.length > 3 ? options[3] : '')}</div>
-          </div>
+          $answerBlock
         </div>
       """);
     }
@@ -128,6 +162,8 @@ class PdfService {
         .q-img { margin: 10px auto; text-align: center; max-width: 100%; }
         .q-img svg { max-width: 100% !important; height: auto !important; max-height: 150px; }
         
+        .numeric-answer { margin-top: 6px; font-size: 12px; color: #333; }
+        .rule { display: inline-block; border-bottom: 1px solid #555; width: 120px; }
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
         .opt { font-size: 1em; display: flex; align-items: flex-start; }
         .opt-label { font-weight: bold; margin-right: 5px; min-width: 20px; }
@@ -164,7 +200,12 @@ class PdfService {
   // Helper to ensure LaTeX format is friendly to KaTeX auto-render
   static String _cleanForKaTeX(String text) {
     if (text.isEmpty) return "";
-    String clean = text.replaceAll('\n', ' ');
+    // Run the SAME repair the on-screen renderer uses. Without this the PDF got
+    // the raw scraped LaTeX -- stray `\$` runs, line breaks wrapped into maths,
+    // prose typeset as maths -- so exported options came out mangled while the
+    // identical question looked fine in the app. Reusing it beats maintaining a
+    // second, weaker heuristic here.
+    String clean = normalizeForRender(text).replaceAll('\n', ' ');
 
     // Many source questions encode line breaks as the literal 2-char
     // sequences "\\" or "\n" (backslash + n) — common in Match-the-columns
