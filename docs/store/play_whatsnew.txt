@@ -2,9 +2,9 @@ What's new in v1.8.1
 
 • Fixed: no longer gets stuck on "Checking for updates" without internet. Works
   fully offline.
-• NEW — practising NEET Physics or Chemistry? Switch on "Include JEE questions"
-  in practice setup. Same syllabus, far more practice: Physics 967 to 6,108
-  questions, Chemistry 942 to 5,321. Labelled, and off until you turn it on.
-• Fixed questions with cut-off text and missing diagrams that you reported
+• NEW — practising NEET Physics or Chemistry? Turn on "Include JEE questions" in
+  practice setup. Same syllabus, far more practice: Physics 967 to 6,108
+  questions, Chemistry 942 to 5,321. Off until you enable it.
+• Fixed cut-off question text and missing diagrams you reported
 
-Keep reporting issues with the flag icon. Most of this release came from you.
+Keep using the flag icon. Most of this release came from your reports.
