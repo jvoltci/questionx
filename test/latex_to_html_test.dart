@@ -62,5 +62,38 @@ void main() {
     expect(out, isNot(contains(r'\')));
   });
 
+  test(r'plain-TeX \over becomes a fraction', () {
+    // The banks use this form far more than \frac (MathType/examside output).
+    // Handling only \frac left every one of these flattened to "V R".
+    final out = latexToHtml(r'{V \over R}');
+    expect(out, contains('class="frac"'));
+    expect(out, contains('<span class="fnum">V</span>'));
+    expect(out, contains('<span class="fden">R</span>'));
+  });
+
+  test(r'nested \over resolves innermost first', () {
+    final out = latexToHtml(r'{{{L_2}} \over {{L_1} + {L_2}}}');
+    expect(out, contains('L<sub>2</sub>'));
+    expect(out, contains('L<sub>1</sub> + L<sub>2</sub>'));
+    expect(RegExp('class="frac"').allMatches(out).length, 1);
+  });
+
+  test(r'\overrightarrow is not mistaken for \over', () {
+    final out = latexToHtml(r'\overrightarrow b = 2');
+    expect(out, isNot(contains('class="frac"')));
+    expect(out, isNot(contains(r'\')));
+  });
+
+  test('fraction markup forbids internal wrapping', () {
+    expect(kLatexHtmlCss, contains('white-space: nowrap'));
+  });
+
+  test('sub/sup do not use line-height:0 or vertical-align:sub', () {
+    // Both floated subscripts off their base letter when a stacked fraction
+    // shared the line.
+    expect(kLatexHtmlCss, isNot(contains('line-height: 0')));
+    expect(kLatexHtmlCss, contains('position: relative'));
+  });
+
   test('empty input is safe', () => expect(latexToHtml(''), ''));
 }

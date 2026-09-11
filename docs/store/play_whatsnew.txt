@@ -1,9 +1,10 @@
-What's new in v1.9.1
+What's new in v1.9.3
 
-• Fixed PDF export properly this time. Maths now prints as real formulas with
-  fractions, subscripts and Greek letters, instead of raw code full of dollar
-  signs. Works offline.
-• Earlier fix in 1.8.x did not actually work. Sorry, and thanks to everyone who
-  reported it again.
+• PDF export fixed again, and this time checked on the rendered page rather
+  than just the code. Fractions print stacked with a proper bar, subscripts
+  stay attached to their letters, and long options no longer overflow the
+  column.
+• Options with maths now use the full width instead of a cramped half column.
 
-Keep using the flag icon on any question. Your reports drive these releases.
+Thank you to the student who sent screenshots of every broken version. Keep
+using the flag icon on any question.

@@ -79,6 +79,55 @@ String _stripWrappers(String s) {
   return out;
 }
 
+/// Plain-TeX `{A \over B}` -> fraction markup.
+///
+/// The banks are full of this form (`{V \over R}`, `{{{L_2}} \over {{L_1}+{L_2}}}`)
+/// because MathType and examside emit it instead of `\frac`. Handling only
+/// `\frac` left every one of these flattened to "V R" in the export, which is
+/// what the user's Q12 screenshot showed. Innermost groups first, so nesting
+/// works.
+String _overFractions(String s) {
+  const skip = '@@OVERCMD@@';
+  var out = s;
+  for (var guard = 0; guard < 40; guard++) {
+    final idx = out.indexOf(r'\over');
+    if (idx == -1) break;
+    final after = idx + 5;
+    // \overline, \overrightarrow etc. are not the primitive.
+    if (after < out.length && RegExp(r'[a-zA-Z]').hasMatch(out[after])) {
+      out = '${out.substring(0, idx)}$skip${out.substring(after)}';
+      continue;
+    }
+    // Walk back to the `{` that opens the group containing this \over.
+    var depth = 0;
+    var open = -1;
+    for (var i = idx - 1; i >= 0; i--) {
+      if (out[i] == '}') depth++;
+      if (out[i] == '{') {
+        if (depth == 0) {
+          open = i;
+          break;
+        }
+        depth--;
+      }
+    }
+    if (open == -1) {
+      final num = out.substring(0, idx).trim();
+      final den = out.substring(after).trim();
+      return '<span class="frac"><span class="fnum">${latexToHtml(num)}</span>'
+          '<span class="fden">${latexToHtml(den)}</span></span>';
+    }
+    final close = _groupEnd(out, open);
+    final num = out.substring(open + 1, idx).trim();
+    final den = out.substring(after, close - 1).trim();
+    out = '${out.substring(0, open)}'
+        '<span class="frac"><span class="fnum">${latexToHtml(num)}</span>'
+        '<span class="fden">${latexToHtml(den)}</span></span>'
+        '${out.substring(close)}';
+  }
+  return out.replaceAll(skip, r'\over');
+}
+
 String _fractions(String s) {
   var out = s;
   for (var guard = 0; guard < 30; guard++) {
@@ -142,6 +191,7 @@ String latexToHtml(String tex) {
   }
 
   s = _stripWrappers(s);
+  s = _overFractions(s);
   s = _fractions(s);
 
   _symbols.forEach((k, v) {
@@ -169,9 +219,19 @@ String latexToHtml(String tex) {
 /// CSS for the markup [latexToHtml] emits.
 const String kLatexHtmlCss = '''
 .frac { display: inline-block; vertical-align: middle; text-align: center;
-        margin: 0 2px; }
+        margin: 0 3px; white-space: nowrap; }
 .frac .fnum { display: block; border-bottom: 1px solid currentColor;
-              padding: 0 3px; line-height: 1.25; }
-.frac .fden { display: block; padding: 0 3px; line-height: 1.25; }
-sub, sup { font-size: 0.72em; line-height: 0; }
+              padding: 0 3px; line-height: 1.3; }
+.frac .fden { display: block; padding: 0 3px; line-height: 1.3; }
+/* No line-height:0 here. It stops the glyph occupying vertical space, so in
+   tightly wrapped text the subscript is drawn over the line above, which is
+   exactly how "L1" came out as a floating "1" in the user's screenshot. */
+/* position:relative rather than vertical-align. A stacked fraction on the same
+   line is a two-row inline-block aligned middle, which drags the line's baseline
+   down; vertical-align:sub followed it and the "1" of L1 landed a row above its
+   L. Relative offset leaves the baseline alone. */
+sub, sup { font-size: 0.75em; line-height: 1; position: relative;
+           vertical-align: baseline; }
+sub { top: 0.35em; }
+sup { top: -0.45em; }
 ''';

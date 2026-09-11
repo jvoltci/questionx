@@ -145,6 +145,41 @@ void main() {
     expect(commands, 0, reason: 'raw LaTeX command would print as-is: $examples');
   });
 
+  test('option body is a single flex item, so inline maths flows', () async {
+    // .opt is display:flex. Left as bare children, every text run, <sub> and
+    // fraction became its own flex item laid out as a column: "L" wrapped
+    // inside its box while its subscript "1" sat atop the next. Seen in the
+    // rendered Q12, invisible in the HTML text.
+    final html = await PdfService.generateHtmlForTest(
+      [q(id: 'f', stem: 'x', optionsJson: r'["through $L_{1}$ will be $${V \\over R}$$"]', answerKey: 'A')],
+      'T', 'Physics',
+    );
+    final b = body(html);
+    expect(b, contains('<span class="opt-body">'));
+    // label and body must be the ONLY two children of .opt
+    final opt = RegExp(r'<div class="opt">(.*?)</div>', dotAll: true).firstMatch(b)!.group(1)!;
+    expect(opt, startsWith('<span class="opt-label">'));
+    expect(opt, contains('</span><span class="opt-body">'),
+        reason: 'no bare text may sit between label and body');
+  });
+
+  test('dense options stack in one column', () async {
+    final html = await PdfService.generateHtmlForTest(
+      [q(id: 'd', stem: 'x', optionsJson: r'["$${V \\over R}$$","1 A","2 A","3 A"]', answerKey: 'A')],
+      'T', 'Physics',
+    );
+    expect(body(html), contains('options-stack'),
+        reason: 'a fraction in a half-width cell wraps into pieces');
+  });
+
+  test('short plain options keep the two-column grid', () async {
+    final html = await PdfService.generateHtmlForTest(
+      [q(id: 's', stem: 'x', optionsJson: '["1 A","2.5 A","2 A","1.5 A"]', answerKey: 'C')],
+      'T', 'Physics',
+    );
+    expect(body(html), isNot(contains('options-stack')));
+  });
+
   test('stray dollar-sign damage is repaired before export', () async {
     // The exact shape reported in the app: a `\$\$\$` run left by the scrape.
     final html = await PdfService.generateHtmlForTest(

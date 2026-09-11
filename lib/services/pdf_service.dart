@@ -95,11 +95,25 @@ class PdfService {
         answerBlock = '<div class="numeric-answer">Answer: '
             '<span class="rule"></span></div>';
       } else {
-        final buf = StringBuffer('<div class="options-grid">');
+        // Two columns only when every option is short prose. A fraction or a
+        // long expression in a half-width cell wraps into unreadable pieces,
+        // which is what the Q12 report showed.
+        final rendered = options.map(_cleanForKaTeX).toList();
+        final dense = rendered.any(
+            (o) => o.contains('class="frac"') || o.length > 60);
+        final buf = StringBuffer(dense
+            ? '<div class="options-grid options-stack">'
+            : '<div class="options-grid">');
         for (var o = 0; o < options.length; o++) {
           final label = String.fromCharCode(65 + o);
-          buf.write('<div class="opt"><span class="opt-label">($label)</span> '
-              '${_cleanForKaTeX(options[o])}</div>');
+          // The body is ONE span on purpose. .opt is a flex row, and in a flex
+          // container every bare text run, <sub> and fraction becomes its own
+          // flex item laid out side by side as a column. That is how "L" wrapped
+          // inside its own box while its subscript "1" sat at the top of the
+          // next, and why long expressions overflowed (flex items default to
+          // min-width:auto). One child restores normal inline flow.
+          buf.write('<div class="opt"><span class="opt-label">($label)</span>'
+              '<span class="opt-body">${rendered[o]}</span></div>');
         }
         buf.write('</div>');
         answerBlock = buf.toString();
@@ -155,8 +169,10 @@ class PdfService {
         .numeric-answer { margin-top: 6px; font-size: 12px; color: #333; }
         .rule { display: inline-block; border-bottom: 1px solid #555; width: 120px; }
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 5px; }
+        .options-stack { grid-template-columns: 1fr; }
         .opt { font-size: 1em; display: flex; align-items: flex-start; }
         .opt-label { font-weight: bold; margin-right: 5px; min-width: 20px; }
+        .opt-body { flex: 1; min-width: 0; overflow-wrap: anywhere; }
       </style>
     </head>
     <body>
