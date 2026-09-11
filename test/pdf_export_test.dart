@@ -1,7 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:questionx/database.dart';
 import 'package:questionx/services/pdf_service.dart';
+import 'package:questionx/utils/crypto.dart';
 
 /// What the exported PDF actually contains.
 ///
@@ -51,20 +55,19 @@ void main() {
       'T',
       'Physics',
     );
-    expect(html, isNot(contains('cdn.jsdelivr')),
-        reason: 'a remote asset makes offline export print raw LaTeX');
+    expect(html, isNot(contains('cdn.jsdelivr')));
     // Note: KaTeX's source contains w3.org MathML/SVG namespace URIs. Those are
     // identifiers, never fetched, so a blanket "no http" assertion is wrong.
     expect(html, isNot(contains('src="http')),
         reason: 'no remotely-loaded script');
     expect(html, isNot(contains('href="http')),
         reason: 'no remotely-loaded stylesheet');
-    expect(html, contains('renderMathInElement(document.body'),
-        reason: 'nothing typesets the maths without this call');
-    expect(RegExp(r'url\(fonts/').hasMatch(html), isFalse,
-        reason: 'relative font URLs cannot resolve in a bare HTML string');
-    expect(RegExp(r'data:font/woff2').allMatches(html).length, greaterThan(10),
-        reason: 'KaTeX fonts must be embedded, not linked');
+    expect(html, isNot(contains('<script')),
+        reason: 'the export WebView runs no JavaScript, so a script is a lie');
+    expect(body(html), isNot(contains(r'$')),
+        reason: 'a surviving delimiter prints as raw LaTeX');
+    expect(body(html), isNot(contains(r'\\math')),
+        reason: 'a surviving command prints as raw LaTeX');
   });
 
   test('an integer question prints no empty option slots', () async {
@@ -107,6 +110,34 @@ void main() {
     expect(body(html), contains('(A)'));
     expect(body(html), contains('(B)'));
     expect(body(html), isNot(contains('(C)')));
+  });
+
+  test('no raw LaTeX survives across 400 real questions', () async {
+    // Both previous attempts at this bug passed hand-written tests and still
+    // shipped raw LaTeX, so this one sweeps the actual bank.
+    final bank = json.decode(DataCrypto.decryptBytes(
+        File('assets/jee.json.enc').readAsBytesSync())) as List;
+    final withMath = bank
+        .where((q) => (q['question_latex'] as String).contains(r'$'))
+        .take(400)
+        .map((q) => Question(
+              id: q['id'] as String,
+              examName: 'JEE Main',
+              year: (q['year'] as int?) ?? 2023,
+              subject: (q['subject'] as String?) ?? 'Physics',
+              topic: (q['topic'] as String?) ?? 'x',
+              difficulty: 'Medium',
+              questionLatex: q['question_latex'] as String,
+              optionsJson: jsonEncode(q['options'] ?? []),
+              answerKey: q['answer_key'] as String?,
+            ))
+        .toList();
+
+    final rendered = body(await PdfService.generateHtmlForTest(
+        withMath, 'Sweep', 'Mixed'));
+    expect(rendered, isNot(contains(r'$')), reason: 'delimiter survived');
+    expect(RegExp(r'\\[a-zA-Z]{2,}').hasMatch(rendered), isFalse,
+        reason: 'LaTeX command survived');
   });
 
   test('stray dollar-sign damage is repaired before export', () async {

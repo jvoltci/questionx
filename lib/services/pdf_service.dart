@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show visibleForTesting;
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import '../database.dart';
 import '../utils/answer_grading.dart';
 import '../widgets/tex_normalize.dart';
 import 'diagram_storage.dart';
+import 'latex_to_html.dart';
 
 class PdfService {
   /// Generates a Professional Exam PDF using KaTeX (High Performance)
@@ -123,8 +123,6 @@ class PdfService {
       """);
     }
 
-    final katexHead = await _buildKatexHead();
-
     return """
     <!DOCTYPE html>
     <html>
@@ -132,7 +130,7 @@ class PdfService {
       <meta charset="UTF-8">
       <title>$title</title>
       
-      $katexHead
+      <style>$kLatexHtmlCss</style>
 
       <style>
         /* Use system fonts to avoid network hangs */
@@ -165,35 +163,9 @@ class PdfService {
       <h1>$title</h1>
       <div class="sub-header">Subject: $subject  •  Total Questions: ${questions.length}</div>
       
-      <div id="network-warning" style="display:none; color:red; text-align:center; border:2px solid red; padding:10px; margin-bottom:20px;">
-        <strong>⚠️ RENDERING FAILED</strong><br>
-        Check your internet connection.
-      </div>
-      <script>
-        // Failsafe: If KaTeX doesn't load in 2 seconds, stop waiting so PDF generates anyway
-        setTimeout(() => {
-          if (document.getElementsByClassName('katex').length === 0) {
-             const test = document.body.innerText;
-             if(test.includes('\$')) {
-                document.getElementById('network-warning').style.display = 'block';
-             }
-          }
-        }, 2000);
-      </script>
 
       <div class="container">
         $bodyHtml
-      <script>
-        renderMathInElement(document.body, {
-          delimiters: [
-            {left: '\$\$', right: '\$\$', display: true},
-            {left: '\$', right: '\$', display: false},
-            {left: '\\\\(', right: '\\\\)', display: false},
-            {left: '\\\\[', right: '\\\\]', display: true}
-          ],
-          throwOnError: false
-        });
-      </script>
       </div>
     </body>
     </html>
@@ -201,114 +173,37 @@ class PdfService {
   }
 
   // Helper to ensure LaTeX format is friendly to KaTeX auto-render
-  static String? _katexHead;
-
-  /// Inlines the bundled KaTeX so the export renders with no network.
+  /// Question or option text, ready to drop into the exported HTML.
   ///
-  /// This used to be three CDN <script>/<link> tags. Generating a paper offline
-  /// therefore produced raw "\$...\$" text for every formula, because nothing was
-  /// there to typeset it — reported by a user who works offline, and the reason
-  /// dollar signs persisted after the LaTeX itself was already being repaired.
-  ///
-  /// The web fonts are base64'd into the stylesheet: the HTML is handed to the
-  /// print engine as a bare string with no base URL, so a relative
-  /// `url(fonts/...)` cannot resolve. Only woff2 is shipped; the .woff and .ttf
-  /// fallbacks in KaTeX's stylesheet would triple the size for engines that do
-  /// not need them.
-  static Future<String> _buildKatexHead() async {
-    final cached = _katexHead;
-    if (cached != null) return cached;
-
-    var css = await rootBundle.loadString('assets/katex/katex.min.css');
-    final fontNames = RegExp(r'url\(fonts/([\w-]+)\.woff2\)')
-        .allMatches(css)
-        .map((m) => m.group(1)!)
-        .toSet();
-    for (final name in fontNames) {
-      final bytes = await rootBundle.load('assets/katex/fonts/$name.woff2');
-      final b64 = base64Encode(bytes.buffer
-          .asUint8List(bytes.offsetInBytes, bytes.lengthInBytes));
-      css = css.replaceAll(
-          'url(fonts/$name.woff2)', 'url(data:font/woff2;base64,$b64)');
-    }
-    // Drop the fallbacks we do not ship, so the engine never chases a dead URL.
-    css = css.replaceAll(RegExp(r',url\(fonts/[\w-]+\.(?:woff|ttf)\)[^;}]*'), '');
-
-    final js = await rootBundle.loadString('assets/katex/katex.min.js');
-    final auto = await rootBundle.loadString('assets/katex/auto-render.min.js');
-    return _katexHead = '<style>$css</style>'
-        '<script>$js</script>'
-        '<script>$auto</script>';
-  }
-
+  /// Math spans are converted to HTML here rather than left as `$...$` for
+  /// KaTeX, because the export's WebView runs no JavaScript (see
+  /// latex_to_html.dart). Anything left in delimiters would print as raw LaTeX,
+  /// which is exactly what users kept reporting.
   static String _cleanForKaTeX(String text) {
     if (text.isEmpty) return "";
-    // Run the SAME repair the on-screen renderer uses. Without this the PDF got
-    // the raw scraped LaTeX -- stray `\$` runs, line breaks wrapped into maths,
-    // prose typeset as maths -- so exported options came out mangled while the
-    // identical question looked fine in the app. Reusing it beats maintaining a
-    // second, weaker heuristic here.
+    // Run the SAME repair the on-screen renderer uses, so the export starts from
+    // the corrected LaTeX rather than the raw scraped source.
     String clean = normalizeForRender(text).replaceAll('\n', ' ');
 
-    // Many source questions encode line breaks as the literal 2-char
-    // sequences "\\" or "\n" (backslash + n) — common in Match-the-columns
-    // and Assertion-Reason items. If the stem has no other LaTeX commands,
-    // these are not math — convert them to real HTML breaks. Otherwise the
-    // math-wrap heuristic below would treat the stray backslash as math
-    // and wrap the whole English prose in $$...$$.
-    final stripped = clean
-        .replaceAll(r'\\', '')
-        .replaceAll(r'\n', '')
-        .replaceAll(r'\t', '');
-    final hasRealLatex = stripped.contains(r'\');
-
-    // HTML-escape <,> outside math FIRST — questions sometimes contain text
-    // arrows like "A -> B" or inequalities like "modulation index < 1" that
-    // the browser would otherwise parse as the start of an HTML tag.
-    // Doing this before inserting <br/> ensures our injected tags survive.
-    clean = _escapeOutsideMath(clean);
-
-    if (!hasRealLatex) {
-      clean = clean
-          .replaceAll(r'\\', '<br/>')
-          .replaceAll(r'\n', '<br/>')
-          .replaceAll(r'\t', '  ');
-    }
-
-    // KaTeX auto-render needs explicit delimiters if they are missing
-    final hasDelimiter = clean.contains(r'$') || clean.contains(r'\(');
-    final hasMathCommand = clean.contains(r'\');
-
-    if (!hasDelimiter && hasMathCommand) {
-      return r'$$' + clean + r'$$';
-    }
-    return clean;
-  }
-
-  static String _escapeOutsideMath(String s) {
     final buf = StringBuffer();
-    int i = 0;
-    while (i < s.length) {
-      if (s[i] == r'$') {
-        final close = s.indexOf(r'$', i + 1);
-        if (close == -1) {
-          buf.write(s.substring(i));
-          break;
-        }
-        buf.write(s.substring(i, close + 1));
-        i = close + 1;
-      } else {
-        final c = s[i];
-        if (c == '<') {
-          buf.write('&lt;');
-        } else if (c == '>') {
-          buf.write('&gt;');
-        } else {
-          buf.write(c);
-        }
-        i++;
-      }
+    var pos = 0;
+    for (final m in appMathPattern.allMatches(clean)) {
+      buf.write(_escapeText(clean.substring(pos, m.start)));
+      buf.write(latexToHtml((m.group(1) ?? m.group(2) ?? '').trim()));
+      pos = m.end;
     }
+    var tail = clean.substring(pos);
+    // Prose with no delimiters can still carry bare commands; convert those too
+    // so a stray backslash never reaches the page.
+    buf.write(tail.contains(r'\') ? latexToHtml(tail) : _escapeText(tail));
     return buf.toString();
   }
+
+  /// Escapes the characters a browser would read as markup. Questions contain
+  /// real text arrows ("A -> B") and inequalities ("index < 1").
+  static String _escapeText(String s) => s
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
+
 }

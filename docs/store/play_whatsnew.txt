@@ -1,10 +1,9 @@
-What's new in v1.9.0
+What's new in v1.9.1
 
-• NEW — choose your test length: 10, 25, 50, 75, or Full Mock, which matches the
-  real paper (NEET 180, JEE 75 with 25 per subject). No more starting a test and
-  finding 375 questions in it.
-• Fixed PDFs: maths renders offline instead of showing raw dollar signs, and
-  integer questions no longer print empty (A) (B) (C) (D) slots.
-• Fixed: no longer stuck on "Checking for updates" without internet.
+• Fixed PDF export properly this time. Maths now prints as real formulas with
+  fractions, subscripts and Greek letters, instead of raw code full of dollar
+  signs. Works offline.
+• Earlier fix in 1.8.x did not actually work. Sorry, and thanks to everyone who
+  reported it again.
 
-Keep using the flag icon. This release is entirely your reports.
+Keep using the flag icon on any question. Your reports drive these releases.
