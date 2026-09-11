@@ -112,32 +112,37 @@ void main() {
     expect(body(html), isNot(contains('(C)')));
   });
 
-  test('no raw LaTeX survives across 400 real questions', () async {
-    // Both previous attempts at this bug passed hand-written tests and still
-    // shipped raw LaTeX, so this one sweeps the actual bank.
-    final bank = json.decode(DataCrypto.decryptBytes(
-        File('assets/jee.json.enc').readAsBytesSync())) as List;
-    final withMath = bank
-        .where((q) => (q['question_latex'] as String).contains(r'$'))
-        .take(400)
-        .map((q) => Question(
-              id: q['id'] as String,
-              examName: 'JEE Main',
-              year: (q['year'] as int?) ?? 2023,
-              subject: (q['subject'] as String?) ?? 'Physics',
-              topic: (q['topic'] as String?) ?? 'x',
-              difficulty: 'Medium',
-              questionLatex: q['question_latex'] as String,
-              optionsJson: jsonEncode(q['options'] ?? []),
-              answerKey: q['answer_key'] as String?,
-            ))
-        .toList();
-
-    final rendered = body(await PdfService.generateHtmlForTest(
-        withMath, 'Sweep', 'Mixed'));
-    expect(rendered, isNot(contains(r'$')), reason: 'delimiter survived');
-    expect(RegExp(r'\\[a-zA-Z]{2,}').hasMatch(rendered), isFalse,
-        reason: 'LaTeX command survived');
+  test('no raw LaTeX survives anywhere in either bank', () {
+    // Both earlier attempts at this bug passed hand-written tests and still
+    // shipped raw LaTeX to users, so this sweeps every question and option in
+    // both shipped banks through the exact pipeline the export uses.
+    var fields = 0, dollars = 0, commands = 0;
+    final examples = <String>[];
+    for (final f in ['assets/neet.json.enc', 'assets/jee.json.enc']) {
+      final bank = json.decode(
+          DataCrypto.decryptBytes(File(f).readAsBytesSync())) as List;
+      for (final q in bank) {
+        for (final t in <String>[
+          (q['question_latex'] ?? '') as String,
+          ...((q['options'] as List?) ?? []).map((o) => o.toString()),
+        ].where((t) => t.isNotEmpty)) {
+          fields++;
+          final out = PdfService.cleanForTest(t);
+          if (out.contains(r'$')) {
+            dollars++;
+            if (examples.length < 5) examples.add('\$ in ${q['id']}');
+          }
+          if (RegExp(r'\\[a-zA-Z]{2,}').hasMatch(out)) {
+            commands++;
+            if (examples.length < 10) examples.add('cmd in ${q['id']}');
+          }
+        }
+      }
+    }
+    // ignore: avoid_print
+    print('PDF text pipeline: $fields fields swept');
+    expect(dollars, 0, reason: 'raw delimiter would print as-is: $examples');
+    expect(commands, 0, reason: 'raw LaTeX command would print as-is: $examples');
   });
 
   test('stray dollar-sign damage is repaired before export', () async {

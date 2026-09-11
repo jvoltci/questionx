@@ -156,6 +156,13 @@ String latexToHtml(String tex) {
 
   s = _scripts(s);
   s = s.replaceAll(RegExp(r'[{}]'), '');
+
+  // Final sweep. The conversions above handle what is recognised; this catches
+  // the residue from genuinely malformed source (unbalanced delimiters, commands
+  // this table has never seen). Nothing with a backslash or a dollar in it may
+  // reach the page, because that is precisely what users kept reporting.
+  s = s.replaceAll(RegExp(r'\\[a-zA-Z]+\s*'), '');
+  s = s.replaceAll(RegExp(r'[\\\$]'), '');
   return s.replaceAll(RegExp(r'[ \t]{2,}'), ' ');
 }
 

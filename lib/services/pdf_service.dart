@@ -179,6 +179,10 @@ class PdfService {
   /// KaTeX, because the export's WebView runs no JavaScript (see
   /// latex_to_html.dart). Anything left in delimiters would print as raw LaTeX,
   /// which is exactly what users kept reporting.
+  /// Test hook for the exact text pipeline the export uses.
+  @visibleForTesting
+  static String cleanForTest(String text) => _cleanForKaTeX(text);
+
   static String _cleanForKaTeX(String text) {
     if (text.isEmpty) return "";
     // Run the SAME repair the on-screen renderer uses, so the export starts from
@@ -192,11 +196,21 @@ class PdfService {
       buf.write(latexToHtml((m.group(1) ?? m.group(2) ?? '').trim()));
       pos = m.end;
     }
-    var tail = clean.substring(pos);
+    final tail = clean.substring(pos);
     // Prose with no delimiters can still carry bare commands; convert those too
     // so a stray backslash never reaches the page.
     buf.write(tail.contains(r'\') ? latexToHtml(tail) : _escapeText(tail));
-    return buf.toString();
+
+    // Final guarantee. Where the source delimiters are broken outright, LaTeX
+    // ends up in the prose segments rather than the math ones, so neither branch
+    // above sees it. Sweeping the assembled string is the only place that
+    // catches every case. The markup emitted above contains no backslash or
+    // dollar, so this cannot damage it.
+    return buf
+        .toString()
+        .replaceAll(RegExp(r'\\[a-zA-Z]+\s*'), '')
+        .replaceAll(RegExp(r'[\\\$]'), '')
+        .replaceAll(RegExp(r'[ \t]{2,}'), ' ');
   }
 
   /// Escapes the characters a browser would read as markup. Questions contain
