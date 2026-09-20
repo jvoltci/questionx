@@ -1,0 +1,96 @@
+name: publish-data
+
+# Assembles and publishes the OTA `data.zip` (see scripts/jee/build_data_zip.py)
+# on GitHub's own network, instead of the machine that fixed the content.
+#
+# Why this exists: publishing this 78 MB asset by hand means uploading it over
+# whatever connection the person doing the fix happens to have. On a slow
+# uplink that is 30-80 minutes per fix, cannot resume if it drops, and made
+# `gh release create` hang outright more than once. The only things that
+# actually change per fix are a few KB of encrypted bank and maybe one new
+# diagram; CI has no reason to re-upload the other 6,310 files, so it fetches
+# them from the previous release instead, same as a manual run would.
+#
+# Coverage is still asserted, not assumed: `build_data_zip.py` fails the job if
+# any diagram either bank references is absent, using the manifest committed
+# alongside the encrypted banks (see tool/encrypt_assets.dart) since the
+# plaintext banks it would otherwise need are gitignored.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "assets/neet.json.enc"
+      - "assets/jee.json.enc"
+      - "assets/diagram_manifest.json"
+      - "assets/diagrams/**"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish (default: bump the latest patch, e.g. v1.8.0 -> v1.8.1)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Determine the release tag
+        id: tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          latest=$(gh release view --repo "${{ github.repository }}" --json tagName -q .tagName)
+          echo "base=$latest" >> "$GITHUB_OUTPUT"
+          IFS='.' read -r major minor patch <<< "${latest#v}"
+          echo "tag=v${major}.${minor}.$((patch + 1))" >> "$GITHUB_OUTPUT"
+
+      - name: Build data.zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/jee/build_data_zip.py \
+            ${{ steps.tag.outputs.base && format('--base {0}', steps.tag.outputs.base) || '' }}
+
+      - name: Publish release ${{ steps.tag.outputs.tag }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="${{ steps.tag.outputs.tag }}"
+          gh release create "$tag" \
+            --repo "${{ github.repository }}" \
+            --title "$tag" \
+            --notes "Automated content publish from ${{ github.sha }}." \
+            --latest \
+            scripts/jee/out/release/data.zip
+
+      - name: Verify the published asset
+        run: |
+          set -euo pipefail
+          tag="${{ steps.tag.outputs.tag }}"
+          local_sha=$(sha256sum scripts/jee/out/release/data.zip | cut -d' ' -f1)
+          url="https://github.com/${{ github.repository }}/releases/download/$tag/data.zip"
+          # The CDN can lag a few seconds right after gh release create returns.
+          for attempt in 1 2 3 4 5; do
+            remote_sha=$(curl -sL "$url" | sha256sum | cut -d' ' -f1)
+            [ "$local_sha" = "$remote_sha" ] && break
+            echo "attempt $attempt: remote=$remote_sha, retrying..."
+            sleep 10
+          done
+          echo "local:  $local_sha"
+          echo "remote: $remote_sha"
+          test "$local_sha" = "$remote_sha"

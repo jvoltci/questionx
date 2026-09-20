@@ -22,6 +22,11 @@ So: diagrams now come from the previous release (fetched by tag, cached), and
 the build **fails** unless every filename referenced by either bank is present
 in the output. A silent zero is no longer possible.
 
+Coverage is checked against `assets/diagram_manifest.json`, not the plaintext
+banks: the manifest is committed and the plaintext is not, so this also runs
+unattended in `.github/workflows/publish-data.yml`, on GitHub's own network
+instead of whatever upload speed the person running it happens to have.
+
 Usage:
     python3 scripts/jee/build_data_zip.py                  # base on latest release
     python3 scripts/jee/build_data_zip.py --base v1.6.0    # base on a specific tag
@@ -50,27 +55,22 @@ BANKS = ("neet.json.enc", "jee.json.enc")
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp", ".gif"}
 
 
-def referenced_filenames() -> dict[str, set[str]]:
-    """Every diagram filename the plaintext banks point at, per bank.
+MANIFEST = ASSETS / "diagram_manifest.json"
 
-    Reads the plaintext `assets/*.json` (gitignored local source) because the
-    encrypted banks cannot be introspected from Python.
+
+def referenced_filenames() -> dict[str, set[str]]:
+    """Every diagram filename either bank points at, per bank.
+
+    Reads the committed `assets/diagram_manifest.json`, written by
+    `tool/encrypt_assets.dart` in the same run that produces `*.json.enc`, so
+    it can never drift from what the .enc files actually reference. This is
+    what lets the coverage check below run in CI, which never has the
+    plaintext `assets/*.json` (gitignored local source).
     """
-    out: dict[str, set[str]] = {}
-    for bank in ("neet", "jee"):
-        path = ASSETS / f"{bank}.json"
-        if not path.exists():
-            sys.exit(f"missing {path} — needed to verify diagram coverage")
-        refs: set[str] = set()
-        for q in json.loads(path.read_text()):
-            for field in ("question_svg", "solution_svg"):
-                v = q.get(field)
-                # Legacy inline `<svg>...</svg>` blobs are rendered from the
-                # record itself and need no file.
-                if v and not v.strip().startswith("<"):
-                    refs.add(v)
-        out[bank] = refs
-    return out
+    if not MANIFEST.exists():
+        sys.exit(f"missing {MANIFEST} — run `dart run tool/encrypt_assets.dart`")
+    data = json.loads(MANIFEST.read_text())
+    return {bank: set(data[bank]) for bank in ("neet", "jee")}
 
 
 def fetch_base(tag: str | None) -> Path:
@@ -93,11 +93,18 @@ def family(name: str) -> str:
     return "JEE" if name.startswith("JEE") else "NEET"
 
 
+DIAGRAMS_DIR = ASSETS / "diagrams"
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--base", help="release tag to take diagrams from (default: latest)")
-    ap.add_argument("--extra-figures", type=Path,
-                    help="directory of newly generated figures to add/override")
+    ap.add_argument(
+        "--extra-figures", type=Path, default=DIAGRAMS_DIR,
+        help="directory of newly generated figures to add/override "
+             f"(default: {DIAGRAMS_DIR.relative_to(REPO)}, the committed "
+             "staging folder, so a figure fixed and committed there ships "
+             "without anyone needing to remember this flag)")
     args = ap.parse_args()
 
     needed = referenced_filenames()
@@ -120,8 +127,9 @@ def main() -> None:
             out.write(src, arcname=bank)
             print(f"  + {bank} ({src.stat().st_size / 1e6:.2f} MB)")
 
-        # Newly generated figures win over the base release.
-        if args.extra_figures:
+        # Newly generated figures win over the base release. The default
+        # (assets/diagrams/) may not exist if nothing has been staged there yet.
+        if args.extra_figures and args.extra_figures.is_dir():
             for f in sorted(args.extra_figures.iterdir()):
                 if not f.is_file() or f.suffix.lower() not in IMAGE_SUFFIXES:
                     continue

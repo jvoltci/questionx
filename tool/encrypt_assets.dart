@@ -20,9 +20,19 @@ import 'package:questionx/utils/crypto.dart';
 /// fresh random IV every run, so the .enc bytes differ on every invocation even
 /// when nothing changed, which would force a pointless re-import each build.
 ///
+/// Also writes `assets/diagram_manifest.json`: every diagram filename either
+/// bank references, per bank. `scripts/jee/build_data_zip.py` needs this list
+/// to verify no question ships with a missing figure, but the plaintext banks
+/// it used to read for that are gitignored, so a CI runner (which only ever
+/// sees committed files) could not do that check. The manifest holds only
+/// filenames -- no question text, no answers -- so it is safe to commit, and
+/// it is stamped by the same tool and the same run as the .enc files, so it
+/// can never drift out of sync with what actually shipped.
+///
 /// Run: `dart run tool/encrypt_assets.dart`
 void main() {
   final plaintexts = <String>[];
+  final manifest = <String, List<String>>{};
   for (final f in const ['neet', 'jee']) {
     final src = File('assets/$f.json');
     if (!src.existsSync()) {
@@ -41,6 +51,30 @@ void main() {
     plaintexts.add(plain);
     stdout.writeln('encrypted $f.json -> $f.json.enc '
         '(${bytes.length} bytes, round-trip OK)');
+
+    final refs = <String>{};
+    for (final q in json.decode(plain) as List) {
+      for (final field in const ['question_svg', 'solution_svg']) {
+        final v = (q as Map)[field] as String?;
+        // Legacy inline `<svg>...</svg>` blobs render from the record itself
+        // and need no file.
+        if (v != null && v.isNotEmpty && !v.trimLeft().startsWith('<')) {
+          refs.add(v);
+        }
+      }
+    }
+    manifest[f] = refs.toList()..sort();
+  }
+
+  final manifestFile = File('assets/diagram_manifest.json');
+  final manifestJson =
+      '${const JsonEncoder.withIndent('  ').convert(manifest)}\n';
+  if (!manifestFile.existsSync() || manifestFile.readAsStringSync() != manifestJson) {
+    manifestFile.writeAsStringSync(manifestJson);
+    final total = manifest.values.fold(0, (n, l) => n + l.length);
+    stdout.writeln('wrote assets/diagram_manifest.json '
+        '(${manifest['neet']!.length} NEET + ${manifest['jee']!.length} JEE '
+        '= $total diagrams)');
   }
 
   final fingerprint =
