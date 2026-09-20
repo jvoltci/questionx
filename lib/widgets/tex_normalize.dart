@@ -248,13 +248,24 @@ bool _isDamaged(String s) {
 /// (179 questions, 530 spans; NEET_2024_Zoo_184 was reported as "unclear"
 /// largely because of this).
 ///
-/// `\n` is not a LaTeX command, so a span beginning with one is always this
-/// artifact and never real maths.
-final _wrappedNewline = RegExp(r'\$((?:\\n)+)([A-Za-z][A-Za-z \-]{0,20})\$');
+/// The tail after the `\n` is what tells the artifact apart from real maths,
+/// and it must be matched on CASE, not merely on being a letter.
+///
+/// `\n` does begin several real commands: `\nu`, `\ne`, `\neq`, `\nabla`,
+/// `\ni`. An earlier `[A-Za-z]` tail matched those too, and rewrote `$\nu$`
+/// as a line break followed by "u". That shipped, and mangled 105 questions
+/// (`\ne` 124 spans, `\nu` 25). Meanwhile the 333 bare `$\n$` spans, which are
+/// the commonest artifact of all, were missed because the tail was required.
+///
+/// Real LaTeX commands continue in lowercase. Every artifact tail observed in
+/// the banks is capitalised prose: `List`, `Statement`, `A`-`E`, `I`-`IV`,
+/// `Match`, `Choose`, `The`, `So`. So: empty tail or an uppercase one is the
+/// artifact, a lowercase one is a command and must be left alone.
+final _wrappedNewline = RegExp(r'\$((?:\\n)+)([A-Z][A-Za-z \-]{0,20})?\$');
 
 String _unwrapNewlines(String s) => s.replaceAllMapped(
       _wrappedNewline,
-      (m) => '\n' * (m.group(1)!.length ~/ 2) + m.group(2)!,
+      (m) => '\n' * (m.group(1)!.length ~/ 2) + (m.group(2) ?? ''),
     );
 
 /// A bare `$` inside a math span.

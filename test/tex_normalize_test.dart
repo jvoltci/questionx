@@ -243,4 +243,55 @@ void main() {
       expect(after, lessThan(before));
     });
   });
+
+  group('backslash-n spans', () {
+    late List<dynamic> all;
+    setUpAll(() {
+      all = [
+        ...bank('assets/neet.json.enc'),
+        ...bank('assets/jee.json.enc'),
+      ];
+    });
+
+    // The artifact is a literal backslash-n the scrape wrapped in `$...$`, e.g.
+    // `List II$\nList$ I:`. The rule that unwraps it used to accept ANY letter
+    // after the `\n`, which also matched real commands: `$\nu$` became a line
+    // break plus "u", and `$\ne$` became a line break plus "e". 105 questions
+    // rendered that way. Real LaTeX commands continue in lowercase, every
+    // observed artifact tail is capitalised prose (`List`, `Statement`, `A`,
+    // `I`, `Match`, `Choose`), so case is the discriminator.
+
+    test('real commands beginning with backslash-n survive', () {
+      for (final tex in [r'$\nu$', r'$\ne$', r'$\neq$', r'$\nabla$', r'$\ni$']) {
+        expect(normalizeForRender(tex), tex, reason: tex);
+      }
+      expect(normalizeForRender(r'frequency $\nu$ of light'),
+          r'frequency $\nu$ of light');
+    });
+
+    test('artifact spans are unwrapped to a real newline', () {
+      expect(normalizeForRender(r'A$\n$B'), 'A\nB');
+      expect(normalizeForRender(r'List II$\nList$ I:'), 'List II\nList I:');
+      expect(normalizeForRender(r'x$\nStatement$ II'), 'x\nStatement II');
+      expect(normalizeForRender(r'a$\n\n$b'), 'a\n\nb');
+    });
+
+    test('no shipped question renders a mangled backslash-n command', () {
+      // `\n` immediately followed by lowercase is always a real command, so
+      // seeing a bare newline where one used to be means the rule ate it.
+      final bad = <String>[];
+      for (final q in all) {
+        for (final f in fieldsOf(q as Map)) {
+          if (!RegExp(r'\$(?:\\n)[a-z]').hasMatch(f)) continue;
+          final out = normalizeForRender(f);
+          for (final cmd in const [r'\nu', r'\ne', r'\nabla', r'\neq']) {
+            if (f.contains('\$$cmd\$') && !out.contains(cmd)) {
+              bad.add('${q['id']}: lost $cmd');
+            }
+          }
+        }
+      }
+      expect(bad, isEmpty, reason: bad.take(10).join('\n'));
+    });
+  });
 }
