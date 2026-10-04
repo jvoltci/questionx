@@ -142,8 +142,12 @@ export class LobbyView {
         (target as HTMLButtonElement).disabled = true;
 
         try {
-          const res = await fetch(`data/${file}`);
+          const filePath = file.startsWith("data/") ? file : `data/${file}`;
+          const res = await fetch(filePath);
           if (!res.ok) throw new Error("Failed to download encrypted chunk");
+          if (res.headers.get("content-type")?.includes("text/html")) {
+            throw new Error("Invalid response format (received HTML instead of binary)");
+          }
           const buffer = await res.arrayBuffer();
           const questions = await decryptChunk(buffer);
 
@@ -151,7 +155,8 @@ export class LobbyView {
           const shuffled = [...questions].sort(() => Math.random() - 0.5);
           const testQuestions = mode === "timed" ? shuffled.slice(0, 45) : shuffled.slice(0, 60);
 
-          const subjectTitle = file.replace(/\.bin\.enc$/, "").replace(/_/g, " ").toUpperCase();
+          const cleanName = file.replace(/^data\//, "").replace(/\.bin\.enc$/, "");
+          const subjectTitle = cleanName.replace(/_/g, " ").toUpperCase();
           const duration = mode === "timed" ? 45 : 90;
           const quizState = new QuizState(testQuestions, duration);
           this.onStartQuiz(quizState, subjectTitle);
