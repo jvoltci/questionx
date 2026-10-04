@@ -129,7 +129,8 @@ export class LobbyView {
     if (!this.manifest || !navigator.onLine) return;
     const prefetch = () => {
       for (const chunk of this.manifest!.chunks) {
-        fetch(`data/${chunk.file}`, { priority: "low" as any }).catch(() => {});
+        const url = chunk.file.startsWith("data/") ? chunk.file : `data/${chunk.file}`;
+        fetch(url, { priority: "low" as any }).catch(() => {});
       }
     };
 
@@ -165,8 +166,11 @@ export class LobbyView {
         (target as HTMLButtonElement).disabled = true;
 
         try {
-          const res = await fetch(`data/${file}`);
+          const filePath = file.startsWith("data/") ? file : `data/${file}`;
+          const res = await fetch(filePath);
           if (!res.ok) throw new Error("Failed to download encrypted chunk");
+          const contentType = res.headers.get("content-type") || "";
+          if (contentType.includes("text/html")) throw new Error("Data chunk not found, received HTML");
           const buffer = await res.arrayBuffer();
           const questions = await decryptChunk(buffer);
 
