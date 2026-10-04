@@ -1,10 +1,8 @@
-What's new in v1.9.3
+What's new in v1.9.4
 
-• PDF export fixed again, and this time checked on the rendered page rather
-  than just the code. Fractions print stacked with a proper bar, subscripts
-  stay attached to their letters, and long options no longer overflow the
-  column.
-• Options with maths now use the full width instead of a cramped half column.
+• Restored missing diagrams for NEET & AIPMT questions (muscle histology, alveolar gas exchange, and cell division stages).
+• Fixed match-the-following questions that were missing Column I & II tables.
+• Cleaned up question typos and updated detailed explanations across biology and chemistry.
+• Automatic question bank sync on upgrade delivers all verified fixes immediately.
 
-Thank you to the student who sent screenshots of every broken version. Keep
-using the flag icon on any question.
+Keep using the flag icon on any question to report issues!

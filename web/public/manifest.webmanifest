@@ -1,7 +1,7 @@
 {
-  "name": "Padhai — NEET & JEE CBT Practice",
+  "name": "Padhai: NEET & JEE CBT Practice",
   "short_name": "Padhai",
-  "description": "Blissful, fast, offline-ready NEET and JEE CBT practice with verified explanations and diagrams.",
+  "description": "Fast, offline-ready NEET and JEE CBT practice with verified step-by-step explanations and diagrams.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0e0c1a",

@@ -23,7 +23,7 @@ export class QuizState {
   isSubmitted: boolean = false;
   listeners: Array<() => void> = [];
 
-  // Streak & Dopamine metrics
+  // Streak tracking
   currentStreak: number = 0;
   bestStreak: number = 0;
   totalAnswered: number = 0;

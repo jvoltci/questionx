@@ -71,7 +71,7 @@ export class LobbyView {
           <div class="lobby-subject-stats">
             <span>📊 ${chunk.count.toLocaleString()} Verified Questions</span>
             <span>•</span>
-            <span>${chunk.years[0]}–${chunk.years[chunk.years.length - 1]}</span>
+            <span>${chunk.years[0]} to ${chunk.years[chunk.years.length - 1]}</span>
           </div>
 
           <div style="font-size: 0.85rem; color: var(--neutral-11); margin-bottom: 1.5rem; line-height: 1.5;">
@@ -94,9 +94,9 @@ export class LobbyView {
     this.container.innerHTML = `
       <div class="lobby-hero">
         <div class="lobby-hero-badge">🎯 CBT Practice & Test Simulation</div>
-        <h1>Master NEET & JEE with <span>Blissful Focus</span></h1>
+        <h1>Practice NEET & JEE Previous Year Questions</h1>
         <p>
-          Offline-ready, self-contained computer-based testing with zero latency, verified step-by-step solutions, and tactile dopamine flow.
+          Fast, offline-ready practice with step-by-step solutions and official answer keys. No ads, no paywalls.
         </p>
 
         <div class="lobby-exam-toggle">
@@ -107,6 +107,13 @@ export class LobbyView {
             JEE Main & Adv (${this.manifest.chunks.filter((c) => c.exam === "JEE").reduce((a, b) => a + b.count, 0).toLocaleString()} Qs)
           </button>
         </div>
+
+        <div style="margin-top: 1.25rem;">
+          <a href="https://revision.altrusian.com" target="_blank" rel="noopener" class="lobby-sutra-banner">
+            <span>⚡</span>
+            <span><strong>Sutra: Formula Revision:</strong> Quick cheat sheets for Physics, Chemistry & Math before your mock test ↗</span>
+          </a>
+        </div>
       </div>
 
       <div class="lobby-grid">
@@ -115,6 +122,22 @@ export class LobbyView {
     `;
 
     this.bindEvents();
+    this.prefetchChunks();
+  }
+
+  private prefetchChunks() {
+    if (!this.manifest || !navigator.onLine) return;
+    const prefetch = () => {
+      for (const chunk of this.manifest!.chunks) {
+        fetch(`data/${chunk.file}`, { priority: "low" as any }).catch(() => {});
+      }
+    };
+
+    if ("requestIdleCallback" in window) {
+      (window as any).requestIdleCallback(prefetch);
+    } else {
+      setTimeout(prefetch, 2000);
+    }
   }
 
   private bindEvents() {
@@ -142,12 +165,8 @@ export class LobbyView {
         (target as HTMLButtonElement).disabled = true;
 
         try {
-          const filePath = file.startsWith("data/") ? file : `data/${file}`;
-          const res = await fetch(filePath);
+          const res = await fetch(`data/${file}`);
           if (!res.ok) throw new Error("Failed to download encrypted chunk");
-          if (res.headers.get("content-type")?.includes("text/html")) {
-            throw new Error("Invalid response format (received HTML instead of binary)");
-          }
           const buffer = await res.arrayBuffer();
           const questions = await decryptChunk(buffer);
 
@@ -155,8 +174,7 @@ export class LobbyView {
           const shuffled = [...questions].sort(() => Math.random() - 0.5);
           const testQuestions = mode === "timed" ? shuffled.slice(0, 45) : shuffled.slice(0, 60);
 
-          const cleanName = file.replace(/^data\//, "").replace(/\.bin\.enc$/, "");
-          const subjectTitle = cleanName.replace(/_/g, " ").toUpperCase();
+          const subjectTitle = file.replace(/\.bin\.enc$/, "").replace(/_/g, " ").toUpperCase();
           const duration = mode === "timed" ? 45 : 90;
           const quizState = new QuizState(testQuestions, duration);
           this.onStartQuiz(quizState, subjectTitle);

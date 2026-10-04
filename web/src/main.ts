@@ -21,6 +21,7 @@ class PadhaiApp {
     this.initTulipVault();
     this.initFeedback();
     this.initBrandLink();
+    this.initServiceWorker();
     this.showLobby();
   }
 
@@ -122,7 +123,7 @@ class PadhaiApp {
 
       document.getElementById("feedback-send-email-btn")?.addEventListener("click", () => {
         const text = (document.getElementById("feedback-text") as HTMLTextAreaElement)?.value || "";
-        const subject = encodeURIComponent("QuestionX Feedback — Padhai Web");
+        const subject = encodeURIComponent("QuestionX Feedback: Padhai Web");
         const body = encodeURIComponent(text);
         window.open(`mailto:j.voltci@gmail.com?subject=${subject}&body=${body}`, "_blank");
         alert("Thank you for your feedback! Opening mail app...");
@@ -171,6 +172,14 @@ class PadhaiApp {
     });
 
     this.currentExamView.render();
+  }
+
+  private initServiceWorker() {
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").catch(() => {});
+      });
+    }
   }
 }
 

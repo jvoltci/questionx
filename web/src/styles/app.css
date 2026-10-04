@@ -727,6 +727,49 @@ html, body {
   transform: translateY(-1px);
 }
 
+.qx-header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid light-dark(var(--neutral-5), var(--tulip-bloom-4));
+  background: light-dark(var(--neutral-2), rgba(255, 255, 255, 0.05));
+  color: var(--neutral-12);
+  font-size: 0.78rem;
+  font-weight: 650;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--spring-snap-dur) var(--spring-snap);
+}
+
+.qx-header-link:hover {
+  border-color: var(--tulip-bloom-7);
+  color: var(--tulip-bloom-10);
+  background: light-dark(var(--tulip-bloom-2), rgba(186, 170, 240, 0.12));
+  transform: translateY(-1px);
+}
+
+.lobby-sutra-banner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 1.15rem;
+  border-radius: 9999px;
+  background: light-dark(var(--tulip-bloom-2), rgba(186, 170, 240, 0.08));
+  border: 1px solid light-dark(var(--tulip-bloom-4), var(--tulip-bloom-3));
+  color: var(--ink-max);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: all var(--spring-snap-dur) var(--spring-snap);
+}
+
+.lobby-sutra-banner:hover {
+  background: light-dark(var(--tulip-bloom-3), rgba(186, 170, 240, 0.18));
+  border-color: var(--tulip-bloom-7);
+  transform: translateY(-1px);
+}
+
 .report-modal-overlay {
   position: fixed;
   inset: 0;
