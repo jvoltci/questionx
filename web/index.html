@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" class="tulip tl-color dark" data-theme="tulip" data-vault="tulip">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Padhai — Premium NEET & JEE CBT Practice</title>
+    <meta name="description" content="Blissful, fast, offline-ready NEET and JEE CBT computer-based testing with verified step-by-step explanations and diagrams." />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="theme-color" content="#8a7ef7" />
+  </head>
+  <body class="tulip">
+    <canvas id="blossom-canvas"></canvas>
+
+    <!-- Top Navigation Header -->
+    <header class="qx-header">
+      <a href="./" class="qx-brand" id="brand-link" title="Padhai Home">
+        <div class="qx-brand-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path>
+          </svg>
+        </div>
+        <span>Padhai</span>
+      </a>
+
+      <div class="qx-header-center">
+        <div id="streak-container" class="qx-streak-pill" style="display: none;">
+          <span id="streak-icon">🔥</span>
+          <span id="streak-label">0 Streak</span>
+        </div>
+      </div>
+
+      <div class="qx-header-right">
+        <button id="theme-toggle" class="qx-theme-btn" title="Toggle Day/Night Mode" aria-label="Toggle theme">
+          <span id="theme-icon">☀️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Application Mount -->
+    <main id="app" class="qx-container"></main>
+
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
