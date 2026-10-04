@@ -6,6 +6,7 @@
   "description": "QuestionX: Fast, self-contained offline NEET & JEE prep web application with Nilam 2.0",
   "scripts": {
     "dev": "vite",
+    "watch": "node ../scripts/watch.mjs",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "prepare:data": "python3 ../scripts/build_web_data.py"

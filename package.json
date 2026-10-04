@@ -1,0 +1,12 @@
+{
+  "name": "questionx",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "QuestionX: Offline NEET & JEE CBT Practice with Formula X Ecosystem",
+  "scripts": {
+    "watch": "node scripts/watch.mjs",
+    "web:build": "npm run --prefix web build",
+    "web:dev": "npm run --prefix web dev"
+  }
+}

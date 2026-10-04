@@ -21,6 +21,20 @@
   --cbt-notvisited-ink: var(--neutral-11);
 }
 
+:root[data-theme="dark"],
+html[data-theme="dark"],
+html.dark,
+:root.dark {
+  color-scheme: dark !important;
+}
+
+:root[data-theme="light"],
+html[data-theme="light"],
+html.light,
+:root.light {
+  color-scheme: light !important;
+}
+
 /* Force Tulip Vault theme on the document root */
 html, body {
   margin: 0;

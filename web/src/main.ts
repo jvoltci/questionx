@@ -35,16 +35,20 @@ class PadhaiApp {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
     const isDark = savedTheme ? savedTheme === "dark" : prefersDark;
 
-    root.classList.toggle("dark", isDark);
-    root.classList.toggle("light", !isDark);
-    if (themeIcon) themeIcon.textContent = isDark ? "☀️" : "🌙";
+    const applyTheme = (dark: boolean) => {
+      root.style.colorScheme = dark ? "dark" : "light";
+      root.setAttribute("data-theme", dark ? "dark" : "light");
+      root.classList.toggle("dark", dark);
+      root.classList.toggle("light", !dark);
+      if (themeIcon) themeIcon.textContent = dark ? "☀️" : "🌙";
+    };
+
+    applyTheme(isDark);
 
     themeBtn?.addEventListener("click", () => {
-      const nowDark = !root.classList.contains("dark");
-      root.classList.toggle("dark", nowDark);
-      root.classList.toggle("light", !nowDark);
-      if (themeIcon) themeIcon.textContent = nowDark ? "☀️" : "🌙";
-      localStorage.setItem("padhai_theme", nowDark ? "dark" : "light");
+      const willBeDark = !root.classList.contains("dark");
+      applyTheme(willBeDark);
+      localStorage.setItem("padhai_theme", willBeDark ? "dark" : "light");
     });
   }
 
