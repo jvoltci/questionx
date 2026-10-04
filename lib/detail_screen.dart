@@ -78,7 +78,7 @@ class _DetailScreenState extends ConsumerState<DetailScreen> {
     );
 
     final Uri emailUri = Uri.parse(
-      "mailto:jvoltci@gmail.com?subject=$subject&body=$body",
+      "mailto:jai@altrusian.com?subject=$subject&body=$body",
     );
 
     if (await canLaunchUrl(emailUri)) {

@@ -168,7 +168,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     );
     final subject = Uri.encodeComponent("QuestionX report: ${q.id}");
     final mailto = Uri.parse(
-      "mailto:j.voltci@gmail.com?subject=$subject&body=$body",
+      "mailto:jai@altrusian.com?subject=$subject&body=$body",
     );
     try {
       await launchUrl(mailto, mode: LaunchMode.externalApplication);

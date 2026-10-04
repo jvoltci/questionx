@@ -310,7 +310,7 @@ class AboutScreen extends StatelessWidget {
 
   Future<void> _launchEmail(BuildContext context) async {
     final Uri emailUri = Uri.parse(
-      "mailto:j.voltci@gmail.com?subject=QuestionX Feedback",
+      "mailto:jai@altrusian.com?subject=QuestionX Feedback",
     );
     try {
       final ok = await launchUrl(emailUri,
@@ -327,7 +327,7 @@ class AboutScreen extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
-          "No mail app found. Email us at j.voltci@gmail.com",
+          "No mail app found. Email us at jai@altrusian.com",
         ),
         backgroundColor: Color(0xFF1E293B),
       ),

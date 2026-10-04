@@ -315,7 +315,7 @@ export class ExamView {
       const note = (document.getElementById("report-user-note") as HTMLTextAreaElement)?.value || "";
       const bodyText = `Question ID: ${q.id}\nExam: ${q.exam}\nSubject: ${q.subject}\nYear: ${q.year || ""}\nReported reason: ${selectedReason}\n\nYour note (optional):\n${note}\n`;
       const subjectText = `QuestionX report: ${q.id}`;
-      const mailtoUrl = `mailto:j.voltci@gmail.com?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
+      const mailtoUrl = `mailto:jai@altrusian.com?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
       window.open(mailtoUrl, "_blank");
       alert(`Report logged for ${q.id}. Opening mail client...`);
       closeModal();

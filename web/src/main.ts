@@ -129,14 +129,14 @@ class PadhaiApp {
         const text = (document.getElementById("feedback-text") as HTMLTextAreaElement)?.value || "";
         const subject = encodeURIComponent("QuestionX Feedback: Padhai Web");
         const body = encodeURIComponent(text);
-        window.open(`mailto:j.voltci@gmail.com?subject=${subject}&body=${body}`, "_blank");
+        window.open(`mailto:jai@altrusian.com?subject=${subject}&body=${body}`, "_blank");
         alert("Thank you for your feedback! Opening mail app...");
         closeModal();
       });
 
       document.getElementById("feedback-copy-email-btn")?.addEventListener("click", () => {
-        navigator.clipboard.writeText("j.voltci@gmail.com").then(() => {
-          alert("Developer email (j.voltci@gmail.com) copied to clipboard!");
+        navigator.clipboard.writeText("jai@altrusian.com").then(() => {
+          alert("Developer email (jai@altrusian.com) copied to clipboard!");
         });
       });
     });
