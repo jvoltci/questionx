@@ -1,0 +1,22 @@
+{
+  "name": "questionx-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "QuestionX: Fast, self-contained offline NEET & JEE prep web application with Nilam 2.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "prepare:data": "python3 ../scripts/build_web_data.py"
+  },
+  "dependencies": {
+    "katex": "^0.16.9",
+    "nilam": "file:../../nilam"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.7",
+    "typescript": "^5.6.3",
+    "vite": "^6.0.1"
+  }
+}

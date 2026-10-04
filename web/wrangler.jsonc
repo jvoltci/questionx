@@ -1,0 +1,21 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "padhai",
+  "compatibility_date": "2026-08-20",
+  "main": "src/worker.ts",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/.well-known/assetlinks.json",
+      "/healthz",
+      "/data/*",
+      "/diagrams/*",
+      "/assets/*"
+    ]
+  },
+  "routes": [
+    { "pattern": "padhai.altrusian.com", "custom_domain": true }
+  ]
+}
