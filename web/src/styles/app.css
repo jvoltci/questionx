@@ -24,14 +24,20 @@
 :root[data-theme="dark"],
 html[data-theme="dark"],
 html.dark,
-:root.dark {
+:root.dark,
+body.dark,
+body[data-theme="dark"],
+.dark {
   color-scheme: dark !important;
 }
 
 :root[data-theme="light"],
 html[data-theme="light"],
 html.light,
-:root.light {
+:root.light,
+body.light,
+body[data-theme="light"],
+.light {
   color-scheme: light !important;
 }
 

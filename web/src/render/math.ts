@@ -11,8 +11,8 @@ export function renderLatexToHtml(text: string): string {
   const parts: string[] = [];
   let remaining = text;
 
-  // Pattern for display math $$...$$ and inline math $...$
-  const regex = /(\$\$[\s\S]*?\$\$|\$[^\$\n]+?\$)/g;
+  // Pattern for display math ($$...$$, \[...\]) and inline math ($...$, \(...\))
+  const regex = /(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\]|\$[^\$\n]+?\$|\\\([\s\S]*?\\\))/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
@@ -24,10 +24,20 @@ export function renderLatexToHtml(text: string): string {
     }
 
     const rawMatch = match[0];
-    const isDisplay = rawMatch.startsWith("$$");
-    const mathContent = isDisplay
-      ? rawMatch.slice(2, -2).trim()
-      : rawMatch.slice(1, -1).trim();
+    let isDisplay = false;
+    let mathContent = rawMatch;
+
+    if (rawMatch.startsWith("$$") && rawMatch.endsWith("$$")) {
+      mathContent = rawMatch.slice(2, -2).trim();
+      isDisplay = true;
+    } else if (rawMatch.startsWith("\\[") && rawMatch.endsWith("\\]")) {
+      mathContent = rawMatch.slice(2, -2).trim();
+      isDisplay = true;
+    } else if (rawMatch.startsWith("$") && rawMatch.endsWith("$")) {
+      mathContent = rawMatch.slice(1, -1).trim();
+    } else if (rawMatch.startsWith("\\(") && rawMatch.endsWith("\\)")) {
+      mathContent = rawMatch.slice(2, -2).trim();
+    }
 
     try {
       const rendered = katex.renderToString(mathContent, {
