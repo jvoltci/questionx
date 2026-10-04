@@ -93,7 +93,7 @@ export class LobbyView {
 
     this.container.innerHTML = `
       <div class="lobby-hero">
-        <div class="lobby-hero-badge">🌸 Nilam 2.0 TULIP Vault Active</div>
+        <div class="lobby-hero-badge">🎯 CBT Practice & Test Simulation</div>
         <h1>Master NEET & JEE with <span>Blissful Focus</span></h1>
         <p>
           Offline-ready, self-contained computer-based testing with zero latency, verified step-by-step solutions, and tactile dopamine flow.
