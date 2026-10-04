@@ -75,8 +75,11 @@ export function renderQuestionCard(state: QuizState): string {
         <span class="cbt-q-subject-badge">${q.subject}</span>
         ${q.year ? `<span style="font-size: 0.75rem; color: var(--neutral-11);">${q.year}</span>` : ""}
       </div>
-      <div>
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
         <span style="font-size: 0.82rem; font-weight: 600; color: var(--neutral-11); letter-spacing: 0.02em;">Marks: +4, -1</span>
+        <button class="cbt-report-btn" id="cbt-flag-btn" title="Report issue with this question" aria-label="Report issue">
+          🚩 Report
+        </button>
       </div>
     </div>
 

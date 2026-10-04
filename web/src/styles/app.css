@@ -702,3 +702,101 @@ html, body {
   pointer-events: none;
   z-index: 9999;
 }
+
+/* ── Question Report & Contact Feedback ───────────────────────────────────── */
+
+.cbt-report-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid light-dark(var(--neutral-5), var(--tulip-bloom-4));
+  background: light-dark(var(--neutral-2), rgba(255, 255, 255, 0.05));
+  color: var(--neutral-11);
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: all var(--spring-snap-dur) var(--spring-snap);
+}
+
+.cbt-report-btn:hover {
+  border-color: var(--danger-7);
+  color: var(--danger-10);
+  background: light-dark(var(--danger-2), rgba(239, 68, 68, 0.12));
+  transform: translateY(-1px);
+}
+
+.report-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 1.5rem;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.report-reason-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.5rem;
+  margin: 1.25rem 0;
+}
+
+.report-reason-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  border-radius: 9px;
+  border: 1px solid light-dark(var(--neutral-4), var(--tulip-bloom-3));
+  background: light-dark(var(--neutral-1), rgba(255, 255, 255, 0.04));
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--ink-max);
+  transition: all 0.15s ease;
+}
+
+.report-reason-option:hover {
+  border-color: var(--tulip-bloom-7);
+  background: light-dark(var(--tulip-bloom-2), rgba(138, 126, 247, 0.12));
+}
+
+.report-reason-option.selected {
+  border-color: var(--tulip-bloom-9);
+  background: light-dark(var(--tulip-bloom-3), rgba(138, 126, 247, 0.22));
+  box-shadow: 0 0 16px -2px var(--tulip-bloom-5);
+}
+
+.report-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 0.75rem 1rem;
+  border-radius: 9px;
+  border: 1px solid light-dark(var(--neutral-4), var(--tulip-bloom-4));
+  background: light-dark(var(--neutral-1), rgba(255, 255, 255, 0.05));
+  color: var(--ink-max);
+  font-family: inherit;
+  font-size: 0.9rem;
+  resize: vertical;
+  margin-bottom: 1.25rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.report-textarea:focus {
+  border-color: var(--tulip-bloom-8);
+  box-shadow: 0 0 0 2px var(--tulip-bloom-4);
+}
+

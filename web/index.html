@@ -30,6 +30,9 @@
       </div>
 
       <div class="qx-header-right">
+        <button id="feedback-btn" class="cbt-report-btn" title="Send Feedback / Contact" aria-label="Feedback">
+          💬 Feedback
+        </button>
         <button id="theme-toggle" class="qx-theme-btn" title="Toggle Day/Night Mode" aria-label="Toggle theme">
           <span id="theme-icon">☀️</span>
         </button>
@@ -38,6 +41,9 @@
 
     <!-- Main Application Mount -->
     <main id="app" class="qx-container"></main>
+
+    <!-- Feedback Modal Container -->
+    <div id="feedback-modal-container"></div>
 
     <script type="module" src="./src/main.ts"></script>
   </body>

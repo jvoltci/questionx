@@ -168,7 +168,7 @@ export class ExamView {
     const qContainer = document.getElementById("cbt-question-container");
     if (qContainer) {
       qContainer.innerHTML = renderQuestionCard(this.state);
-      this.bindOptionClicks();
+      this.bindQuestionCardEvents();
     }
 
     const pContainer = document.getElementById("cbt-palette-container");
@@ -196,7 +196,7 @@ export class ExamView {
   }
 
   private bindEvents() {
-    this.bindOptionClicks();
+    this.bindQuestionCardEvents();
     this.bindPaletteClicks();
 
     document.getElementById("cbt-prev-btn")?.addEventListener("click", () => this.state.prev());
@@ -214,6 +214,119 @@ export class ExamView {
         this.destroy();
         this.onExit();
       }
+    });
+  }
+
+  private bindQuestionCardEvents() {
+    this.bindOptionClicks();
+    document.getElementById("cbt-flag-btn")?.addEventListener("click", () => {
+      this.showReportModal();
+    });
+  }
+
+  private showReportModal() {
+    const q = this.state.currentQuestion;
+    if (!q) return;
+
+    const modalContainer = document.getElementById("cbt-modal-container");
+    if (!modalContainer) return;
+
+    const reasons = [
+      "Wrong answer key",
+      "Question text typo / unclear",
+      "Option text typo",
+      "Solution wrong / incomplete",
+      "Diagram missing or unclear",
+      "Other",
+    ];
+
+    let selectedReason = reasons[0];
+
+    modalContainer.innerHTML = `
+      <div class="report-modal-overlay" id="report-modal-overlay">
+        <div class="glass-card" style="max-width: 490px; width: 100%; padding: 2rem; border-color: var(--tulip-bloom-7);">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+            <div>
+              <h3 style="font-size: 1.35rem; font-weight: 800; color: var(--ink-max); margin: 0 0 0.25rem 0;">🚩 Report an Issue</h3>
+              <div style="font-size: 0.82rem; font-weight: 600; color: var(--neutral-11);">${q.id} · ${q.exam} ${q.subject} (${q.year || "PYQ"})</div>
+            </div>
+            <button id="report-close-x" style="background: transparent; border: none; font-size: 1.25rem; color: var(--neutral-11); cursor: pointer;" title="Close">✕</button>
+          </div>
+
+          <p style="font-size: 0.88rem; color: var(--neutral-11); margin-bottom: 1rem; line-height: 1.45;">
+            We log every report and verify it for upcoming builds. Pick a reason and send to our academic engineering desk:
+          </p>
+
+          <div class="report-reason-grid" id="report-reasons-list">
+            ${reasons
+              .map(
+                (r, i) => `
+              <div class="report-reason-option ${i === 0 ? "selected" : ""}" data-reason="${r}">
+                <span class="report-radio-dot" style="font-size: 0.85rem; color: var(--tulip-bloom-9); font-weight: 700;">${i === 0 ? "●" : "○"}</span>
+                <span>${r}</span>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+
+          <textarea id="report-user-note" class="report-textarea" placeholder="Your note (optional): e.g. diagram unavailable, second option text incomplete..."></textarea>
+
+          <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+            <button class="btn-primary" id="report-send-email-btn">
+              <span>✉️ Send Report via Email</span>
+            </button>
+            <div style="display: flex; gap: 0.5rem;">
+              <button class="btn-secondary" id="report-copy-btn" style="flex: 1;">
+                <span>📋 Copy Details</span>
+              </button>
+              <button class="btn-secondary" id="report-cancel-btn">
+                <span>Cancel</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    const reasonEls = modalContainer.querySelectorAll(".report-reason-option");
+    reasonEls.forEach((el) => {
+      el.addEventListener("click", () => {
+        reasonEls.forEach((r) => {
+          r.classList.remove("selected");
+          const dot = r.querySelector(".report-radio-dot");
+          if (dot) dot.textContent = "○";
+        });
+        el.classList.add("selected");
+        const dot = el.querySelector(".report-radio-dot");
+        if (dot) dot.textContent = "●";
+        selectedReason = el.getAttribute("data-reason") || reasons[0];
+      });
+    });
+
+    const closeModal = () => {
+      modalContainer.innerHTML = "";
+    };
+
+    document.getElementById("report-close-x")?.addEventListener("click", closeModal);
+    document.getElementById("report-cancel-btn")?.addEventListener("click", closeModal);
+
+    document.getElementById("report-send-email-btn")?.addEventListener("click", () => {
+      const note = (document.getElementById("report-user-note") as HTMLTextAreaElement)?.value || "";
+      const bodyText = `Question ID: ${q.id}\nExam: ${q.exam}\nSubject: ${q.subject}\nYear: ${q.year || ""}\nReported reason: ${selectedReason}\n\nYour note (optional):\n${note}\n`;
+      const subjectText = `QuestionX report: ${q.id}`;
+      const mailtoUrl = `mailto:j.voltci@gmail.com?subject=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
+      window.open(mailtoUrl, "_blank");
+      alert(`Report logged for ${q.id}. Opening mail client...`);
+      closeModal();
+    });
+
+    document.getElementById("report-copy-btn")?.addEventListener("click", () => {
+      const note = (document.getElementById("report-user-note") as HTMLTextAreaElement)?.value || "";
+      const bodyText = `Question ID: ${q.id}\nExam: ${q.exam}\nSubject: ${q.subject}\nYear: ${q.year || ""}\nReported reason: ${selectedReason}\n\nYour note (optional):\n${note}\n`;
+      navigator.clipboard.writeText(bodyText).then(() => {
+        alert("Report details copied to clipboard!");
+      });
     });
   }
 
