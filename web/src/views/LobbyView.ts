@@ -111,7 +111,7 @@ export class LobbyView {
         <div style="margin-top: 1.25rem;">
           <a href="https://revision.altrusian.com" target="_blank" rel="noopener" class="lobby-sutra-banner">
             <span>⚡</span>
-            <span><strong>Sutra: Formula Revision:</strong> Quick cheat sheets for Physics, Chemistry & Math before your mock test ↗</span>
+            <span><strong>Revision: Formula Bank:</strong> Quick cheat sheets for Physics, Chemistry & Math before your mock test ↗</span>
           </a>
         </div>
       </div>
