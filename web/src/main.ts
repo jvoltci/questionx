@@ -19,6 +19,7 @@ class PadhaiApp {
 
     this.initTheme();
     this.initTulipVault();
+    this.initSecretDoor();
     this.initFeedback();
     this.initBrandLink();
     this.initServiceWorker();
@@ -61,6 +62,26 @@ class PadhaiApp {
 
     window.addEventListener("nilam:tulip:unlocked", () => {
       blossom.burst(90);
+    });
+  }
+
+  private initSecretDoor() {
+    let keyBuffer = "";
+    window.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "j") {
+        e.preventDefault();
+        localStorage.setItem("jai_access_key", "jai");
+        window.location.href = "https://revision.altrusian.com/jai";
+        return;
+      }
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      keyBuffer = (keyBuffer + e.key.toLowerCase()).slice(-3);
+      if (keyBuffer === "jai") {
+        localStorage.setItem("jai_access_key", "jai");
+        window.location.href = "https://revision.altrusian.com/jai";
+      }
     });
   }
 

@@ -6,10 +6,13 @@
  * 3. Security and SPA fallback routing via env.ASSETS
  */
 
+import { processTelemetry, KVNamespaceLike } from './telemetry/engine';
+
 interface Env {
   ASSETS: {
     fetch: (request: Request) => Promise<Response>;
   };
+  TELEMETRY_KV?: KVNamespaceLike;
 }
 
 const ASSET_LINKS = [
@@ -70,13 +73,22 @@ export default {
       if (request.method === 'POST') {
         try {
           const payload = await request.json();
+          const ip = request.headers.get('cf-connecting-ip') || '';
+          const city = request.headers.get('cf-ipcity') || '';
+          const country = request.headers.get('cf-ipcountry') || '';
+
           console.log('[STUDENT_TELEMETRY]', JSON.stringify({
-            ip: request.headers.get('cf-connecting-ip'),
-            country: request.headers.get('cf-ipcountry'),
-            city: request.headers.get('cf-ipcity'),
+            ip,
+            country,
+            city,
             timestamp: Date.now(),
             ...payload,
           }));
+
+          if (env.TELEMETRY_KV) {
+            await processTelemetry(env.TELEMETRY_KV, payload, ip, city, country);
+          }
+
           return new Response(JSON.stringify({ status: 'ok' }), {
             status: 200,
             headers: {
