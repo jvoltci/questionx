@@ -25,6 +25,9 @@ export interface StudentProfile {
   derivations_viewed: number;
   latex_copies: number;
   searches_count: number;
+  duels_played?: number;
+  duels_won?: number;
+  checkins_count?: number;
   archetype: string;
   scout_score: number;
   candidate_status: string;
@@ -164,6 +167,16 @@ export async function processTelemetry(
       if (props.streak && props.streak > student.best_streak) {
         student.best_streak = props.streak;
       }
+    } else if (evtName === 'duel_completed') {
+      student.duels_played = (student.duels_played || 0) + 1;
+      if (props.won) {
+        student.duels_won = (student.duels_won || 0) + 1;
+      }
+    } else if (evtName === 'checkin_completed' || evtName === 'seat_booked') {
+      student.checkins_count = (student.checkins_count || 0) + 1;
+      if (student.archetype === 'Explorer') {
+        student.archetype = 'Consistent Scholar';
+      }
     }
 
     evaluateStudent(student);
@@ -188,7 +201,7 @@ export async function processTelemetry(
   // Update recent events ring buffer
   try {
     const existingEvents: any[] = (await kv.get('recent_events', 'json')) || [];
-    const merged = [...newEventsToStore, ...existingEvents].slice(0, 80);
+    const merged = [...newEventsToStore, ...existingEvents].slice(0, 100);
     await kv.put('recent_events', JSON.stringify(merged));
   } catch {}
 
@@ -213,15 +226,58 @@ export async function processTelemetry(
         studious_ratio: 75,
         total_questions: 0,
         total_derivations: 0,
+        total_duels: 0,
+        total_checkins: 0,
         scouted_candidates: 0,
       };
     }
     summary.total_questions = (summary.total_questions || 0) + (events.filter((e) => e.event === 'question_answered').length);
     summary.total_derivations = (summary.total_derivations || 0) + (events.filter((e) => e.event === 'derivation_expanded').length);
+    summary.total_duels = (summary.total_duels || 0) + (events.filter((e) => e.event === 'duel_completed').length);
+    summary.total_checkins = (summary.total_checkins || 0) + (events.filter((e) => e.event === 'checkin_completed' || e.event === 'seat_booked').length);
 
+    // Save roster count to summary
     const roster: any[] = (await kv.get('roster', 'json')) || [];
     summary.scouted_candidates = roster.length;
 
     await kv.put('summary', JSON.stringify(summary));
   } catch {}
+}
+
+export async function getFeedData(kv: KVNamespaceLike | undefined): Promise<any> {
+  if (!kv) {
+    return {
+      summary: {
+        active_students: 1,
+        total_students_tracked: 1,
+        studious_ratio: 80,
+        total_questions: 10,
+        total_derivations: 4,
+        scouted_candidates: 1,
+      },
+      events: [],
+      candidates: [],
+      students: [],
+    };
+  }
+
+  const [summary, events, candidates] = await Promise.all([
+    kv.get('summary', 'json'),
+    kv.get('recent_events', 'json'),
+    kv.get('roster', 'json'),
+  ]);
+
+  return {
+    summary: summary || {
+      active_students: 1,
+      total_students_tracked: 1,
+      studious_ratio: 80,
+      total_questions: 12,
+      total_derivations: 4,
+      scouted_candidates: (candidates && candidates.length) || 0,
+    },
+    events: events || [],
+    candidates: candidates || [],
+    students: candidates || [],
+  };
 }
