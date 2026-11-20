@@ -571,6 +571,38 @@ FIXES = [
         # and E is false because NH3 is the Bronsted base, not the acid.
         "statement C truncated at its `<`; stray `$` through D and E",
     ),
+    (
+        "jee",
+        "JEE_Main_2025_Apr02_S1_Chem_12",
+        {
+            "question_latex": (
+                "Given below are two statements :\n\n"
+                "Statement (I) : In octahedral complexes, when "
+                "$$\\Delta_0 < P$$ high spin complexes are formed. When "
+                "$$\\Delta_0 > P$$ low spin complexes are formed.\n\n"
+                "Statement (II) : In tetrahedral complexes because of "
+                "$$\\Delta_t < P$$, low spin complexes are rarely formed.\n\n"
+                "In the light of the above statements, choose the most "
+                "appropriate answer from the options given below :"
+            ),
+        },
+        # Reported: "Question text typo / unclear". The tag stripper treated
+        # "< P$ high spin complexes are formed. When $\Delta_0 >" as one HTML
+        # tag and deleted it, leaving "when $\Delta_0P$ low spin". Statement II
+        # lost everything from its `<`, so it ended at "because of $\Delta$_t".
+        # The same loss is in jee.json.backup.cleanup, so it is upstream.
+        # Verified: examside (the scrape source; its meta description reads
+        # "when Δ₀<P high spin complexes are…"), cracku.in and competishun.com
+        # all quote both statements verbatim as written here. examside lists
+        # the options in the stored order; cracku's answer is option 4 and
+        # competishun's is its own "C" -- both "Both ... are correct".
+        # Check: Δo < P favours unpaired electrons (high spin), Δo > P favours
+        # pairing (low spin), so I is true. Δt is about 4/9 Δo, nearly always
+        # below P, so low-spin tetrahedral complexes are rare: II is true.
+        # Both true = stored answer_key "D"; the stored solution says the same.
+        "statement I's middle and statement II's tail deleted by the scrape's "
+        "HTML tag stripper",
+    ),
 ]
 
 
