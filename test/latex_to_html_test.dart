@@ -96,4 +96,18 @@ void main() {
   });
 
   test('empty input is safe', () => expect(latexToHtml(''), ''));
+
+  test('inequalities are escaped exactly once, so no text is eaten as a tag', () {
+    // Unescaped, the browser read `<x<` as the start of an `<x` tag and
+    // dropped everything to the next `>` (JEE_Adv_2024_P1_Math_16).
+    final out = latexToHtml(r'0<x<\frac{\pi}{2}');
+    expect(out, startsWith('0&lt;x&lt;'));
+    expect(out, contains('class="frac"'));
+    // Recursion into a fraction must not escape a second time.
+    final frac = latexToHtml(r'\frac{a<b}{2}');
+    expect(frac, contains('a&lt;b'));
+    expect(frac, isNot(contains('&amp;lt;')));
+    expect(latexToHtml(r'x_{a<b}'), 'x<sub>a&lt;b</sub>');
+    expect(latexToHtml(r'a\>b'), isNot(contains('&gt;')));
+  });
 }

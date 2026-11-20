@@ -114,15 +114,15 @@ String _overFractions(String s) {
     if (open == -1) {
       final num = out.substring(0, idx).trim();
       final den = out.substring(after).trim();
-      return '<span class="frac"><span class="fnum">${latexToHtml(num)}</span>'
-          '<span class="fden">${latexToHtml(den)}</span></span>';
+      return '<span class="frac"><span class="fnum">${_toHtml(num)}</span>'
+          '<span class="fden">${_toHtml(den)}</span></span>';
     }
     final close = _groupEnd(out, open);
     final num = out.substring(open + 1, idx).trim();
     final den = out.substring(after, close - 1).trim();
     out = '${out.substring(0, open)}'
-        '<span class="frac"><span class="fnum">${latexToHtml(num)}</span>'
-        '<span class="fden">${latexToHtml(den)}</span></span>'
+        '<span class="frac"><span class="fnum">${_toHtml(num)}</span>'
+        '<span class="fden">${_toHtml(den)}</span></span>'
         '${out.substring(close)}';
   }
   return out.replaceAll(skip, r'\over');
@@ -146,8 +146,8 @@ String _fractions(String s) {
     }
     final den = _group(out, after);
     out = '${out.substring(0, m.start)}'
-        '<span class="frac"><span class="fnum">${latexToHtml(num)}</span>'
-        '<span class="fden">${latexToHtml(den)}</span></span>'
+        '<span class="frac"><span class="fnum">${_toHtml(num)}</span>'
+        '<span class="fden">${_toHtml(den)}</span></span>'
         '${out.substring(_groupEnd(out, after))}';
   }
   return out;
@@ -162,7 +162,7 @@ String _scripts(String s) {
       final tag = c == '^' ? 'sup' : 'sub';
       if (s[i + 1] == '{') {
         final inner = _group(s, i + 1);
-        b.write('<$tag>${latexToHtml(inner)}</$tag>');
+        b.write('<$tag>${_toHtml(inner)}</$tag>');
         i = _groupEnd(s, i + 1);
       } else {
         b.write('<$tag>${s[i + 1]}</$tag>');
@@ -177,7 +177,19 @@ String _scripts(String s) {
 }
 
 /// LaTeX -> HTML. Safe to call on a fragment; recurses for nested groups.
-String latexToHtml(String tex) {
+///
+/// Escapes `&`, `<` and `>` once, here, before any markup is emitted. Math is
+/// full of inequalities, and an unescaped `0<x<1` reads to the browser as the
+/// start of an `<x` tag, so everything up to the next `>` vanished from the
+/// export. Recursion goes through [_toHtml] so nothing is escaped twice. `\>`
+/// (a spacing command) is rewritten first so escaping cannot hide it.
+String latexToHtml(String tex) => _toHtml(tex
+    .replaceAll(r'\>', r'\ ')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;'));
+
+String _toHtml(String tex) {
   if (tex.isEmpty) return '';
   var s = tex;
 
@@ -186,7 +198,7 @@ String latexToHtml(String tex) {
     final m = RegExp(r'\\sqrt\s*\{').firstMatch(s);
     if (m == null) break;
     final open = m.end - 1;
-    s = '${s.substring(0, m.start)}√(${latexToHtml(_group(s, open))})'
+    s = '${s.substring(0, m.start)}√(${_toHtml(_group(s, open))})'
         '${s.substring(_groupEnd(s, open))}';
   }
 
