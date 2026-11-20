@@ -438,7 +438,7 @@
       "subject": "Chemistry",
       "count": 4379,
       "file": "data/jee_chemistry.bin.enc",
-      "size": 5413947,
+      "size": 5414911,
       "topics": [
         "Alcohols Phenols And Ethers",
         "Aldehydes Ketones And Carboxylic Acids",
@@ -496,7 +496,7 @@
       "subject": "Mathematics",
       "count": 5266,
       "file": "data/jee_mathematics.bin.enc",
-      "size": 7817975,
+      "size": 7818398,
       "topics": [
         "3d Geometry",
         "Application Of Derivatives",

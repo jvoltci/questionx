@@ -578,10 +578,10 @@ FIXES = [
             "question_latex": (
                 "Given below are two statements :\n\n"
                 "Statement (I) : In octahedral complexes, when "
-                "$$\\Delta_0 < P$$ high spin complexes are formed. When "
-                "$$\\Delta_0 > P$$ low spin complexes are formed.\n\n"
+                "$\\Delta_0 < P$ high spin complexes are formed. When "
+                "$\\Delta_0 > P$ low spin complexes are formed.\n\n"
                 "Statement (II) : In tetrahedral complexes because of "
-                "$$\\Delta_t < P$$, low spin complexes are rarely formed.\n\n"
+                "$\\Delta_t < P$, low spin complexes are rarely formed.\n\n"
                 "In the light of the above statements, choose the most "
                 "appropriate answer from the options given below :"
             ),
@@ -602,6 +602,258 @@ FIXES = [
         # Both true = stored answer_key "D"; the stored solution says the same.
         "statement I's middle and statement II's tail deleted by the scrape's "
         "HTML tag stripper",
+    ),
+    # ---- not user-reported; found 2026-11-20 by scanning jee.json.backup.cleanup
+    # for fields with an odd number of `$`. The stripper usually ate a closing
+    # `$` along with the text, so an odd count marks a cut. Every key below was
+    # already right and is unchanged; only the text was restored. ----
+    (
+        "jee",
+        "JEE_Main_2026_Jan28_S2_Chem_2",
+        {
+            "question_latex": (
+                "The correct order of acidic strength of the major products "
+                "formed in the given reactions, is :\n\n"
+                "A. $$\\mathrm{PhNH}_2 \\xrightarrow[\\substack{\\text { (2) } "
+                "\\mathrm{CuCN} \\\\ \\text { (3) } \\mathrm{H}_3 \\mathrm{O}^{+} "
+                "/ \\Delta}]{\\text { (1) } \\mathrm{NaNO}_2+\\mathrm{HCl}"
+                "\\left(<5^{\\circ} \\mathrm{C}\\right)}[\\mathrm{A}]$$\n\n"
+                "B. $$\\mathrm{CH}_3 \\mathrm{CH}_2 \\mathrm{CHO} "
+                "\\xrightarrow[\\Delta]{\\left[\\mathrm{Ag}\\left(\\mathrm{NH}_3"
+                "\\right)_2\\right]^{+}, \\mathrm{OH}^{-}}[\\mathrm{B}]$$\n\n"
+                "C. $$\\mathrm{CH}_4+\\mathrm{O}_2 \\xrightarrow[\\text { (ii) } "
+                "\\mathrm{Na}_2 \\mathrm{Cr}_2 \\mathrm{O}_7 / \\mathrm{H}^{+}]"
+                "{\\text { (i) } \\mathrm{Mo}_2 \\mathrm{O}_3}[\\mathrm{C}]$$\n\n"
+                "D. $$\\mathrm{PhCH}_2 \\mathrm{MgBr}+\\mathrm{CO}_2 "
+                "\\xrightarrow[\\mathrm{H}_3 \\mathrm{O}^{+}]{\\text { Dry ether }}"
+                "[\\mathrm{D}]$$\n\n"
+                "Choose the correct answer from the options given below :"
+            ),
+        },
+        # Reaction A was cut at the `<` of "(< 5 °C)" and ran into "B.", and the
+        # wrapper scattered stray `$` through B, C and D.
+        # Verified: examside's own rendering of this paper decodes to
+        # "NaNO2+HCl(<5°C)", "[Ag(NH3)2]+,OH-", "Mo2O3"; competishun.com gives
+        # the same four reactions (its OCR garbles the condition).
+        # Check: A gives PhCOOH (pKa 4.20), B propanoic acid (4.87), C HCOOH
+        # (3.75), D PhCH2COOH (4.31). So C > A > D > B = stored key "A",
+        # which is also competishun's answer and what the solution derives.
+        "reaction A cut at the `<` of (< 5 °C); stray `$` through B to D",
+    ),
+    (
+        "jee",
+        "JEE_Main_2026_Apr06_S2_Chem_7",
+        {
+            "question_latex": (
+                "Given below are two statements :\n\n"
+                "Statement I : $\\mathrm{F}_2 \\mathrm{O} < \\mathrm{H}_2 "
+                "\\mathrm{O} < \\mathrm{Cl}_2 \\mathrm{O}$ is the correct trend "
+                "in terms of bond angle.\n\n"
+                "Statement II : $\\mathrm{SiF}_4, \\mathrm{SnF}_4$ and "
+                "$\\mathrm{PbF}_4$ are ionic in nature.\n\n"
+                "In the light of the above statements, choose the correct answer "
+                "from the options given below :"
+            ),
+        },
+        # Parked in bb3bebc for lack of a source. Now found: competishun.com and
+        # cracku.in both quote Statement I verbatim as written here.
+        # Check: bond angles F2O ~103°, H2O 104.5°, Cl2O ~111°, so I is true.
+        # SiF4 is covalent, so II is false. That is "C", the stored key and
+        # competishun's answer.
+        "statement I cut at its first `<`",
+    ),
+    (
+        "jee",
+        "JEE_Main_2026_Jan24_S1_Chem_12",
+        {
+            "question_latex": (
+                "Given below are two statements:\n\n"
+                "Statement I : The number of paramagnetic species among "
+                "$\\left[\\mathrm{CoF}_6\\right]^{3-},\\left[\\mathrm{TiF}_6"
+                "\\right]^{3-}$, $\\mathrm{V}_2 \\mathrm{O}_5$ and "
+                "$\\left[\\mathrm{Fe}(\\mathrm{CN})_6\\right]^{3-}$ is 3 .\n\n"
+                "Statement II : $\\mathrm{K}_4\\left[\\mathrm{Fe}(\\mathrm{CN})_6"
+                "\\right]<\\mathrm{K}_3\\left[\\mathrm{Fe}(\\mathrm{CN})_6\\right]"
+                "<\\left[\\mathrm{Fe}\\left(\\mathrm{H}_2 \\mathrm{O}\\right)_6"
+                "\\right] \\mathrm{SO}_4 \\cdot \\mathrm{H}_2 \\mathrm{O}<\\left["
+                "\\mathrm{Fe}\\left(\\mathrm{H}_2 \\mathrm{O}\\right)_6\\right] "
+                "\\mathrm{Cl}_3$ is the correct order in terms of number of "
+                "unpaired electron(s) present in the complexes.\n\n"
+                "In the light of the above statements, choose the correct answer "
+                "from the options given below"
+            ),
+        },
+        # Statement II was cut after "K4[Fe(CN)6]".
+        # Verified: competishun.com quotes it verbatim, and this record's own
+        # stored solution counts unpaired electrons for exactly these four
+        # complexes in this order.
+        # Check: 0 (low-spin Fe2+ d6) < 1 (low-spin Fe3+ d5) < 4 (high-spin
+        # Fe2+) < 5 (high-spin Fe3+), so II is true. I: CoF6 3- (4),
+        # TiF6 3- (1), Fe(CN)6 3- (1) are paramagnetic, V2O5 (d0) is not: 3,
+        # true. Both true = stored key "D" and competishun's answer.
+        "statement II cut after K4[Fe(CN)6]",
+    ),
+    (
+        "jee",
+        "JEE_Main_2026_Apr02_S2_Chem_9",
+        {
+            "question_latex": (
+                "Given below are two statements :\n\n"
+                "Statement I : Among Zn, Mn, Sc and Cu, the energy required to "
+                "remove the third valence electron is highest for Zn and lowest "
+                "for Sc.\n\n"
+                "Statement II : The correct order of the following complexes in "
+                "terms of CFSE is $\\left[\\mathrm{Co}\\left(\\mathrm{H}_2 "
+                "\\mathrm{O}\\right)_6\\right]^{2+}<\\left[\\mathrm{Co}\\left("
+                "\\mathrm{H}_2 \\mathrm{O}\\right)_6\\right]^{3+}<\\left["
+                "\\mathrm{Co}(\\mathrm{en})_3\\right]^{3+}$.\n\n"
+                "In the light of the above statements, choose the correct answer "
+                "from the options given below :"
+            ),
+        },
+        # Statement II was cut after the first complex.
+        # Verified: competishun.com and exambro.app both quote the order
+        # [Co(H2O)6]2+ < [Co(H2O)6]3+ < [Co(en)3]3+.
+        # Check: CFSE rises with oxidation state and with ligand strength
+        # (en > H2O), so II is true. Third ionization enthalpy is highest for
+        # Zn (from 3d10) and lowest for Sc (leaves the stable [Ar]), so I is
+        # true. Both true = stored key "A" and competishun's answer.
+        "statement II cut after its first complex",
+    ),
+    (
+        "jee",
+        "JEE_Main_2026_Apr05_S2_Chem_10",
+        {
+            "question_latex": (
+                "Given below are two statements :\n\n"
+                "Statement I : Presence of large number of unpaired electrons in "
+                "transition metal atoms results in higher enthalpies of their "
+                "atomisation.\n\n"
+                "Statement II : $\\mathrm{d}_{x y}=\\mathrm{d}_{x z}=\\mathrm{d}"
+                "_{y z}<\\mathrm{d}_{x^2-y^2}=\\mathrm{d}_{z^2}$ and "
+                "$\\mathrm{d}_{x^2-y^2}=\\mathrm{d}_{z^2}<\\mathrm{d}_{x y}="
+                "\\mathrm{d}_{x z}=\\mathrm{d}_{y z}$ are the d-orbital "
+                "splittings in $\\left[\\mathrm{Fe}\\left(\\mathrm{H}_2 \\mathrm{O}"
+                "\\right)_6\\right]^{3+}$ and $\\left[\\mathrm{Ni}(\\mathrm{Cl})_4"
+                "\\right]^{2-}$ complex ions respectively.\n\n"
+                "In the light of the above statements, choose the correct answer "
+                "from the options given below :"
+            ),
+        },
+        # Statement II was cut at its first `<`.
+        # Verified: competishun.com quotes it verbatim. cracku.in carries the
+        # same truncation in its question text, but its solution discusses the
+        # same two complexes and the reversed tetrahedral order.
+        # Check: octahedral t2g below eg, tetrahedral e below t2, so II is
+        # true; I is the NCERT statement. Both correct = stored key "A",
+        # which is examside's key and cracku's conclusion. competishun's quiz
+        # widget marks "both incorrect"; it is the outlier and was not followed.
+        "statement II cut at its first `<`",
+    ),
+    (
+        "jee",
+        "JEE_Main_2026_Apr05_S2_Math_8",
+        {
+            "question_latex": (
+                "Let $y=y(x)$ be the solution of the differential equation "
+                "$(\\tan x)^{1 / 2} \\mathrm{~d} y=\\left(\\sec ^3 x-(\\tan x)"
+                "^{3 / 2} y\\right) \\mathrm{d} x$, $0<x<\\frac{\\pi}{2}$. If "
+                "$y\\left(\\frac{\\pi}{4}\\right)=\\frac{6 \\sqrt{2}}{5}$ and "
+                "$y\\left(\\frac{\\pi}{3}\\right)=\\frac{4}{5} \\alpha$, then "
+                "$\\alpha^4$ is equal to $\\_\\_\\_\\_$ ."
+            ),
+        },
+        # Everything from "0 < x" onward was lost, including both conditions
+        # and the actual question.
+        # Verified: cracku.in quotes it verbatim; examside's listing matches.
+        # Check: IF sec x gives y sec x = 2 tan^(1/2) x + (2/5) tan^(5/2) x + c,
+        # and y(pi/4) = 6 sqrt2/5 gives c = 0. At pi/3, y = (8/5) 3^(1/4)
+        # = (4/5) alpha, so alpha = 2 * 3^(1/4) and alpha^4 = 48 = stored key.
+        "domain, both conditions and the question cut at `0 <`",
+    ),
+    (
+        "jee",
+        "JEE_Main_2026_Apr08_S2_Math_13",
+        {
+            "question_latex": (
+                "Let $\\alpha=3 \\sin ^{-1}\\left(\\frac{6}{11}\\right)$ and "
+                "$\\beta=3 \\cos ^{-1}\\left(\\frac{4}{9}\\right)$, where inverse "
+                "trigonometric functions take only the principal values.\n\n"
+                "Given below are two statements :\n\n"
+                "Statement I : $\\quad \\cos (\\alpha+\\beta)>0$.\n\n"
+                "Statement II : $\\quad \\cos (\\alpha)<0$.\n\n"
+                "In the light of the above statements, choose the correct answer "
+                "from the options given below :"
+            ),
+        },
+        # Statement II was cut at its `<`.
+        # Verified: competishun.com and cracku.in both give "cos(alpha) < 0".
+        # Check: alpha ~ 1.731 rad (in (pi/2, 3pi/4)), so cos alpha < 0: II
+        # true. beta ~ 3.331, alpha + beta ~ 5.062 in (3pi/2, 2pi), so
+        # cos(alpha + beta) > 0: I true. Both true = stored key "A".
+        "statement II cut at its `<`",
+    ),
+    (
+        "jee",
+        "JEE_Main_2026_Jan23_S2_Math_23",
+        {
+            "question_latex": (
+                "Let $\\frac{\\pi}{2}<\\theta<\\pi$ and $\\cot \\theta=-\\frac{1}"
+                "{2 \\sqrt{2}}$. Then the value of\n\n"
+                "$$\\sin \\left(\\frac{15 \\theta}{2}\\right)(\\cos 8 \\theta+"
+                "\\sin 8 \\theta)+\\cos \\left(\\frac{15 \\theta}{2}\\right)"
+                "(\\cos 8 \\theta-\\sin 8 \\theta)$$\n\n"
+                "is equal to :"
+            ),
+        },
+        # The range and the value of cot(theta) were lost at the first `<`.
+        # Verified: competishun.com and cracku.in both quote it verbatim.
+        # Check: the expression is cos(theta/2) - sin(theta/2). With
+        # cos theta = -1/3, cos(theta/2) = 1/sqrt3, sin(theta/2) = sqrt2/sqrt3,
+        # giving (1 - sqrt2)/sqrt3 = stored key "C" and competishun's answer.
+        "range and cot(theta) value cut at the first `<`",
+    ),
+    (
+        "jee",
+        "JEE_Adv_2025_P2_Math_3",
+        {
+            "question_latex": (
+                "For a non-zero complex number $z$, let $\\arg (z)$ denote the "
+                "principal argument of $z$, with $-\\pi<\\arg (z) \\leq \\pi$. "
+                "Let $\\omega$ be the cube root of unity for which "
+                "$0<\\arg (\\omega)<\\pi$. Let\n\n"
+                "$$\\alpha=\\arg \\left(\\sum\\limits_{n=1}^{2025}(-\\omega)^n"
+                "\\right)$$\n\n"
+                "Then the value of $\\frac{3 \\alpha}{\\pi}$ is ________________."
+            ),
+        },
+        # The range of arg and the definition of omega were lost at `<`.
+        # Verified: competishun.com and cracku.in quote it verbatim, matching
+        # the official paper (jeeadv.ac.in p2_english.pdf).
+        # Check: -omega = e^(-i pi/3), six terms sum to 0, 2025 = 6*337 + 3, so
+        # the sum is r + r^2 + r^3 = -1 - i sqrt3, arg -2pi/3, and
+        # 3 alpha/pi = -2 = stored key.
+        "range of arg and the definition of omega cut at `<`",
+    ),
+    (
+        "jee",
+        "JEE_Adv_2024_P1_Math_16",
+        {
+            "question_latex": (
+                "Let $\\frac{\\pi}{2}<x<\\pi$ be such that $\\cot x=\\frac{-5}"
+                "{\\sqrt{11}}$. Then\n\n"
+                "$$\\left(\\sin \\frac{11 x}{2}\\right)(\\sin 6 x-\\cos 6 x)+"
+                "\\left(\\cos \\frac{11 x}{2}\\right)(\\sin 6 x+\\cos 6 x)$$\n\n"
+                "is equal to :"
+            ),
+        },
+        # The range and the value of cot x were lost at the first `<`.
+        # Verified: cracku.in quotes it verbatim; askfilo and collegedunia
+        # index the same stem. The ALLEN key gives (B).
+        # Check: the expression is cos(x/2) + sin(x/2). cos x = -5/6, so
+        # cos(x/2) = 1/(2 sqrt3), sin(x/2) = sqrt11/(2 sqrt3), sum
+        # (sqrt11 + 1)/(2 sqrt3) = stored key "B".
+        "range and cot x value cut at the first `<`",
     ),
 ]
 

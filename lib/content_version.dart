@@ -4,4 +4,4 @@
 // SyncService re-imports from assets whenever this differs from the value it
 // recorded on its last import, so a build shipping corrected questions actually
 // reaches people who already have the app installed.
-const String kBundledContentVersion = '44a28b98323cced0';
+const String kBundledContentVersion = 'e95f84fc06dd7a9d';
